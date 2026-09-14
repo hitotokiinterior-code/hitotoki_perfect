@@ -1985,6 +1985,10 @@ body.panel-open .setting-btn{
   border-color:#fff;
   box-shadow: 0 0 0 2px rgba(255,255,255,0.35);
 }
+.theme-swatch.photo-swatch{
+  background-size:cover;
+  background-position:center;
+}
 
 
 </style>
@@ -2078,7 +2082,8 @@ body.panel-open .setting-btn{
     </div>
     <div class="bg-theme-body" id="bgThemeBody">
       <div class="bg-theme-swatches" id="bgThemeSwatches">
-        <button class="theme-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+        <button class="theme-swatch photo-swatch active" data-photo="true" style="background-image:url('assets/backgrounds/home_default.jpg')" aria-label="デフォルト（写真）"></button>
+        <button class="theme-swatch" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
         <button class="theme-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
         <button class="theme-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
         <button class="theme-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
@@ -3201,8 +3206,11 @@ howToPlayBackBtn.addEventListener('click', () => {
 
 // --- 背景テーマ（⚙→ゲーム→背景）：ミニ将棋にすでに実装されている5色パレットと
 //     同じ色を、ここで選ぶと全ページに反映される（bg-theme.js が各ゲームページで
-//     この保存内容を読み取って適用する） ---
+//     この保存内容を読み取って適用する）。
+//     加えてホーム画面だけ、何も選んでいない「初期状態」では写真をデフォルト背景として使う。
+//     写真はホーム画面専用（pref_bg_gradient には保存しない＝他のゲームページには影響しない） ---
 const BG_STORAGE_KEY = 'pref_bg_gradient';
+const HOME_DEFAULT_BG_IMAGE = 'assets/backgrounds/home_default.jpg';
 const bgThemeToggle = document.getElementById('bgThemeToggle');
 const bgThemeBody = document.getElementById('bgThemeBody');
 const bgThemeArrow = document.getElementById('bgThemeArrow');
@@ -3212,6 +3220,11 @@ function applyBgTheme(grad){
   document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + grad + ')';
 }
 
+function applyHomeDefaultImage(){
+  document.body.style.background =
+    `linear-gradient(rgba(5,5,5,0.5), rgba(5,5,5,0.65)), url('${HOME_DEFAULT_BG_IMAGE}') center / cover no-repeat`;
+}
+
 bgThemeToggle.addEventListener('click', () => {
   const nowOpen = bgThemeBody.classList.toggle('open');
   bgThemeToggle.classList.toggle('bg-open', nowOpen);
@@ -3219,23 +3232,37 @@ bgThemeToggle.addEventListener('click', () => {
 
 bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(sw => {
   sw.addEventListener('click', () => {
+    bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+
+    if(sw.dataset.photo === 'true'){
+      // 写真（デフォルト）を選んだ場合：色テーマの保存値を消して、写真をホーム画面に反映する
+      try{ localStorage.removeItem(BG_STORAGE_KEY); }catch(e){}
+      applyHomeDefaultImage();
+      return;
+    }
+
     const grad = sw.getAttribute('data-grad');
     applyBgTheme(grad);
     try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
-    bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
-    sw.classList.add('active');
   });
 });
 
-// 保存済みのテーマがあれば、開いた瞬間に反映＋該当スウォッチをactiveにしておく
+// 色テーマが保存されていればそれを反映。保存されていなければ、写真をデフォルトとして表示する
 (function initBgTheme(){
   let saved = null;
   try{ saved = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
-  if(!saved) return;
-  applyBgTheme(saved);
-  bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(s => {
-    s.classList.toggle('active', s.getAttribute('data-grad') === saved);
-  });
+  if(saved){
+    applyBgTheme(saved);
+    bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(s => {
+      s.classList.toggle('active', s.getAttribute('data-grad') === saved);
+    });
+  } else {
+    applyHomeDefaultImage();
+    bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(s => {
+      s.classList.toggle('active', s.dataset.photo === 'true');
+    });
+  }
 })();
 
 // GAMES はこの関数スコープの後方で定義されるが、クリック時（初回オープン時）には
