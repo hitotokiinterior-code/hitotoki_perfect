@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>五目並べ — 10×10 連珠盤</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
+
+  :root{
+    --frame-hi: #2a2a2a;
+    --frame-mid: #141414;
+    --frame-low: #030303;
+    --board-bg: #101010;
+    --grid-line: #4a4a4a;
+    --star: #6f6f6f;
+    --ivory-hi: #ffffff;
+    --ivory-mid: #f2efe6;
+    --ivory-low: #b8b3a4;
+    --ebony-hi: #4a4a4a;
+    --ebony-mid: #232323;
+    --ebony-low: #000000;
+    --silver: #cfcfcf;
+    --silver-dim: #6f6f6f;
+    --hairline: rgba(255,255,255,0.14);
+  }
+
+  *{ box-sizing:border-box; }
+  .hidden{ display:none !important; }
+
+  html{ height:100%; overflow:hidden; touch-action: manipulation; }
+
+  .home-btn{
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 100;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    text-decoration:none;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .home-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+
+  .bg-switch-btn{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 100;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .bg-switch-btn:hover{ background: rgba(255,255,255,0.24); border-color:#fff; }
+
+  .bg-switch-panel{
+    position: fixed;
+    top: 52px;
+    right: 14px;
+    z-index: 100;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 10px;
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .bg-swatch{
+    width:22px; height:22px;
+    border-radius:50%;
+    background: var(--sw, #0a0a0a);
+    border: 1px solid rgba(255,255,255,0.35);
+    cursor:pointer;
+    padding:0;
+    transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
+  .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+
+  body{
+    margin:0;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    background:
+      radial-gradient(ellipse at 50% -10%, #1c1c1c 0%, #0a0a0a 55%, #000000 100%);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    color: var(--silver);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .app{
+    width:100%;
+    max-width: 560px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+
+  header{ text-align:center; margin-top:50px; }
+  h1{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size: clamp(1.2rem, 5.5vw, 1.6rem);
+    letter-spacing: 0.06em;
+    margin:0;
+    color:#fff;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.12);
+  }
+  h1 .small{
+    display:block;
+    font-size:0.54rem;
+    letter-spacing:0.36em;
+    font-weight:500;
+    color:var(--silver-dim);
+    margin-top:4px;
+    text-transform: uppercase;
+  }
+
+  /* --- setup screen (mode selection), same borderless style as the other games --- */
+  .setup-screen{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+  }
+  .setup-card{
+    width:100%;
+    max-width: 380px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    margin-top: 20px;
+  }
+  .setup-mode-title{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.1rem;
+    letter-spacing:0.12em;
+    color:#fff;
+  }
+  .setup-section-label{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.2em;
+    color:var(--silver-dim);
+    align-self:flex-start;
+    margin-top:-6px;
+  }
+  .start-btn{
+    width:100%;
+    padding: 12px 16px;
+    font-size:0.8rem;
+    background:#fff;
+    color:#141414;
+    border-color:#fff;
+  }
+  .start-btn:hover{ background:#eee; border-color:#eee; }
+
+  .game-screen{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    width:100%;
+  }
+
+  .mode-toggle-row{ display:flex; gap:8px; }
+  #modeToggleRow{
+    flex-direction: column;
+    width:100%;
+  }
+  #modeToggleRow .mode-toggle-btn{
+    width:100%;
+    padding: 12px 16px;
+    font-size:0.78rem;
+  }
+  .mode-toggle-subrow{
+    display:flex;
+    gap:8px;
+    width:100%;
+  }
+  .mode-toggle-subrow .mode-toggle-btn{
+    width:auto;
+    flex:1;
+  }
+  .mode-toggle-btn{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.66rem;
+    letter-spacing:0.06em;
+    color: var(--silver);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--silver-dim);
+    border-radius:3px;
+    padding: 6px 12px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .mode-toggle-btn.active{ background:#fff; color:#141414; border-color:#fff; }
+
+  .turn-wrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-height:34px;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 5px 18px;
+  }
+  .turn-stone{
+    width:30px; height:30px;
+    border-radius:50%;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5), inset 0 3px 4px rgba(255,255,255,0.5), inset 0 -4px 6px rgba(0,0,0,0.25);
+    transition: background .2s ease;
+  }
+  .turn-stone.white{ background: radial-gradient(circle at 35% 30%, var(--ivory-hi), var(--ivory-mid) 55%, var(--ivory-low)); }
+  .turn-stone.black{ background: radial-gradient(circle at 35% 30%, var(--ebony-hi), var(--ebony-mid) 55%, var(--ebony-low)); box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5), inset 0 3px 4px rgba(255,255,255,0.15), inset 0 -4px 6px rgba(0,0,0,0.6), 0 0 0 1px var(--silver-dim); }
+  .turn-stone.pulse{ animation: pop .3s ease; }
+  @keyframes pop{
+    0%{ transform: scale(0.5); opacity:0.4; }
+    60%{ transform: scale(1.15); }
+    100%{ transform: scale(1); }
+  }
+  .turn-label{
+    font-family:'Kaisei Decol', serif;
+    font-weight:500;
+    font-size:1rem;
+    letter-spacing:0.08em;
+  }
+  .status-text{ font-size:0.7rem; color:var(--silver-dim); letter-spacing:0.06em; margin-top:2px; }
+
+  .board-frame{
+    padding: 10px;
+    background: linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
+    border-radius: 6px;
+    box-shadow:
+      0 18px 36px rgba(0,0,0,0.65),
+      inset 0 1px 0 rgba(255,255,255,0.14),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+  }
+
+  .board{
+    position:relative;
+    width: min(420px, 84vw);
+    height: min(420px, 84vw);
+    background: var(--board-bg);
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6);
+    box-sizing: border-box;
+    padding: 18px;
+    overflow:hidden;
+  }
+  .grid-lines{
+    position:absolute;
+    inset: 18px;
+    pointer-events:none;
+  }
+  .grid-line-h{
+    position:absolute;
+    left:0; width:100%; height:1px;
+    background: var(--grid-line);
+  }
+  .grid-line-v{
+    position:absolute;
+    top:0; height:100%; width:1px;
+    background: var(--grid-line);
+  }
+  .points-layer{
+    position:absolute;
+    inset: 18px;
+  }
+  .point{
+    position:absolute;
+    width: calc(100% / 9);
+    height: calc(100% / 9);
+    transform: translate(-50%,-50%);
+    cursor:pointer;
+  }
+  .point .star{
+    position:absolute;
+    top:50%; left:50%;
+    width:6px; height:6px;
+    border-radius:50%;
+    background: var(--star);
+    transform: translate(-50%,-50%);
+  }
+  .point .hover-dot{
+    position:absolute;
+    top:50%; left:50%;
+    width:60%; height:60%;
+    border-radius:50%;
+    background: rgba(255,255,255,0.16);
+    transform: translate(-50%,-50%);
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .1s ease;
+  }
+  .point:hover .hover-dot{ opacity:1; }
+  .point.occupied:hover .hover-dot{ opacity:0; }
+
+  .stone{
+    position:absolute;
+    top:50%; left:50%;
+    width:82%; height:82%;
+    border-radius:50%;
+    transform: translate(-50%,-50%) scale(0.3);
+    animation: place .18s ease forwards;
+    pointer-events:none;
+    z-index:1;
+  }
+  .stone.white{
+    background: radial-gradient(circle at 35% 28%, var(--ivory-hi), var(--ivory-mid) 55%, var(--ivory-low));
+    box-shadow: 0 2px 0 rgba(0,0,0,0.4), 0 4px 6px rgba(0,0,0,0.5), inset 0 3px 4px rgba(255,255,255,0.7), inset 0 -3px 5px rgba(0,0,0,0.15);
+  }
+  .stone.black{
+    background: radial-gradient(circle at 35% 28%, var(--ebony-hi), var(--ebony-mid) 55%, var(--ebony-low));
+    box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.6), inset 0 3px 4px rgba(255,255,255,0.16), inset 0 -3px 5px rgba(0,0,0,0.5), 0 0 0 1px var(--silver-dim);
+  }
+  .stone.win{ animation: place .18s ease forwards, glow 1.1s ease-in-out .2s infinite; }
+  @keyframes place{
+    to{ transform: translate(-50%,-50%) scale(1); }
+  }
+  @keyframes glow{
+    0%,100%{ box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
+    50%{ box-shadow: 0 0 12px 5px rgba(255,255,255,0.65); }
+  }
+
+  .controls{ display:flex; gap:12px; margin-top:0; }
+  button.main-btn{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.76rem;
+    letter-spacing:0.1em;
+    color:#fff;
+    background: transparent;
+    border: 1px solid var(--silver-dim);
+    border-radius:2px;
+    padding: 10px 20px;
+    cursor:pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  button.main-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+  button.main-btn:active{ transform: translateY(1px); }
+  button:focus-visible{ outline: 1px solid #fff; outline-offset: 3px; }
+
+  .rules{
+    width:100%;
+    max-width: 460px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-size:0.76rem;
+    line-height:1.8;
+    color:#cfcfcf;
+    display:none;
+  }
+  .rules.open{ display:block; }
+  .rules h2{
+    font-family:'Kaisei Decol', serif;
+    font-weight:500;
+    font-size:0.9rem;
+    margin: 0 0 8px;
+    color:#fff;
+    letter-spacing: 0.05em;
+  }
+  .rules ul{ margin:4px 0; padding-left:1.1em; }
+
+  .winner-overlay{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,0.82);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:20;
+    padding: 20px;
+  }
+  .winner-overlay.show{ display:flex; }
+  .winner-card{
+    background: linear-gradient(180deg, #161616, #050505);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 32px 34px;
+    text-align:center;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    max-width: 300px;
+  }
+  .winner-card .big{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.3rem;
+    color:#fff;
+    margin-bottom:10px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    letter-spacing: 0.04em;
+  }
+  .winner-card p{ color:var(--silver-dim); font-size:0.8rem; margin: 0 0 20px; letter-spacing:0.04em; }
+
+  /* --- modal overlay (confirm), same as the other games --- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background: rgba(0,0,0,0.62);
+    backdrop-filter: blur(2px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 20px;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-box{
+    position:relative;
+    width:100%;
+    max-width: 360px;
+    background: linear-gradient(160deg, #202020, #141414 45%, #030303);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 24px 22px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.65);
+    animation: modalPop 0.22s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes modalPop{
+    0%{ transform: scale(0.85); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
+  }
+  .confirm-box{ text-align:center; }
+  .confirm-text{
+    font-family:'Kaisei Decol', serif;
+    font-size:0.95rem;
+    color:#fff;
+    letter-spacing:0.04em;
+    line-height:1.7;
+    margin-bottom:20px;
+  }
+  .confirm-actions{ display:flex; gap:10px; }
+  .confirm-actions .main-btn{ flex:1; padding:11px 10px; }
+  .confirm-ok{ background:#fff; color:#141414; border-color:#fff; }
+  .confirm-ok:hover{ background:#eee; border-color:#eee; }
+</style>
+</head>
+<body>
+<button type="button" class="home-btn" id="homeBtn" aria-label="ホームへ戻る">← ホーム</button>
+<button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
+<div id="bgSwitchPanel" class="bg-switch-panel hidden">
+  <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+  <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
+  <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
+  <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
+  <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
+</div>
+
+<div class="app">
+
+  <header>
+    <h1>五目並べ<span class="small">GOMOKU · 10 × 10</span></h1>
+  </header>
+
+  <div id="setupScreen" class="setup-screen">
+    <div class="setup-card">
+      <div class="setup-mode-title">対戦モード</div>
+      <div class="setup-section-label">対戦相手を選ぶ</div>
+      <div class="mode-toggle-row" id="modeToggleRow">
+        <button class="mode-toggle-btn active" id="modeTwoPlayerBtn">2人対戦</button>
+        <div class="mode-toggle-subrow">
+          <button class="mode-toggle-btn" id="modeCPUBtn">CPU対戦</button>
+          <button class="mode-toggle-btn" id="modeCPUMasterBtn">達人CPU</button>
+        </div>
+      </div>
+      <div class="mode-toggle-row hidden" id="sideToggleRow">
+        <button class="mode-toggle-btn active" id="sideWhiteBtn">先行で対戦</button>
+        <button class="mode-toggle-btn" id="sideBlackBtn">後攻で対戦</button>
+      </div>
+      <button id="startGameBtn" class="main-btn start-btn">はじめる</button>
+      <button id="rulesBtn" class="main-btn">遊び方</button>
+    </div>
+
+    <div id="rules" class="rules">
+      <h2>遊び方</h2>
+      <ul>
+        <li>10×10の盤に、白と黒が交互に石を置いていきます</li>
+        <li>縦・横・斜め、いずれかの向きで5つ以上石を並べたら勝利です</li>
+        <li>一度置いた石は動かせません</li>
+        <li>全マスが埋まって誰も揃わなければ引き分けです</li>
+        <li>「CPU対戦」を選ぶと黒をCPUが担当します。1人でも遊べます</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="game-screen hidden">
+
+    <div class="turn-wrap">
+      <div id="turnStone" class="turn-stone white"></div>
+      <div>
+        <div id="turnLabel" class="turn-label">白 の番</div>
+        <div id="statusText" class="status-text">マスを選んで石を置いてください</div>
+      </div>
+    </div>
+
+    <div class="board-frame">
+      <div id="board" class="board"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="winnerOverlay" class="winner-overlay">
+  <div class="winner-card">
+    <div id="winnerText" class="big">白の勝ち！</div>
+    <p id="winnerSub">5つ並びました</p>
+    <button id="againBtn" class="main-btn">次の対局へ</button>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="modal-box confirm-box">
+    <div class="confirm-text">このゲームは終了しますか？</div>
+    <div class="confirm-actions">
+      <button id="confirmCancelBtn" class="main-btn">キャンセル</button>
+      <button id="confirmOkBtn" class="main-btn confirm-ok">終了する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SIZE = 10;
+  const WIN_LEN = 5;
+  const STAR_POINTS = [[2,2],[2,7],[7,2],[7,7]];
+
+  let grid, turn, gameOver, filledCount;
+  let gameStartedAt = null;
+  let vsCPU = false;
+  let cpuDifficulty = 'normal';
+  let humanSide = 'white';
+  const DIRS4 = [[0,1],[1,0],[1,1],[1,-1]];
+
+  function opponentOf(player){ return player === 'white' ? 'black' : 'white'; }
+  function cpuSide(){ return vsCPU ? opponentOf(humanSide) : null; }
+
+  function wouldWin(r, c, player){
+    grid[r][c] = player;
+    const result = checkWin(r, c, player);
+    grid[r][c] = null;
+    return !!result;
+  }
+
+  function generateCandidates(){
+    const seen = new Set();
+    const list = [];
+    let anyStone = false;
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        if(!grid[r][c]) continue;
+        anyStone = true;
+        for(let dr=-2; dr<=2; dr++){
+          for(let dc=-2; dc<=2; dc++){
+            const nr=r+dr, nc=c+dc;
+            if(nr<0||nr>=SIZE||nc<0||nc>=SIZE) continue;
+            if(grid[nr][nc]) continue;
+            const key = nr+'_'+nc;
+            if(!seen.has(key)){ seen.add(key); list.push([nr,nc]); }
+          }
+        }
+      }
+    }
+    if(!anyStone){
+      const mid = Math.floor(SIZE/2);
+      return [[mid, mid]];
+    }
+    return list;
+  }
+
+  function evaluateDirectionScore(r, c, dr, dc, player){
+    let nr = r+dr, nc = c+dc, fwd = 0;
+    while(nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && grid[nr][nc] === player){ fwd++; nr+=dr; nc+=dc; }
+    const fwdOpen = nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && grid[nr][nc] === null;
+
+    let pr = r-dr, pc = c-dc, back = 0;
+    while(pr>=0 && pr<SIZE && pc>=0 && pc<SIZE && grid[pr][pc] === player){ back++; pr-=dr; pc-=dc; }
+    const backOpen = pr>=0 && pr<SIZE && pc>=0 && pc<SIZE && grid[pr][pc] === null;
+
+    const count = 1 + fwd + back;
+    const openEnds = (fwdOpen?1:0) + (backOpen?1:0);
+    const needed = WIN_LEN - count; // 勝利まであと何個必要か（0以下＝揃った）
+
+    if(needed <= 0) return 1000000;
+    if(needed === 1) return openEnds === 2 ? 500000 : (openEnds === 1 ? 10000 : 0);
+    if(needed === 2) return openEnds === 2 ? 5000 : (openEnds === 1 ? 200 : 0);
+    if(needed === 3) return openEnds === 2 ? 100 : (openEnds === 1 ? 15 : 0);
+    return openEnds === 2 ? 5 : 1;
+  }
+
+  function evaluatePlacement(r, c, player){
+    let total = 0;
+    for(const [dr,dc] of DIRS4){ total += evaluateDirectionScore(r, c, dr, dc, player); }
+    return total;
+  }
+
+  function forcingThreatCount(r, c, player){
+    let count = 0;
+    for(const [dr,dc] of DIRS4){
+      if(evaluateDirectionScore(r, c, dr, dc, player) >= 5000) count++;
+    }
+    return count;
+  }
+
+  function scoreMove(r, c){
+    const offense = evaluatePlacement(r, c, cpuSide());
+    const defense = evaluatePlacement(r, c, humanSide);
+    return offense + defense * 0.9;
+  }
+
+  function cpuChooseMove(){
+    const candidates = generateCandidates();
+
+    for(const [r,c] of candidates){
+      if(wouldWin(r, c, cpuSide())) return [r,c];
+    }
+    for(const [r,c] of candidates){
+      if(wouldWin(r, c, humanSide)) return [r,c];
+    }
+
+    if(cpuDifficulty === 'master'){
+      // 自分が一手で二重脅威(ダブルスリー・ダブルフォーなど)を作れるなら、ほぼ勝ち確定なので即実行
+      for(const [r,c] of candidates){
+        if(forcingThreatCount(r, c, cpuSide()) >= 2) return [r,c];
+      }
+      // 相手が次に二重脅威を作れる急所があれば、先に埋めて封じる
+      for(const [r,c] of candidates){
+        if(forcingThreatCount(r, c, humanSide) >= 2) return [r,c];
+      }
+    }
+
+    const scored = candidates.map(([r,c]) => ({ r, c, score: scoreMove(r,c) }));
+    scored.sort((a,b) => b.score - a.score);
+
+    if(cpuDifficulty !== 'master' || scored.length <= 1){
+      return [scored[0].r, scored[0].c];
+    }
+
+    const topN = scored.slice(0, Math.min(10, scored.length));
+    let best = topN[0], bestNet = -Infinity;
+    for(const cand of topN){
+      grid[cand.r][cand.c] = cpuSide();
+
+      const oppCandidates = generateCandidates();
+      const oppScored = oppCandidates.map(([r2,c2]) => ({ r:r2, c:c2, score: scoreMove2(r2,c2) }));
+      oppScored.sort((a,b) => b.score - a.score);
+      const oppTop = oppScored.slice(0, Math.min(5, oppScored.length));
+
+      let worstForUs = Infinity;
+      for(const opp of oppTop){
+        grid[opp.r][opp.c] = humanSide;
+        const ourCandidates2 = generateCandidates();
+        let ourBest2 = 0;
+        for(const [r3,c3] of ourCandidates2){
+          const s3 = scoreMove(r3, c3);
+          if(s3 > ourBest2) ourBest2 = s3;
+        }
+        grid[opp.r][opp.c] = null;
+        const netForThisOpp = cand.score - opp.score * 0.9 + ourBest2 * 0.5;
+        if(netForThisOpp < worstForUs) worstForUs = netForThisOpp;
+      }
+
+      grid[cand.r][cand.c] = null;
+      if(worstForUs > bestNet){ bestNet = worstForUs; best = cand; }
+    }
+    return [best.r, best.c];
+  }
+
+  function scoreMove2(r, c){
+    const offense = evaluatePlacement(r, c, humanSide);
+    const defense = evaluatePlacement(r, c, cpuSide());
+    return offense + defense * 0.9;
+  }
+
+  function cpuTakeTurn(){
+    if(gameOver || !vsCPU || turn !== cpuSide()) return;
+    const [r,c] = cpuChooseMove();
+    placeStone(r,c);
+  }
+
+  function resetAll(){
+    grid = Array.from({length:SIZE}, () => Array(SIZE).fill(null));
+    turn = 'white';
+    gameOver = false;
+    filledCount = 0;
+    gameStartedAt = Date.now();
+    document.getElementById('winnerOverlay').classList.remove('show');
+    renderBoard();
+    updateTurnUI(false);
+  }
+
+  function renderBoard(){
+    const boardEl = document.getElementById('board');
+    boardEl.innerHTML = '';
+
+    const gridLines = document.createElement('div');
+    gridLines.className = 'grid-lines';
+    for(let i=0;i<SIZE;i++){
+      const pct = (i / (SIZE - 1)) * 100;
+      const hLine = document.createElement('div');
+      hLine.className = 'grid-line-h';
+      hLine.style.top = pct + '%';
+      gridLines.appendChild(hLine);
+      const vLine = document.createElement('div');
+      vLine.className = 'grid-line-v';
+      vLine.style.left = pct + '%';
+      gridLines.appendChild(vLine);
+    }
+    boardEl.appendChild(gridLines);
+
+    const pointsLayer = document.createElement('div');
+    pointsLayer.className = 'points-layer';
+    pointsLayer.id = 'pointsLayer';
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        const point = document.createElement('div');
+        point.className = 'point';
+        point.style.left = ((c / (SIZE - 1)) * 100) + '%';
+        point.style.top = ((r / (SIZE - 1)) * 100) + '%';
+        if(STAR_POINTS.some(([sr,sc]) => sr===r && sc===c)){
+          const star = document.createElement('div');
+          star.className = 'star';
+          point.appendChild(star);
+        }
+        const hoverDot = document.createElement('div');
+        hoverDot.className = 'hover-dot';
+        point.appendChild(hoverDot);
+        point.addEventListener('click', () => {
+          if(vsCPU && turn === cpuSide()) return;
+          placeStone(r,c);
+        });
+        pointsLayer.appendChild(point);
+      }
+    }
+    boardEl.appendChild(pointsLayer);
+  }
+
+  function updateTurnUI(pulse){
+    const stone = document.getElementById('turnStone');
+    const label = document.getElementById('turnLabel');
+    stone.className = 'turn-stone ' + turn + (pulse ? ' pulse' : '');
+    if(pulse){ void stone.offsetWidth; stone.classList.add('pulse'); }
+    label.textContent = (turn === 'white' ? '白' : '黒') + ' の番';
+    const isCpuTurn = vsCPU && turn === cpuSide();
+    if(gameOver){
+      document.getElementById('statusText').textContent = '対局終了';
+    } else if(isCpuTurn){
+      document.getElementById('statusText').textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'が考え中…';
+    } else {
+      document.getElementById('statusText').textContent = 'マスを選んで石を置いてください';
+    }
+
+    if(!gameOver && isCpuTurn){
+      setTimeout(cpuTakeTurn, 500);
+    }
+  }
+
+  function placeStone(r,c){
+    if(gameOver || grid[r][c]) return;
+    grid[r][c] = turn;
+    filledCount++;
+
+    const points = document.getElementById('pointsLayer').children;
+    const point = points[r * SIZE + c];
+    point.classList.add('occupied');
+    const stoneEl = document.createElement('div');
+    stoneEl.className = 'stone ' + turn;
+    point.appendChild(stoneEl);
+
+    const win = checkWin(r,c,turn);
+    if(win){
+      win.forEach(([wr,wc]) => {
+        const p = points[wr * SIZE + wc];
+        const s = p.querySelector('.stone');
+        if(s) s.classList.add('win');
+      });
+      gameOver = true;
+      showWinner(turn, false);
+      updateTurnUI(false);
+      return;
+    }
+
+    if(filledCount >= SIZE*SIZE){
+      gameOver = true;
+      showWinner(null, true);
+      updateTurnUI(false);
+      return;
+    }
+
+    turn = turn === 'white' ? 'black' : 'white';
+    updateTurnUI(true);
+  }
+
+  function checkWin(r, c, player){
+    const dirs = [
+      [[0,1],[0,-1]],
+      [[1,0],[-1,0]],
+      [[1,1],[-1,-1]],
+      [[1,-1],[-1,1]],
+    ];
+    for(const pair of dirs){
+      let line = [[r,c]];
+      for(const [dr,dc] of pair){
+        let nr=r+dr, nc=c+dc;
+        while(nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && grid[nr][nc] === player){
+          line.push([nr,nc]);
+          nr+=dr; nc+=dc;
+        }
+      }
+      if(line.length >= WIN_LEN) return line;
+    }
+    return null;
+  }
+
+  function showWinner(winner, draw){
+    const overlay = document.getElementById('winnerOverlay');
+    const text = document.getElementById('winnerText');
+    const sub = document.getElementById('winnerSub');
+    if(draw){
+      text.textContent = '引き分け';
+      sub.textContent = '盤面が埋まりました';
+    } else {
+      const dotColor = winner === 'white' ? 'var(--ivory-mid)' : 'var(--ebony-mid)';
+      text.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:' + dotColor + ';box-shadow:0 0 0 1px var(--silver-dim);"></span>' + (winner === 'white' ? '白' : '黒') + 'の勝ち！';
+      sub.textContent = WIN_LEN + 'つ並びました';
+    }
+    overlay.classList.add('show');
+
+    if(window.hitotokiStats){
+      window.hitotokiStats.recordGameEnd('gomoku', '五目並べ', {
+        vsCPU: vsCPU,
+        won: vsCPU && !draw ? (winner === humanSide) : undefined,
+        durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
+      });
+    }
+  }
+
+  // --- setup screen: pick the mode, commit with はじめる ---
+  let setupVsCPU = false;
+  let setupCpuDifficulty = 'normal';
+  let setupHumanSide = 'white';
+
+  function updateSetupUI(){
+    document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !setupVsCPU);
+    document.getElementById('modeCPUBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'normal');
+    document.getElementById('modeCPUMasterBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'master');
+    document.getElementById('sideToggleRow').classList.toggle('hidden', !setupVsCPU);
+    document.getElementById('sideWhiteBtn').classList.toggle('active', setupHumanSide === 'white');
+    document.getElementById('sideBlackBtn').classList.toggle('active', setupHumanSide === 'black');
+  }
+
+  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => {
+    setupVsCPU = false;
+    setupCpuDifficulty = 'normal';
+    updateSetupUI();
+  });
+  document.getElementById('modeCPUBtn').addEventListener('click', () => {
+    setupVsCPU = true;
+    setupCpuDifficulty = 'normal';
+    updateSetupUI();
+  });
+  document.getElementById('modeCPUMasterBtn').addEventListener('click', () => {
+    setupVsCPU = true;
+    setupCpuDifficulty = 'master';
+    updateSetupUI();
+  });
+  document.getElementById('sideWhiteBtn').addEventListener('click', () => {
+    setupHumanSide = 'white';
+    updateSetupUI();
+  });
+  document.getElementById('sideBlackBtn').addEventListener('click', () => {
+    setupHumanSide = 'black';
+    updateSetupUI();
+  });
+
+  function openSetupScreen(){
+    setupVsCPU = vsCPU;
+    setupCpuDifficulty = cpuDifficulty;
+    setupHumanSide = humanSide;
+    updateSetupUI();
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    document.getElementById('bgSwitchBtn').classList.remove('hidden');
+  }
+
+  document.getElementById('startGameBtn').addEventListener('click', () => {
+    vsCPU = setupVsCPU;
+    cpuDifficulty = setupCpuDifficulty;
+    humanSide = setupHumanSide;
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+    document.getElementById('bgSwitchBtn').classList.add('hidden');
+    document.getElementById('bgSwitchPanel').classList.add('hidden');
+    resetAll();
+  });
+
+  // --- confirm-before-interrupting-the-game modal, shared by はじめから／モード変更／ホーム ---
+  const confirmModal = document.getElementById('confirmModal');
+  let pendingConfirmAction = null;
+
+  function hasProgress(){
+    return !gameOver && filledCount > 0;
+  }
+
+  function runOrConfirm(action){
+    if(hasProgress()){
+      pendingConfirmAction = action;
+      confirmModal.classList.remove('hidden');
+    } else {
+      action();
+    }
+  }
+
+  document.getElementById('confirmOkBtn').addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    const action = pendingConfirmAction;
+    pendingConfirmAction = null;
+    if(action) action();
+  });
+  document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    pendingConfirmAction = null;
+  });
+  confirmModal.addEventListener('click', (e) => {
+    if(e.target === confirmModal){ confirmModal.classList.add('hidden'); pendingConfirmAction = null; }
+  });
+
+  document.getElementById('againBtn').addEventListener('click', resetAll);
+  document.getElementById('rulesBtn').addEventListener('click', () => {
+    document.getElementById('rules').classList.toggle('open');
+  });
+
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    const onSetupScreen = !document.getElementById('setupScreen').classList.contains('hidden');
+    if(onSetupScreen){
+      window.location.href = 'index.html';
+      return;
+    }
+    runOrConfirm(openSetupScreen);
+  });
+
+  // --- user-selectable background color switch ---
+  // ホーム画面（⚙→ゲーム→背景）と同じ localStorage キーを共有し、
+  // どちらで選んでも全ページに反映されるようにしている
+  (function(){
+    const BG_STORAGE_KEY = 'pref_bg_gradient';
+    const btn = document.getElementById('bgSwitchBtn');
+    const panel = document.getElementById('bgSwitchPanel');
+    const swatches = document.querySelectorAll('.bg-swatch[data-grad]');
+
+    function applyBg(gradStops){
+      document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+    }
+
+    function setActiveSwatch(gradStops){
+      swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-grad') === gradStops));
+    }
+
+    let savedGrad = null;
+    try{ savedGrad = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
+    if(savedGrad){
+      applyBg(savedGrad);
+      setActiveSwatch(savedGrad);
+    }
+
+    btn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+
+    swatches.forEach(sw => {
+      sw.addEventListener('click', () => {
+        const grad = sw.getAttribute('data-grad');
+        applyBg(grad);
+        setActiveSwatch(grad);
+        try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
+        panel.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if(!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn){
+        panel.classList.add('hidden');
+      }
+    });
+  })();
+
+  // モード選択画面のどのボタンを最初に押しても、その瞬間にBGMが鳴り始めるようにする
+  ['modeTwoPlayerBtn','modeCPUBtn','modeCPUMasterBtn','sideWhiteBtn','sideBlackBtn','startGameBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('click', () => { if(window.hitotokiBGM) window.hitotokiBGM.play(); });
+  });
+})();
+</script>
+<script src="timer-watcher.js"></script>
+<script src="bgm-player.js?v=2"></script>
+<script src="stats-tracker.js"></script>
+</body>
+</html>

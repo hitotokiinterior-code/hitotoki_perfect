@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ウサギと猟犬 | hitotoki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050505;
+    --ink:#ffffff;
+    --ink-dim:#ffffffb3;
+    --white:#ffffff;
+    --line:#3a3a3a;
+    --glow:0 0 10px rgba(255,255,255,.85), 0 0 22px rgba(255,255,255,.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    background:var(--bg); color:var(--ink);
+    overflow:hidden; overscroll-behavior:none; touch-action:none;
+    font-family:'Shippori Mincho','Noto Serif JP',serif;
+  }
+  #app{position:fixed; inset:0; display:flex; flex-direction:column;}
+  .screen{
+    position:absolute; inset:0; display:none; flex-direction:column;
+    align-items:center; justify-content:center;
+  }
+  .screen.active{display:flex;}
+
+  /* ---------- HOME ---------- */
+  #screen-home .title{
+    font-size:30px; letter-spacing:.14em; font-weight:700; color:var(--ink);
+    text-align:center; line-height:1.7;
+  }
+  #screen-home .sub{
+    margin-top:6px; font-size:12px; letter-spacing:.3em; color:var(--ink-dim);
+  }
+  .rule-line{
+    width:64px; height:1px; background:var(--ink-dim); margin:22px 0;
+  }
+  .btn{
+    font-family:inherit; font-size:15px; letter-spacing:.18em;
+    background:rgba(255,255,255,0.08); color:var(--ink);
+    border:0.6px solid #8a8a8a; padding:9.5px 34px;
+    cursor:pointer; border-radius:4px;
+  }
+  .btn.solid{ background:var(--white); color:#000; border-color:var(--white); font-weight:700; }
+  .btn:active{ opacity:.6; }
+
+  /* ---------- HOME BUTTON (icon) ---------- */
+  .home-btn{
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 100;
+    font-family:'Shippori Mincho','Noto Serif JP',serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .home-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+
+  .hidden{ display:none !important; }
+
+  .bg-switch-btn{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 100;
+    font-family:'Shippori Mincho','Noto Serif JP',serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .bg-switch-btn:hover{ background: rgba(255,255,255,0.24); border-color:#fff; }
+
+  .bg-switch-panel{
+    position: fixed;
+    top: 52px;
+    right: 14px;
+    z-index: 100;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 10px;
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .bg-swatch{
+    width:22px; height:22px;
+    border-radius:50%;
+    background: var(--sw, #0a0a0a);
+    border: 1px solid rgba(255,255,255,0.35);
+    cursor:pointer;
+    padding:0;
+    transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
+  .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+
+  .sennichite-badge{
+    font-family:'Shippori Mincho','Noto Serif JP',serif;
+    font-weight:700;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    text-align:center;
+    line-height:1.6;
+    margin-top:20px;
+    display:none;
+  }
+  .sennichite-badge.show{ display:block; }
+
+  /* ---------- MODE SELECT ---------- */
+  #screen-mode{padding:78px 22px 0; justify-content:flex-start;}
+  .mode-title{font-size:18px; letter-spacing:.2em; margin-bottom:26px; font-weight:700;}
+  .section-label{font-size:11px; letter-spacing:.25em; color:var(--ink-dim); margin-bottom:8px; align-self:flex-start;}
+  .pair-row{display:flex; gap:10px; width:100%; max-width:320px; margin-bottom:22px;}
+  .opt-card{
+    flex:1; text-align:center; padding:11.5px 4px; border:0.6px solid #8a8a8a;
+    font-size:13px; letter-spacing:.12em; cursor:pointer; color:var(--ink-dim);
+    border-radius:4px; background:rgba(255,255,255,0.08);
+  }
+  .opt-card.selected{ background:var(--white); color:#000; border-color:var(--white); font-weight:700; }
+  .mode-wrap{display:flex; flex-direction:column; align-items:center; width:100%; max-width:320px;}
+  #role-block{width:100%;}
+  .rules{
+    width:100%; max-width:320px; margin-top:12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    border-radius:6px;
+    padding: 14px 16px;
+    font-size:12px; line-height:1.8; color: var(--ink-dim);
+    display:none; max-height:200px; overflow-y:auto;
+  }
+  .rules.open{ display:block; }
+  .rules h2{ font-size:14px; margin:0 0 8px; color:var(--ink); letter-spacing:.08em; font-weight:700; }
+  .rules ul{ margin:4px 0; padding-left:1.1em; }
+  .rules li{ margin-bottom:6px; }
+  .rules b{ color:var(--ink); }
+
+  /* ---------- GAME ---------- */
+  #screen-game{
+    padding-top:68px;
+    justify-content:flex-start;
+    background-image: linear-gradient(rgba(0,0,0,.52), rgba(0,0,0,.58)), url("assets/images/rabbit_and_hounds_bg.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  .turnbar{
+    display:flex; gap:14px; align-items:center; justify-content:center;
+    margin-bottom:6px;
+  }
+  .turn-chip{
+    display:flex; align-items:center; gap:6px; padding:6px 14px;
+    border:1px solid var(--line); font-size:12px; letter-spacing:.1em; color:var(--ink-dim);
+    transition:box-shadow .25s, color .25s, border-color .25s;
+  }
+  .turn-chip .dot{width:9px; height:9px; border-radius:50%; background:var(--white); display:inline-block;}
+  .turn-chip .ring{width:9px; height:9px; border-radius:50%; background:#000; border:2px solid var(--white); display:inline-block;}
+  .turn-chip.active{ color:var(--ink); border-color:var(--ink); box-shadow:var(--glow); }
+
+  .turn-label{
+    font-size:18px; letter-spacing:.16em; font-weight:700; color:var(--ink);
+    text-align:center; margin-top:12px; margin-bottom:2px;
+  }
+
+  #board-wrap{
+    flex:1; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding:4px 10px; margin-top:34px;
+  }
+  #board-svg{ width:100%; max-width:440px; height:auto; }
+  .edge{ stroke:var(--line); stroke-width:2.5; }
+  .node-bg{ fill:#0a0a0a; stroke:var(--line); stroke-width:1.5; }
+  .node-hit{ fill:transparent; }
+  .legal-mark{ fill:none; stroke:var(--white); stroke-width:2; filter:drop-shadow(0 0 5px rgba(255,255,255,.9)); }
+  .piece-hare{ filter:drop-shadow(0 0 6px rgba(255,255,255,.85)); }
+  .piece-hound{ filter:drop-shadow(0 0 5px rgba(255,255,255,.7)); }
+  .piece-hound.selected, .piece-hare.selected{ filter:drop-shadow(0 0 12px rgba(255,255,255,1)); }
+
+  .status-line{ font-size:11px; letter-spacing:.15em; color:var(--ink-dim); margin-top:2px; height:16px; text-align:center;}
+
+  #ad-space{ width:100%; flex:0 0 12%; background:transparent; }
+
+  /* ---------- RESULT OVERLAY ---------- */
+  #screen-result{
+    position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.86); z-index:30; flex-direction:column;
+  }
+  #screen-result.active{display:flex;}
+  .result-text{ font-size:22px; letter-spacing:.16em; font-weight:700; margin-bottom:26px; text-align:center;}
+  .result-btns{ display:flex; flex-direction:column; gap:10px; align-items:center;}
+</style>
+</head>
+<body>
+<button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
+<div id="bgSwitchPanel" class="bg-switch-panel hidden">
+  <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+  <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
+  <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
+  <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
+  <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
+</div>
+<div id="app">
+
+  <!-- MODE SELECT -->
+  <div class="screen active" id="screen-mode">
+    <a class="home-btn" id="home-btn-mode" href="index.html">← ホーム</a>
+    <div class="mode-title">対戦モード</div>
+    <div class="mode-wrap">
+      <div class="section-label">モードを選ぶ</div>
+      <div class="pair-row" id="mode-pair">
+        <div class="opt-card selected" data-mode="pvp">2人対戦</div>
+        <div class="opt-card" data-mode="cpu">CPU対戦</div>
+        <div class="opt-card" data-mode="master">達人CPU</div>
+      </div>
+
+      <div id="role-block">
+        <div class="section-label">白の役割</div>
+        <div class="pair-row" id="role-pair">
+          <div class="opt-card selected" data-role="hare">ウサギ</div>
+          <div class="opt-card" data-role="hound">猟犬</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:8px; width:100%;">
+        <button class="btn solid" id="btn-start-game" style="flex:1; padding:6.5px 34px; line-height:1.3;">はじめる</button>
+        <button class="btn" id="btn-random-hare" style="flex:1; padding:6.5px 12px; line-height:1.25; font-size:11px;">ウサギ<br>ランダム</button>
+      </div>
+      <button class="btn" id="btn-rules" style="width:100%; margin-top:10px; padding:6.5px 12px; font-size:12px;">遊び方</button>
+      <div class="rules" id="rules-panel">
+        <h2>遊び方</h2>
+        <ul>
+          <li>猟犬(3匹)とウサギ(1匹)が交互に1マスずつ移動します</li>
+          <li>猟犬は前方向・横方向にのみ進めます(後ろには戻れません)</li>
+          <li>ウサギはどの方向にも自由に移動できます</li>
+          <li>ウサギが盤面の左端(猟犬の出口側)まで逃げ切ると<b>ウサギの勝ち</b>です</li>
+          <li>猟犬に囲まれてウサギが身動きできなくなると<b>猟犬の勝ち</b>です</li>
+          <li>合計30手が経過すると、決着がついていなくても<b>ウサギの特殊勝利(千日手)</b>になります</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="screen-game">
+    <button class="home-btn" id="home-btn-game">← ホーム</button>
+    <button id="gameBgSwitchBtn" class="bg-switch-btn hidden" aria-label="ゲーム背景を変更">背景</button>
+    <div id="gameBgSwitchPanel" class="bg-switch-panel hidden">
+      <button class="bg-swatch active" data-grad="__IMAGE__" style="background-image:url('assets/images/rabbit_and_hounds_bg.jpg'); background-size:cover; background-position:center;" aria-label="オリジナル画像"></button>
+      <button class="bg-swatch" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+      <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
+      <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
+      <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
+      <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
+    </div>
+    <div class="turnbar">
+      <div class="turn-chip" id="chip-hare"><span class="dot"></span>ウサギ</div>
+      <div class="turn-chip" id="chip-hound"><span class="ring"></span>猟犬</div>
+    </div>
+    <div class="turn-label" id="turn-label"></div>
+    <div class="status-line" id="status-line"></div>
+    <div id="board-wrap">
+      <svg id="board-svg" viewBox="0 0 500 340"></svg>
+      <div class="sennichite-badge" id="sennichite-badge"></div>
+    </div>
+    <div id="ad-space"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result">
+    <div class="result-text" id="result-text"></div>
+    <div class="result-btns">
+      <button class="btn" id="btn-view-board">盤面を見る</button>
+      <button class="btn solid" id="btn-again">もう一度</button>
+      <button class="btn" id="btn-result-home">ホームへ</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const HOUND_ICON = "assets/icons/rabbit_and_hounds_hound.png";
+  const HARE_ICON = "assets/icons/rabbit_and_hounds_hare.png";
+
+  /* ---------------- board topology (crystal shape) ---------------- */
+  const NODES = {
+    A:{x:110, y:40},  B:{x:250, y:40},  C:{x:390, y:40},
+    D:{x:40,  y:170}, E:{x:110,y:170}, F:{x:250,y:170}, G:{x:390,y:170}, H:{x:460,y:170},
+    I:{x:110, y:300}, J:{x:250,y:300}, K:{x:390,y:300}
+  };
+  const COL = { D:0, A:1,E:1,I:1, B:2,F:2,J:2, C:3,G:3,K:3, H:4 };
+
+  const EDGE_LIST = [
+    ['A','B'],['B','C'],
+    ['D','E'],['E','F'],['F','G'],['G','H'],
+    ['I','J'],['J','K'],
+    ['A','E'],['E','I'],
+    ['B','F'],['F','J'],
+    ['C','G'],['G','K'],
+    ['D','A'],['D','I'],
+    ['A','F'],['I','F'],
+    ['C','F'],['K','F'],
+    ['H','C'],['H','K']
+  ];
+  const adj = {};
+  EDGE_LIST.forEach(([a,b])=>{
+    (adj[a]=adj[a]||[]).push(b);
+    (adj[b]=adj[b]||[]).push(a);
+  });
+
+  const px = id => NODES[id].x;
+  const py = id => NODES[id].y;
+  const colOf = id => COL[id];
+
+  /* ---------------- game state ---------------- */
+  let state, config, selected=null, animating=false, randomHareStart=false;
+
+  function initState(){
+    const houndStart = ['D','A','I'];
+    let hareStart = 'H';
+    if(randomHareStart){
+      const candidates = Object.keys(NODES).filter(id => !houndStart.includes(id));
+      hareStart = candidates[Math.floor(Math.random()*candidates.length)];
+    }
+    state = {
+      hounds: houndStart.slice(),
+      hare: hareStart,
+      turn: 'hound',
+      moveCount: 0,
+    };
+    selected = null;
+  }
+
+  function houndMoves(hounds, hare, idx){
+    const pos = hounds[idx];
+    const c0 = colOf(pos);
+    return (adj[pos]||[]).filter(n=>{
+      if(colOf(n) < c0) return false;
+      if(hounds.includes(n)) return false;
+      if(n===hare) return false;
+      return true;
+    });
+  }
+  function allHoundMoves(hounds, hare){
+    let out=[];
+    hounds.forEach((h,idx)=> houndMoves(hounds,hare,idx).forEach(dest=>out.push({idx,dest})));
+    return out;
+  }
+  function hareMoves(hounds, hare){
+    return (adj[hare]||[]).filter(n=> !hounds.includes(n));
+  }
+
+  /* ---------------- CPU evaluation ---------------- */
+  function evalForHound(hounds, hare){
+    const hm = hareMoves(hounds, hare).length;
+    const hareCol = colOf(hare);
+    const houndsAvgCol = hounds.reduce((s,h)=>s+colOf(h),0)/hounds.length;
+    return -5*hm + hareCol*3 + houndsAvgCol*1;
+  }
+
+  function cpuHoundMove(){
+    const cands = allHoundMoves(state.hounds, state.hare);
+    let best=null, bestScore=-Infinity;
+    cands.forEach(mv=>{
+      const newHounds = state.hounds.slice(); newHounds[mv.idx]=mv.dest;
+      let score;
+      if(hareMoves(newHounds, state.hare).length===0){
+        score = 1e6;
+      } else {
+        const hMoves = hareMoves(newHounds, state.hare);
+        let minScore = Infinity;
+        hMoves.forEach(hd=>{
+          let s = evalForHound(newHounds, hd);
+          if(colOf(hd)===0) s = -1e6;
+          if(s<minScore) minScore = s;
+        });
+        score = minScore;
+      }
+      if(score>bestScore){ bestScore=score; best=mv; }
+    });
+    return best;
+  }
+
+  function cpuHareMove(){
+    const cands = hareMoves(state.hounds, state.hare);
+    const escape = cands.find(c=>colOf(c)===0);
+    if(escape) return escape;
+    let best=null, bestScore=-Infinity;
+    cands.forEach(dest=>{
+      const hMoves = allHoundMoves(state.hounds, dest);
+      let worst = Infinity;
+      if(hMoves.length===0){
+        worst = 1e6;
+      } else {
+        hMoves.forEach(mv=>{
+          const newHounds = state.hounds.slice(); newHounds[mv.idx]=mv.dest;
+          let s = -evalForHound(newHounds, dest);
+          if(hareMoves(newHounds, dest).length===0) s = -1e6;
+          if(s<worst) worst = s;
+        });
+      }
+      if(worst>bestScore){ bestScore=worst; best=dest; }
+    });
+    return best;
+  }
+
+  /* ---------------- 達人CPU: 深さ制限つきミニマックス(常に理論値ではないが読みが深い) ---------------- */
+  const MASTER_DEPTH = 6;
+
+  function minimax(hounds, hare, turn, depth, alpha, beta){
+    if(turn==='hare'){
+      const hMoves = hareMoves(hounds, hare);
+      if(hMoves.length===0) return { score: 1e6 + depth, move:null };
+      if(depth===0) return { score: evalForHound(hounds, hare), move:null };
+      let best=null, bestScore=Infinity;
+      for(const dest of hMoves){
+        const score = (colOf(dest)===0) ? (-1e6 - depth) : minimax(hounds, dest, 'hound', depth-1, alpha, beta).score;
+        if(score<bestScore){ bestScore=score; best=dest; }
+        if(bestScore<beta) beta=bestScore;
+        if(beta<=alpha) break;
+      }
+      return { score:bestScore, move:best };
+    } else {
+      if(depth===0) return { score: evalForHound(hounds, hare), move:null };
+      const hMoves = allHoundMoves(hounds, hare);
+      let best=null, bestScore=-Infinity;
+      for(const mv of hMoves){
+        const newHounds = hounds.slice(); newHounds[mv.idx]=mv.dest;
+        const score = (hareMoves(newHounds, hare).length===0) ? (1e6 + depth) : minimax(newHounds, hare, 'hare', depth-1, alpha, beta).score;
+        if(score>bestScore){ bestScore=score; best=mv; }
+        if(bestScore>alpha) alpha=bestScore;
+        if(beta<=alpha) break;
+      }
+      return { score:bestScore, move:best };
+    }
+  }
+
+  function masterHoundMove(){
+    const res = minimax(state.hounds, state.hare, 'hound', MASTER_DEPTH, -Infinity, Infinity);
+    return res.move || cpuHoundMove();
+  }
+  function masterHareMove(){
+    const res = minimax(state.hounds, state.hare, 'hare', MASTER_DEPTH, -Infinity, Infinity);
+    return res.move || cpuHareMove();
+  }
+
+  /* ---------------- rendering ---------------- */
+  const svg = document.getElementById('board-svg');
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(NS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  const TURN_GLOW_RADIUS = 33;
+  function ensureGlowDef(){
+    if(document.getElementById('turnGlowGrad')) return;
+    const defs = el('defs',{});
+    const grad = el('radialGradient',{id:'turnGlowGrad'});
+    grad.appendChild(el('stop',{offset:'0%','stop-color':'#ffffff','stop-opacity':'0.95'}));
+    grad.appendChild(el('stop',{offset:'55%','stop-color':'#ffffff','stop-opacity':'0.45'}));
+    grad.appendChild(el('stop',{offset:'100%','stop-color':'#ffffff','stop-opacity':'0'}));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+  }
+
+  function isHumanTurn(){
+    if(config.mode==='pvp') return true;
+    return state.turn === config.playerRole;
+  }
+
+  function render(){
+    svg.innerHTML='';
+    ensureGlowDef();
+    // edges
+    EDGE_LIST.forEach(([a,b])=>{
+      svg.appendChild(el('line',{class:'edge', x1:px(a), y1:py(a), x2:px(b), y2:py(b)}));
+    });
+    // legal move highlights
+    let legalDests = [];
+    if(selected!==null && isHumanTurn()){
+      if(state.turn==='hound') legalDests = houndMoves(state.hounds, state.hare, selected);
+      else legalDests = hareMoves(state.hounds, state.hare);
+    }
+    // node background dots
+    Object.keys(NODES).forEach(p=>{
+      svg.appendChild(el('circle',{class:'node-bg', cx:px(p), cy:py(p), r:6}));
+    });
+    legalDests.forEach(d=>{
+      svg.appendChild(el('circle',{class:'legal-mark', cx:px(d), cy:py(d), r:12, 'data-dest':d}));
+    });
+    // hound pieces
+    state.hounds.forEach((h,idx)=>{
+      const isSel = selected===idx && state.turn==='hound';
+      const isTurnGlow = state.turn==='hound';
+      if(isTurnGlow){
+        svg.appendChild(el('circle',{cx:px(h), cy:py(h), r:TURN_GLOW_RADIUS, fill:'url(#turnGlowGrad)'}));
+      }
+      let cls = 'piece-hound';
+      if(isSel) cls += ' selected';
+      const sz = 45;
+      svg.appendChild(el('image',{class:cls, href:HOUND_ICON, x:px(h)-sz/2, y:py(h)-sz/2, width:sz, height:sz, 'data-hound':idx}));
+    });
+    // hare piece
+    {
+      const isSel = selected==='hare' && state.turn==='hare';
+      const isTurnGlow = state.turn==='hare';
+      if(isTurnGlow){
+        svg.appendChild(el('circle',{cx:px(state.hare), cy:py(state.hare), r:TURN_GLOW_RADIUS, fill:'url(#turnGlowGrad)'}));
+      }
+      let cls = 'piece-hare';
+      if(isSel) cls += ' selected';
+      const sz = 39;
+      svg.appendChild(el('image',{class:cls, href:HARE_ICON, x:px(state.hare)-sz/2, y:py(state.hare)-sz/2, width:sz, height:sz, 'data-hare':'1'}));
+    }
+    // hit targets (clickable, invisible, larger)
+    Object.keys(NODES).forEach(p=>{
+      const t = el('circle',{class:'node-hit', cx:px(p), cy:py(p), r:16, 'data-point':p});
+      t.style.cursor='pointer';
+      t.addEventListener('click', ()=>onPointClick(p));
+      svg.appendChild(t);
+    });
+
+    document.getElementById('chip-hare').classList.toggle('active', state.turn==='hare');
+    document.getElementById('chip-hound').classList.toggle('active', state.turn==='hound');
+    document.getElementById('turn-label').textContent = state.turn==='hare' ? '― ウサギの番 ―' : '― 猟犬の番 ―';
+
+    const remaining = 30 - state.moveCount;
+    const badge = document.getElementById('sennichite-badge');
+    if(remaining > 0 && remaining <= 8){
+      badge.textContent = `ウサギの特殊勝利\nまで残り${remaining}手`;
+      badge.style.whiteSpace = 'pre-line';
+      badge.classList.add('show');
+    } else {
+      badge.classList.remove('show');
+    }
+
+    const statusEl = document.getElementById('status-line');
+    if(config.mode!=='pvp'){
+      statusEl.textContent = isHumanTurn() ? 'あなたの番です' : (config.mode==='master' ? '達人CPU思考中…' : 'CPU思考中…');
+    } else {
+      statusEl.textContent='';
+    }
+  }
+
+  function onPointClick(p){
+    if(animating) return;
+    if(!isHumanTurn()) return;
+
+    if(state.turn==='hound'){
+      const hi = state.hounds.indexOf(p);
+      if(hi!==-1){
+        selected = (selected===hi) ? null : hi;
+        render();
+        return;
+      }
+      if(selected!==null){
+        const legal = houndMoves(state.hounds, state.hare, selected);
+        if(legal.includes(p)){
+          doMove({idx:selected, dest:p});
+        }
+      }
+    } else {
+      if(p===state.hare){
+        selected = (selected==='hare') ? null : 'hare';
+        render();
+        return;
+      }
+      if(selected==='hare'){
+        const legal = hareMoves(state.hounds, state.hare);
+        if(legal.includes(p)){
+          doHareMove(p);
+        }
+      }
+    }
+  }
+
+  function doMove(mv){
+    state.hounds = state.hounds.slice();
+    state.hounds[mv.idx] = mv.dest;
+    state.moveCount++;
+    selected = null;
+    afterHoundMove();
+  }
+  function doHareMove(dest){
+    state.hare = dest;
+    state.moveCount++;
+    selected = null;
+    afterHareMove();
+  }
+
+  function checkMoveLimit(){
+    if(state.moveCount >= 30){
+      endGame('hare_special');
+      return true;
+    }
+    return false;
+  }
+
+  function afterHoundMove(){
+    if(hareMoves(state.hounds, state.hare).length===0){
+      render();
+      return endGame('hound');
+    }
+    if(checkMoveLimit()){ render(); return; }
+    state.turn='hare';
+    render();
+    proceedTurn();
+  }
+  function afterHareMove(){
+    if(colOf(state.hare)===0){
+      render();
+      return endGame('hare');
+    }
+    if(checkMoveLimit()){ render(); return; }
+    state.turn='hound';
+    render();
+    proceedTurn();
+  }
+
+  function proceedTurn(){
+    if(!isHumanTurn()){
+      animating=true;
+      setTimeout(()=>{
+        if(state.turn==='hound'){
+          const mv = config.mode==='master' ? masterHoundMove() : cpuHoundMove();
+          animating=false;
+          if(mv) doMove(mv); else endGame('hare');
+        } else {
+          const dest = config.mode==='master' ? masterHareMove() : cpuHareMove();
+          animating=false;
+          if(dest) doHareMove(dest); else endGame('hound');
+        }
+      }, 550);
+    }
+  }
+
+  function endGame(winner){
+    const txt = document.getElementById('result-text');
+    if(winner==='hare') txt.textContent='ウサギの 勝ち';
+    else if(winner==='hare_special') txt.textContent='ウサギの 特殊勝利(千日手)';
+    else if(winner==='hound') txt.textContent='猟犬の 勝ち';
+    else txt.textContent='引き分け';
+    document.getElementById('screen-result').classList.add('active');
+  }
+
+  /* ---------------- screen navigation ---------------- */
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    const isModeScreen = (id === 'screen-mode');
+    const isGameScreen = (id === 'screen-game');
+    document.getElementById('bgSwitchBtn').classList.toggle('hidden', !isModeScreen);
+    if(!isModeScreen) document.getElementById('bgSwitchPanel').classList.add('hidden');
+    document.getElementById('gameBgSwitchBtn').classList.toggle('hidden', !isGameScreen);
+    if(!isGameScreen) document.getElementById('gameBgSwitchPanel').classList.add('hidden');
+  }
+
+  document.getElementById('home-btn-game').addEventListener('click', ()=> showScreen('screen-mode'));
+  document.getElementById('btn-result-home').addEventListener('click', ()=>{
+    document.getElementById('screen-result').classList.remove('active');
+    showScreen('screen-mode');
+  });
+  document.getElementById('btn-view-board').addEventListener('click', ()=>{
+    document.getElementById('screen-result').classList.remove('active');
+  });
+  document.getElementById('btn-again').addEventListener('click', ()=>{
+    document.getElementById('screen-result').classList.remove('active');
+    startGame();
+  });
+
+  let chosenMode='pvp', chosenRole='hare';
+  document.getElementById('mode-pair').addEventListener('click', e=>{
+    const card = e.target.closest('.opt-card'); if(!card) return;
+    chosenMode = card.dataset.mode;
+    document.querySelectorAll('#mode-pair .opt-card').forEach(c=>c.classList.toggle('selected', c===card));
+  });
+  document.getElementById('role-pair').addEventListener('click', e=>{
+    const card = e.target.closest('.opt-card'); if(!card) return;
+    chosenRole = card.dataset.role;
+    document.querySelectorAll('#role-pair .opt-card').forEach(c=>c.classList.toggle('selected', c===card));
+  });
+
+  document.getElementById('btn-rules').addEventListener('click', ()=>{
+    document.getElementById('rules-panel').classList.toggle('open');
+  });
+
+  document.getElementById('btn-start-game').addEventListener('click', ()=>{
+    config = { mode: chosenMode, whiteRole: chosenRole, playerRole: chosenRole };
+    randomHareStart = false;
+    startGame();
+  });
+  document.getElementById('btn-random-hare').addEventListener('click', ()=>{
+    config = { mode: chosenMode, whiteRole: chosenRole, playerRole: chosenRole };
+    randomHareStart = true;
+    startGame();
+  });
+
+  function startGame(){
+    initState();
+    showScreen('screen-game');
+    render();
+    proceedTurn();
+  }
+
+  // --- user-selectable background color switch (mode-select screen only; hidden during play) ---
+  // ミニ将棋など他ページと同じ localStorage キーを共有し、どちらで選んでも
+  // アプリ全体でテーマが揃うようにしている
+  (function(){
+    const BG_STORAGE_KEY = 'pref_bg_gradient';
+    const btn = document.getElementById('bgSwitchBtn');
+    const panel = document.getElementById('bgSwitchPanel');
+    const swatches = document.querySelectorAll('#bgSwitchPanel .bg-swatch[data-grad]');
+
+    function applyBg(gradStops){
+      document.documentElement.style.setProperty('--bg', 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')');
+    }
+
+    function setActiveSwatch(gradStops){
+      swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-grad') === gradStops));
+    }
+
+    let savedGrad = null;
+    try{ savedGrad = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
+    if(savedGrad){
+      applyBg(savedGrad);
+      setActiveSwatch(savedGrad);
+    }
+
+    btn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+
+    swatches.forEach(sw => {
+      sw.addEventListener('click', () => {
+        const grad = sw.getAttribute('data-grad');
+        applyBg(grad);
+        setActiveSwatch(grad);
+        try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
+        panel.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if(!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn){
+        panel.classList.add('hidden');
+      }
+    });
+  })();
+
+  // --- ゲーム画面専用の背景切り替え ---
+  // ホーム画面や他のゲームと共有する 'pref_bg_gradient' とは別のキーを使い、
+  // このゲーム画面の背景だけを独立して切り替えられるようにしている。
+  // デフォルトは元のイラスト画像("__IMAGE__")。
+  (function(){
+    const GAME_BG_KEY = 'rabbit_hounds_game_bg';
+    const IMAGE_BG = 'linear-gradient(rgba(0,0,0,.52), rgba(0,0,0,.58)), url("assets/images/rabbit_and_hounds_bg.jpg")';
+    const btn = document.getElementById('gameBgSwitchBtn');
+    const panel = document.getElementById('gameBgSwitchPanel');
+    const screenGame = document.getElementById('screen-game');
+    const swatches = panel.querySelectorAll('.bg-swatch[data-grad]');
+
+    function applyGameBg(gradStops){
+      if(gradStops === '__IMAGE__'){
+        screenGame.style.backgroundImage = IMAGE_BG;
+      } else {
+        screenGame.style.backgroundImage = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+      }
+    }
+    function setActiveSwatch(gradStops){
+      swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-grad') === gradStops));
+    }
+
+    let saved = null;
+    try{ saved = localStorage.getItem(GAME_BG_KEY); }catch(e){}
+    if(saved){
+      applyGameBg(saved);
+      setActiveSwatch(saved);
+    }
+
+    btn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+
+    swatches.forEach(sw => {
+      sw.addEventListener('click', () => {
+        const grad = sw.getAttribute('data-grad');
+        applyGameBg(grad);
+        setActiveSwatch(grad);
+        try{ localStorage.setItem(GAME_BG_KEY, grad); }catch(e){}
+        panel.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if(!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn){
+        panel.classList.add('hidden');
+      }
+    });
+  })();
+
+})();
+</script>
+</body>
+</html>

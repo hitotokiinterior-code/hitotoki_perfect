@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>神経衰弱</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
+
+  :root{
+    --hairline: rgba(255,255,255,0.14);
+    --ivory-hi: #ffffff;
+    --ivory-mid: #f2efe6;
+    --ivory-low: #b8b3a4;
+    --ebony-hi: #4a4a4a;
+    --ebony-mid: #232323;
+    --ebony-low: #000000;
+    --silver: #cfcfcf;
+    --silver-dim: #6f6f6f;
+    --paper: #f5f3ee;
+    --wood-deep: #030303;
+    --wood-mid: #131313;
+    --wood-light: #242424;
+    --brass-dim: rgba(255,255,255,0.14);
+  }
+
+  *{ box-sizing:border-box; }
+  .hidden{ display:none !important; }
+
+  html{
+    height:100%;
+    overflow:hidden;
+    touch-action: manipulation;
+  }
+
+  .home-btn{
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 100;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    text-decoration:none;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .home-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+
+  .bg-switch-btn{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 100;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .bg-switch-btn:hover{ background: rgba(255,255,255,0.24); border-color:#fff; }
+
+  .bg-switch-panel{
+    position: fixed;
+    top: 52px;
+    right: 14px;
+    z-index: 100;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 10px;
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .bg-swatch{
+    width:22px; height:22px;
+    border-radius:50%;
+    background: var(--sw, #0a0a0a);
+    border: 1px solid rgba(255,255,255,0.35);
+    cursor:pointer;
+    padding:0;
+    transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
+  .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+
+  body{
+    margin:0;
+    height:100dvh;
+    max-height:100dvh;
+    overflow:hidden;
+    overscroll-behavior:none;
+    touch-action: manipulation;
+    -webkit-user-select:none;
+    user-select:none;
+    background: radial-gradient(ellipse at 50% -10%, #1c1c1c 0%, #0a0a0a 55%, #000000 100%);
+    transition: background-color .4s ease;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    color: var(--paper);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .app{
+    width:100%;
+    max-width:560px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+
+  header{
+    text-align:center;
+    margin-top:50px;
+  }
+
+  h1{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size: clamp(1.25rem, 5.5vw, 1.7rem);
+    letter-spacing:0.06em;
+    margin:0;
+    color:#fff;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.12);
+  }
+  h1 .small{
+    display:block;
+    font-size:0.56rem;
+    letter-spacing:0.4em;
+    font-weight:500;
+    color:var(--silver-dim);
+    margin-top:4px;
+    text-transform: uppercase;
+  }
+
+  /* --- turn indicator --- */
+  .turn-wrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-height:36px;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 6px 20px;
+  }
+  .turn-info{ min-width:0; }
+  .again-inline{
+    margin-left:auto;
+    flex-shrink:0;
+    padding: 7px 12px;
+    font-size:0.66rem;
+    white-space:nowrap;
+  }
+  .turn-chip{
+    width:32px; height:32px;
+    border-radius:50%;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5), inset 0 3px 4px rgba(255,255,255,0.5), inset 0 -4px 6px rgba(0,0,0,0.3);
+    transition: background .2s ease;
+  }
+  .turn-chip.p1{ background: radial-gradient(circle at 35% 30%, var(--ivory-hi), var(--ivory-mid) 55%, var(--ivory-low)); }
+  .turn-chip.p2{ background: radial-gradient(circle at 35% 30%, var(--ebony-hi), var(--ebony-mid) 55%, var(--ebony-low)); box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5), inset 0 3px 4px rgba(255,255,255,0.15), inset 0 -4px 6px rgba(0,0,0,0.6), 0 0 0 1px var(--silver-dim); }
+  .turn-chip.pulse{ animation: pop .3s ease; }
+  @keyframes pop{
+    0%{ transform: scale(0.5); opacity:0.4; }
+    60%{ transform: scale(1.15); }
+    100%{ transform: scale(1); }
+  }
+  .turn-label{
+    font-family:'Kaisei Decol', serif;
+    font-weight:500;
+    font-size:1rem;
+    letter-spacing:0.08em;
+  }
+  .status-text{ font-size:0.7rem; color:var(--silver-dim); letter-spacing:0.06em; margin-top:2px; }
+
+  /* --- scoreboard --- */
+  .score-row{
+    display:flex;
+    gap:24px;
+    font-size:0.75rem;
+    letter-spacing:0.06em;
+  }
+  .score-pill{ display:flex; align-items:center; gap:8px; color: var(--silver); }
+  .score-pill .dot{ width:12px; height:12px; border-radius:50%; }
+  .score-pill .dot.p1{ background: var(--ivory-mid); box-shadow: 0 0 0 1px var(--silver-dim); }
+  .score-pill .dot.p2{ background: var(--ebony-mid); box-shadow: 0 0 0 1px var(--silver-dim); }
+  .score-pill b{ font-family:'Kaisei Decol', serif; color:#fff; font-size:0.95rem; }
+
+  /* --- board frame: ebonized wood, reused from the other games for consistency --- */
+  .board-perspective{
+    position:relative;
+    perspective:1300px;
+    padding-bottom:14px;
+  }
+  .board-perspective::after{
+    content:"";
+    position:absolute;
+    left:50%; bottom:2px;
+    transform: translateX(-50%);
+    width:72%; height:20px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.6), rgba(0,0,0,0) 72%);
+    filter: blur(3px);
+    z-index:-1;
+  }
+  .board-frame{
+    position:relative;
+    padding: 16px 13px;
+    border-radius:9px;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.026 0.006' numOctaves='6' seed='11' result='n'/%3E%3CfeColorMatrix in='n' type='matrix' values='0.34 0.34 0.34 0 0 0.34 0.34 0.34 0 0 0.34 0.34 0.34 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E") no-repeat,
+      radial-gradient(150% 130% at 28% -12%, var(--wood-light) 0%, var(--wood-mid) 46%, var(--wood-deep) 100%);
+    background-size: 122% 100%, cover;
+    background-blend-mode: overlay, normal;
+    box-shadow:
+      0 26px 44px rgba(0,0,0,0.75),
+      0 3px 0 rgba(0,0,0,0.55),
+      inset 0 0 0 1px var(--brass-dim),
+      inset 0 -12px 20px rgba(0,0,0,0.6);
+    transform: rotateX(4deg);
+    transform-origin: 50% 100%;
+  }
+
+  /* --- memory board & cards --- */
+  .mem-board{
+    display:grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-template-rows: repeat(var(--rows), 1fr);
+    gap: 6px;
+    width: min(92vw, 460px);
+  }
+  .mem-card{
+    position:relative;
+    aspect-ratio: 0.72;
+    perspective: 600px;
+    cursor:pointer;
+  }
+  .mem-card-inner{
+    position:relative;
+    width:100%; height:100%;
+    transform-style: preserve-3d;
+    transition: transform .45s cubic-bezier(.2,.8,.3,1);
+  }
+  .mem-card.flipped .mem-card-inner{ transform: rotateY(180deg); }
+  .mem-card-face{
+    position:absolute; inset:0;
+    backface-visibility:hidden;
+    border-radius: 6px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mem-card-back{
+    background: linear-gradient(155deg, #232323, #101010 55%, #030303);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), 0 3px 6px rgba(0,0,0,0.5);
+  }
+  .mem-card-back::before{
+    content:"";
+    width:46%; height:46%;
+    border: 1.5px solid rgba(255,255,255,0.22);
+    border-radius:50%;
+  }
+  .mem-card-front{
+    background: linear-gradient(155deg, #f2efe6, #d9d4c4 60%, #b8b3a4);
+    transform: rotateY(180deg);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.35);
+    overflow:hidden;
+  }
+  .mem-card-front img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    border-radius:6px;
+  }
+  .mem-card.matched .mem-card-front{
+    opacity:0.42;
+    filter: grayscale(0.3);
+  }
+  .mem-card.matched{ cursor:default; }
+  .mem-card.shake .mem-card-inner{ animation: memShake .38s ease; }
+  @keyframes memShake{
+    0%,100%{ transform: rotateY(0deg) translateX(0); }
+    25%{ transform: rotateY(0deg) translateX(-4px); }
+    75%{ transform: rotateY(0deg) translateX(4px); }
+  }
+
+  /* --- setup screen --- */
+  .setup-screen{ display:flex; flex-direction:column; align-items:center; width:100%; }
+  .setup-card{
+    width:100%;
+    max-width:380px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+    margin-top:20px;
+  }
+  .setup-title{
+    font-family:'Kaisei Decol', serif;
+    font-weight:500;
+    font-size:0.9rem;
+    letter-spacing:0.1em;
+    color:#fff;
+    align-self:flex-start;
+  }
+  .setup-group{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  .mode-toggle-btn{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.72rem;
+    letter-spacing:0.05em;
+    color: var(--silver);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--silver-dim);
+    border-radius:3px;
+    padding: 12px 14px;
+    cursor:pointer;
+    width:100%;
+    text-align:left;
+    transition: all .15s ease;
+  }
+  .mode-toggle-btn .sub{
+    display:block;
+    font-size:0.62rem;
+    color: var(--silver-dim);
+    margin-top:3px;
+    letter-spacing:0.04em;
+  }
+  .mode-toggle-btn.active{ background:#fff; color:#141414; border-color:#fff; }
+  .mode-toggle-btn.active .sub{ color:#555; }
+  .mode-toggle-subrow{ display:flex; gap:8px; }
+  .mode-toggle-subrow .mode-toggle-btn{ text-align:center; }
+
+  .start-btn{
+    width:100%;
+    padding: 12px 16px;
+    font-size:0.8rem;
+    background:#fff;
+    color:#141414;
+    border-color:#fff;
+  }
+  .start-btn:hover{ background:#eee; border-color:#eee; }
+
+  .how-to-btn{
+    width:100%;
+    padding: 12px 16px;
+    font-size:0.72rem;
+  }
+
+  .game-screen{ display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; }
+  .controls{ display:flex; gap:12px; margin-top:0; }
+
+  button.main-btn{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    color:#fff;
+    background: transparent;
+    border: 1px solid var(--silver-dim);
+    border-radius:2px;
+    padding: 8px 16px;
+    cursor:pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  button.main-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+  button.main-btn:active{ transform: translateY(1px); }
+  button:focus-visible{ outline: 1px solid #fff; outline-offset:3px; }
+
+  /* --- modal overlay --- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background: rgba(0,0,0,0.62);
+    backdrop-filter: blur(2px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-box{
+    position:relative;
+    width:100%;
+    max-width:360px;
+    background: linear-gradient(160deg, #202020, #141414 45%, #030303);
+    border: 1px solid var(--hairline);
+    border-radius:8px;
+    padding: 24px 22px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.65);
+    animation: modalPop .22s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes modalPop{
+    0%{ transform: scale(0.85); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
+  }
+  .confirm-box{ text-align:center; }
+  .confirm-text{
+    font-family:'Kaisei Decol', serif;
+    font-size:0.95rem;
+    color:#fff;
+    letter-spacing:0.04em;
+    line-height:1.7;
+    margin-bottom:20px;
+  }
+  .confirm-actions{ display:flex; gap:10px; }
+  .confirm-actions .main-btn{ flex:1; padding:11px 10px; }
+  .confirm-ok{ background:#fff; color:#141414; border-color:#fff; }
+  .confirm-ok:hover{ background:#eee; border-color:#eee; }
+
+  /* --- how to play modal --- */
+  .howto-box{ max-width:400px; }
+  .howto-title{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:0.08em;
+    color:#fff;
+    margin:0 0 14px;
+    text-align:center;
+  }
+  .howto-list{
+    margin:0 0 20px;
+    padding:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .howto-list li{
+    font-size:0.78rem;
+    line-height:1.7;
+    color: var(--silver);
+    letter-spacing:0.02em;
+    padding-left:1.1em;
+    position:relative;
+  }
+  .howto-list li::before{
+    content:"・";
+    position:absolute;
+    left:0;
+    color:#fff;
+  }
+  .howto-close-btn{ width:100%; padding:11px 10px; }
+
+  /* ============================================================
+     横画面向けの最低限のレイアウト調整（縦画面が基本の作り）
+     ============================================================ */
+  @media (orientation: landscape) and (max-height: 600px){
+    header{ display:none; }
+    body{ align-items:center; padding:4px; }
+    .app{ gap:6px; }
+    .mem-board{ width: min(80vh, 92vw); }
+    .setup-card{ margin-top:4px; padding:16px 18px; gap:12px; }
+  }
+</style>
+</head>
+<body>
+<button type="button" class="home-btn" id="homeBtn" aria-label="ホームへ戻る">← ホーム</button>
+<button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
+<div id="bgSwitchPanel" class="bg-switch-panel hidden">
+  <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+  <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
+  <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
+  <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
+  <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
+</div>
+<div class="app">
+
+  <header>
+    <h1>神経衰弱<span class="small">SHINKEI SUIJAKU</span></h1>
+  </header>
+
+
+  <div id="setupScreen" class="setup-screen">
+    <div class="setup-card">
+
+      <div class="setup-group">
+        <div class="setup-title">盤面の大きさを選ぶ</div>
+        <button class="mode-toggle-btn active" id="sizeSmallBtn" data-size="small">
+          3 × 4（かんたん）<span class="sub">12枚・6ペア</span>
+        </button>
+        <button class="mode-toggle-btn" id="sizeMediumBtn" data-size="medium">
+          4 × 5（ふつう）<span class="sub">20枚・10ペア</span>
+        </button>
+        <button class="mode-toggle-btn" id="sizeLargeBtn" data-size="large">
+          5 × 6（むずかしい）<span class="sub">30枚・15ペア</span>
+        </button>
+      </div>
+
+      <div class="setup-group">
+        <div class="setup-title">対戦モードを選ぶ</div>
+        <div class="mode-toggle-subrow">
+          <button class="mode-toggle-btn active" id="modeTwoPlayerBtn">2人対戦</button>
+          <button class="mode-toggle-btn" id="modeCPUBtn">CPU対戦</button>
+        </div>
+      </div>
+
+      <button id="startGameBtn" class="main-btn start-btn">はじめる</button>
+      <button id="howToPlayBtn" class="main-btn how-to-btn">遊び方</button>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="game-screen hidden">
+
+    <div class="turn-wrap">
+      <div id="turnChip" class="turn-chip p1"></div>
+      <div class="turn-info">
+        <div id="turnLabel" class="turn-label">プレイヤー1 の番</div>
+        <div id="statusText" class="status-text">カードを2枚めくってペアを揃えよう</div>
+      </div>
+      <button id="againBtn" class="main-btn again-inline hidden">次の対局へ</button>
+    </div>
+
+    <div class="score-row">
+      <div class="score-pill"><span class="dot p1"></span><span id="p1Label">プレイヤー1</span> <b id="p1Score">0</b></div>
+      <div class="score-pill"><span class="dot p2"></span><span id="p2Label">プレイヤー2</span> <b id="p2Score">0</b></div>
+    </div>
+
+    <div class="board-perspective">
+      <div class="board-frame">
+        <div id="memBoard" class="mem-board"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="modal-box confirm-box">
+    <div class="confirm-text">このゲームは終了しますか？</div>
+    <div class="confirm-actions">
+      <button id="confirmCancelBtn" class="main-btn">キャンセル</button>
+      <button id="confirmOkBtn" class="main-btn confirm-ok">終了する</button>
+    </div>
+  </div>
+</div>
+
+<div id="howToPlayModal" class="modal-overlay hidden">
+  <div class="modal-box howto-box">
+    <div class="howto-title">遊び方</div>
+    <ul class="howto-list">
+      <li>裏向きのカードを1度に2枚めくり、同じ絵柄が出たらペア成立です。</li>
+      <li>ペアが揃った人はそのまま続けてもう一度めくれます。揃わなければ相手の番になります。</li>
+      <li>すべてのペアが揃ったら対局終了。ペアの数が多い方の勝ちです（同数なら引き分け）。</li>
+      <li>盤面の大きさは3×4・4×5・5×6の3種類から選べます。大きいほど枚数が増えて難しくなります。</li>
+      <li>「CPU対戦」を選ぶとコンピューターと対戦できます。CPUは自分がめくって見たカードを頼りに手を選びます。</li>
+    </ul>
+    <button id="howToPlayCloseBtn" class="main-btn howto-close-btn">閉じる</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // 画像は base64 埋め込みではなく、images/ フォルダの外部ファイルを参照する
+  const SYMBOL_POOL = [
+    { src: 'images/card-01-plant.png',  label: '植物' },
+    { src: 'images/card-02-flower.png', label: '花' },
+    { src: 'images/card-03-key.png',    label: '鍵' },
+    { src: 'images/card-04-cat.png',    label: '猫' },
+    { src: 'images/card-05-camera.png', label: 'カメラ' },
+    { src: 'images/card-06-teapot.png', label: 'ティーポット' },
+    { src: 'images/card-07-compass.png',label: 'コンパス' },
+    { src: 'images/card-08-rabbit.png', label: 'ウサギ' },
+    { src: 'images/card-09-moon.png',   label: '月' },
+    { src: 'images/card-10-letter.png', label: '手紙' },
+    { src: 'images/card-11-trunk.png',  label: 'トランク' },
+    { src: 'images/card-12-bird.png',   label: '鳥' },
+    { src: 'images/card-13-clock.png',  label: '時計' },
+    { src: 'images/card-14-record.png', label: 'レコード' },
+    { src: 'images/card-15-pen.png',    label: '万年筆' },
+  ];
+
+  const BOARD_MODES = {
+    small:  { rows:3, cols:4, label:'3×4' },
+    medium: { rows:4, cols:5, label:'4×5' },
+    large:  { rows:5, cols:6, label:'5×6' },
+  };
+
+  let boardSize = 'small';
+  let vsCPU = false;
+
+  let rows, cols, cards, revealed, busy, turn, gameOver, scores, lastResult;
+  let gameStartedAt = null;
+  let cpuMemory; // Map<index, symbol> — CPUが「見た」カードだけを覚える
+  const CPU_MEMORY_ACCURACY = 0.78; // 完璧に覚えているわけではない、というゆらぎ
+
+  function totalPairs(){ return (rows * cols) / 2; }
+
+  // --- setup screen interactions ---
+  function setBoardSize(size){
+    boardSize = size;
+    document.getElementById('sizeSmallBtn').classList.toggle('active', size === 'small');
+    document.getElementById('sizeMediumBtn').classList.toggle('active', size === 'medium');
+    document.getElementById('sizeLargeBtn').classList.toggle('active', size === 'large');
+  }
+  document.getElementById('sizeSmallBtn').addEventListener('click', () => setBoardSize('small'));
+  document.getElementById('sizeMediumBtn').addEventListener('click', () => setBoardSize('medium'));
+  document.getElementById('sizeLargeBtn').addEventListener('click', () => setBoardSize('large'));
+
+  function setMode(newVsCPU){
+    vsCPU = newVsCPU;
+    document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !vsCPU);
+    document.getElementById('modeCPUBtn').classList.toggle('active', vsCPU);
+  }
+  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => setMode(false));
+  document.getElementById('modeCPUBtn').addEventListener('click', () => setMode(true));
+
+  document.getElementById('startGameBtn').addEventListener('click', () => {
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+    document.getElementById('bgSwitchBtn').classList.add('hidden');
+    document.getElementById('bgSwitchPanel').classList.add('hidden');
+    startNewGame();
+  });
+
+  // --- how to play modal ---
+  const howToPlayModal = document.getElementById('howToPlayModal');
+  document.getElementById('howToPlayBtn').addEventListener('click', () => {
+    howToPlayModal.classList.remove('hidden');
+  });
+  document.getElementById('howToPlayCloseBtn').addEventListener('click', () => {
+    howToPlayModal.classList.add('hidden');
+  });
+  howToPlayModal.addEventListener('click', (e) => {
+    if(e.target === howToPlayModal){ howToPlayModal.classList.add('hidden'); }
+  });
+
+  // --- game setup ---
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function buildDeck(){
+    const pairsNeeded = totalPairs();
+    const symbols = SYMBOL_POOL.slice(0, pairsNeeded);
+    const deck = symbols.concat(symbols).map(symbol => ({ symbol, matched:false }));
+    return shuffle(deck);
+  }
+
+  function startNewGame(){
+    const mode = BOARD_MODES[boardSize];
+    rows = mode.rows;
+    cols = mode.cols;
+    cards = buildDeck();
+    revealed = [];
+    busy = false;
+    turn = 'p1';
+    gameOver = false;
+    lastResult = null;
+    scores = { p1:0, p2:0 };
+    cpuMemory = new Map();
+    gameStartedAt = Date.now();
+
+    document.getElementById('p1Label').textContent = 'プレイヤー1';
+    document.getElementById('p2Label').textContent = vsCPU ? 'CPU' : 'プレイヤー2';
+
+    const boardEl = document.getElementById('memBoard');
+    boardEl.style.setProperty('--cols', cols);
+    boardEl.style.setProperty('--rows', rows);
+    renderBoard();
+    updateScoreUI();
+    updateTurnUI(false);
+  }
+
+  function renderBoard(){
+    const boardEl = document.getElementById('memBoard');
+    boardEl.innerHTML = '';
+    cards.forEach((card, idx) => {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'mem-card';
+      cardEl.dataset.index = idx;
+
+      const inner = document.createElement('div');
+      inner.className = 'mem-card-inner';
+
+      const back = document.createElement('div');
+      back.className = 'mem-card-face mem-card-back';
+
+      const front = document.createElement('div');
+      front.className = 'mem-card-face mem-card-front';
+      const frontImg = document.createElement('img');
+      frontImg.src = card.symbol.src;
+      frontImg.alt = card.symbol.label;
+      frontImg.draggable = false;
+      front.appendChild(frontImg);
+
+      inner.appendChild(back);
+      inner.appendChild(front);
+      cardEl.appendChild(inner);
+      cardEl.addEventListener('click', () => handleCardClick(idx));
+      boardEl.appendChild(cardEl);
+    });
+  }
+
+  function cardEls(){
+    return document.getElementById('memBoard').querySelectorAll('.mem-card');
+  }
+
+  // --- core flip / match logic ---
+  function handleCardClick(idx){
+    if(gameOver || busy) return;
+    if(vsCPU && turn === 'p2') return; // CPUの番は人間の操作を受け付けない
+    if(cards[idx].matched) return;
+    if(revealed.includes(idx)) return;
+    flipCard(idx);
+  }
+
+  function flipCard(idx){
+    revealed.push(idx);
+    cpuMemory.set(idx, cards[idx].symbol);
+    const el = cardEls()[idx];
+    if(el) el.classList.add('flipped');
+
+    if(revealed.length === 2){
+      busy = true;
+      updateColInteractivity();
+      setTimeout(resolvePair, 700);
+    }
+  }
+
+  function resolvePair(){
+    const [i, j] = revealed;
+    const isMatch = cards[i].symbol === cards[j].symbol;
+
+    if(isMatch){
+      cards[i].matched = true;
+      cards[j].matched = true;
+      const els = cardEls();
+      if(els[i]) els[i].classList.add('matched');
+      if(els[j]) els[j].classList.add('matched');
+      scores[turn]++;
+      updateScoreUI();
+      revealed = [];
+      busy = false;
+
+      if(cards.every(c => c.matched)){
+        finishGame();
+        return;
+      }
+      // 同じプレイヤーの番が続く
+      updateTurnUI(true);
+      maybeTriggerCPU();
+    } else {
+      const els = cardEls();
+      [i, j].forEach(k => { if(els[k]) els[k].classList.add('shake'); });
+      setTimeout(() => {
+        [i, j].forEach(k => {
+          const el = cardEls()[k];
+          if(el){ el.classList.remove('flipped'); el.classList.remove('shake'); }
+        });
+        revealed = [];
+        busy = false;
+        turn = turn === 'p1' ? 'p2' : 'p1';
+        updateTurnUI(true);
+        maybeTriggerCPU();
+      }, 650);
+    }
+  }
+
+  function finishGame(){
+    gameOver = true;
+    if(scores.p1 === scores.p2){
+      lastResult = { draw:true };
+    } else {
+      lastResult = { draw:false, winner: scores.p1 > scores.p2 ? 'p1' : 'p2' };
+    }
+    updateTurnUI(false);
+
+    // ホーム画面の「記録」タブ用に対局結果を記録しておく（p1が常に人間側）
+    if(window.hitotokiStats){
+      window.hitotokiStats.recordGameEnd('memory_match', '神経衰弱', {
+        vsCPU: vsCPU,
+        won: vsCPU && !lastResult.draw ? (lastResult.winner === 'p1') : undefined,
+        durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
+      });
+    }
+  }
+
+  // --- CPU logic: 見た札だけを覚える、たまに忘れる ---
+  function maybeTriggerCPU(){
+    if(gameOver || !vsCPU || turn !== 'p2') return;
+    setTimeout(cpuTakeFirstFlip, 700);
+  }
+
+  function hiddenIndices(excludeIdx){
+    const out = [];
+    cards.forEach((c, i) => {
+      if(!c.matched && !revealed.includes(i) && i !== excludeIdx) out.push(i);
+    });
+    return out;
+  }
+
+  function findKnownPair(excludeIdx){
+    // cpuMemory の中に、まだ揃っていない同じ絵柄の組み合わせがあるか探す
+    const bySymbol = new Map();
+    for(const [idx, symbol] of cpuMemory.entries()){
+      if(cards[idx].matched) continue;
+      if(idx === excludeIdx) continue;
+      if(!bySymbol.has(symbol)) bySymbol.set(symbol, []);
+      bySymbol.get(symbol).push(idx);
+    }
+    for(const [, idxList] of bySymbol.entries()){
+      if(idxList.length >= 2) return [idxList[0], idxList[1]];
+    }
+    return null;
+  }
+
+  function findKnownMatchFor(symbol, excludeIdx){
+    for(const [idx, sym] of cpuMemory.entries()){
+      if(idx === excludeIdx) continue;
+      if(cards[idx].matched) continue;
+      if(sym === symbol) return idx;
+    }
+    return null;
+  }
+
+  function pickRandom(list){
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function cpuTakeFirstFlip(){
+    if(gameOver || !vsCPU || turn !== 'p2') return;
+
+    const knownPair = (Math.random() < CPU_MEMORY_ACCURACY) ? findKnownPair(null) : null;
+    let firstIdx;
+    if(knownPair){
+      firstIdx = knownPair[0];
+    } else {
+      const unseen = hiddenIndices(null).filter(i => !cpuMemory.has(i));
+      const candidates = unseen.length > 0 ? unseen : hiddenIndices(null);
+      firstIdx = pickRandom(candidates);
+    }
+    flipCard(firstIdx);
+    setTimeout(() => cpuTakeSecondFlip(firstIdx), 650);
+  }
+
+  function cpuTakeSecondFlip(firstIdx){
+    if(gameOver || !vsCPU || turn !== 'p2') return;
+    if(revealed.length !== 1) return; // 念のためのガード
+
+    const symbol = cards[firstIdx].symbol;
+    const known = (Math.random() < CPU_MEMORY_ACCURACY) ? findKnownMatchFor(symbol, firstIdx) : null;
+    let secondIdx;
+    if(known !== null){
+      secondIdx = known;
+    } else {
+      const unseen = hiddenIndices(firstIdx).filter(i => !cpuMemory.has(i));
+      const candidates = unseen.length > 0 ? unseen : hiddenIndices(firstIdx);
+      secondIdx = pickRandom(candidates);
+    }
+    flipCard(secondIdx);
+  }
+
+  // --- UI updates ---
+  function updateColInteractivity(){
+    // busy中はクリックを受け付けない（handleCardClickのbusyチェックで担保しているので見た目の変更は不要）
+  }
+
+  function updateScoreUI(){
+    document.getElementById('p1Score').textContent = scores.p1;
+    document.getElementById('p2Score').textContent = scores.p2;
+  }
+
+  function updateTurnUI(pulse){
+    const chip = document.getElementById('turnChip');
+    const label = document.getElementById('turnLabel');
+    const statusText = document.getElementById('statusText');
+    const againBtn = document.getElementById('againBtn');
+    const p2Name = vsCPU ? 'CPU' : 'プレイヤー2';
+    const p1Name = vsCPU ? 'あなた' : 'プレイヤー1';
+
+    if(gameOver && lastResult){
+      if(lastResult.draw){
+        label.textContent = '引き分け';
+        statusText.textContent = `${scores.p1} － ${scores.p2} で同点でした`;
+        chip.className = 'turn-chip p1' + (pulse ? ' pulse' : '');
+      } else {
+        const winnerName = lastResult.winner === 'p1' ? p1Name : p2Name;
+        chip.className = 'turn-chip ' + lastResult.winner + (pulse ? ' pulse' : '');
+        label.textContent = winnerName + 'の勝ち！';
+        statusText.textContent = `${scores.p1} － ${scores.p2}`;
+      }
+      againBtn.classList.remove('hidden');
+    } else {
+      chip.className = 'turn-chip ' + turn + (pulse ? ' pulse' : '');
+      if(pulse){ void chip.offsetWidth; chip.classList.add('pulse'); }
+      const name = turn === 'p1' ? p1Name : p2Name;
+      label.textContent = name + ' の番';
+      statusText.textContent = (vsCPU && turn === 'p2') ? 'CPUが考え中…' : 'カードを2枚めくってペアを揃えよう';
+      againBtn.classList.add('hidden');
+    }
+  }
+
+  // --- controls ---
+  document.getElementById('againBtn').addEventListener('click', startNewGame);
+
+  const confirmModal = document.getElementById('confirmModal');
+  let pendingConfirmAction = null;
+
+  function hasProgress(){
+    return !gameOver && cards && cards.some(c => c.matched);
+  }
+
+  function runOrConfirm(action){
+    if(hasProgress()){
+      pendingConfirmAction = action;
+      confirmModal.classList.remove('hidden');
+    } else {
+      action();
+    }
+  }
+
+  document.getElementById('confirmOkBtn').addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    const action = pendingConfirmAction;
+    pendingConfirmAction = null;
+    if(action) action();
+  });
+  document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    pendingConfirmAction = null;
+  });
+  confirmModal.addEventListener('click', (e) => {
+    if(e.target === confirmModal){ confirmModal.classList.add('hidden'); pendingConfirmAction = null; }
+  });
+
+  // --- モード変更から戻る画面遷移（ホームボタンから利用） ---
+  function goToSetupScreen(){
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    document.getElementById('bgSwitchBtn').classList.remove('hidden');
+  }
+
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    const onSetupScreen = !document.getElementById('setupScreen').classList.contains('hidden');
+    if(onSetupScreen){
+      window.location.href = 'index.html';
+      return;
+    }
+    runOrConfirm(goToSetupScreen);
+  });
+
+  // --- user-selectable background color switch ---
+  // ホーム画面（⚙→ゲーム→背景）と同じ localStorage キーを共有し、
+  // どちらで選んでも全ページに反映されるようにしている
+  (function(){
+    const BG_STORAGE_KEY = 'pref_bg_gradient';
+    const btn = document.getElementById('bgSwitchBtn');
+    const panel = document.getElementById('bgSwitchPanel');
+    const swatches = document.querySelectorAll('.bg-swatch[data-grad]');
+
+    function applyBg(gradStops){
+      document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+    }
+
+    function setActiveSwatch(gradStops){
+      swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-grad') === gradStops));
+    }
+
+    let savedGrad = null;
+    try{ savedGrad = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
+    if(savedGrad){
+      applyBg(savedGrad);
+      setActiveSwatch(savedGrad);
+    }
+
+    btn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+
+    swatches.forEach(sw => {
+      sw.addEventListener('click', () => {
+        const grad = sw.getAttribute('data-grad');
+        applyBg(grad);
+        setActiveSwatch(grad);
+        try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
+        panel.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if(!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn){
+        panel.classList.add('hidden');
+      }
+    });
+  })();
+
+  // モード選択画面のどのボタンを最初に押しても、その瞬間にBGMが鳴り始めるようにする
+  ['sizeSmallBtn','sizeMediumBtn','sizeLargeBtn','modeTwoPlayerBtn','modeCPUBtn','startGameBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('click', () => { if(window.hitotokiBGM) window.hitotokiBGM.play(); });
+  });
+})();
+</script>
+<script src="timer-watcher.js"></script>
+<script src="stats-tracker.js"></script>
+<script src="bgm-player.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dots &amp; Boxes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0a0a;
+    --panel: #0d0d0c;
+    --dot-idle: #4d4d4a;
+    --line-player: #f3efe4;
+    --line-player-glow: rgba(243,239,228,0.55);
+    --line-cpu: #16160f;
+    --line-cpu-outline: #f3efe4;
+    --line-cpu-glow: rgba(190,190,182,0.5);
+    --box-player-fill: #d9cdb0;
+    --box-player-line: #efe6cf;
+    --box-cpu-fill: #2c2c2a;
+    --box-cpu-line: #a8a8a2;
+    --text-primary: #f4f2ec;
+    --text-dim: #8b8b86;
+    --accent-gold: #e8b93f;
+    --border-dim: #262624;
+    --white-fill: #f4f2ec;
+    --ad-h: clamp(72px, 14vh, 120px);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+    height:100%;
+    width:100%;
+    position: fixed;
+    overflow:hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  /* ---------- Menu screen ---------- */
+  .menu-screen{
+    height: 100vh;
+    overflow: hidden;
+    padding: 0 0 calc(var(--ad-h) + 20px);
+    font-family: 'Noto Serif JP', serif;
+  }
+  .home-btn{
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 100;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .home-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+
+  .bg-switch-btn{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 100;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    backdrop-filter: blur(4px);
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .bg-switch-btn:hover{ background: rgba(255,255,255,0.24); border-color:#fff; }
+
+  .bg-switch-panel{
+    position: fixed;
+    top: 52px;
+    right: 14px;
+    z-index: 100;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 10px;
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .bg-swatch{
+    width:22px; height:22px;
+    border-radius:50%;
+    background: var(--sw, #0a0a0a);
+    border: 1px solid rgba(255,255,255,0.35);
+    cursor:pointer;
+    padding:0;
+    transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
+  .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+
+  .menu-header{
+    text-align:center;
+    margin-top: 60px;
+    padding-bottom: 14px;
+  }
+  .menu-title-bar{
+    font-family:'Noto Serif JP', serif;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .menu-title-en{
+    margin-top: 4px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .menu-card{
+    max-width: 640px;
+    margin: 20px auto 0;
+    padding: 0 18px 20px;
+  }
+
+  .menu-section-title{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+  }
+  .menu-section-title.second{ margin-top: 26px; }
+
+  .menu-mode-title{
+    font-family:'Noto Serif JP', serif;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.1em;
+    color: var(--text-primary);
+    margin-top: 26px;
+  }
+  .menu-mode-label{
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
+
+  .size-list{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .size-row{
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+    text-align:left;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    cursor:pointer;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .size-row:hover{ border-color:#fff; }
+  .size-row .row-title{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .size-row .row-sub{
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+  .size-row.active{
+    background: var(--white-fill);
+    border-color: var(--white-fill);
+  }
+  .size-row.active .row-title{ color: #16160f; }
+  .size-row.active .row-sub{ color: #6b6b62; }
+
+  .mode-row{
+    display:flex;
+    gap: 8px;
+  }
+  .mode-card{
+    flex:1;
+    padding: 9px 0;
+    text-align:center;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 500;
+    cursor:pointer;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .mode-card:hover{ border-color:#fff; }
+  .mode-card.active{
+    background: var(--white-fill);
+    border-color: var(--white-fill);
+    color: #16160f;
+    font-weight: 700;
+  }
+
+  .start-btn{
+    display:block;
+    width: 60%;
+    min-width: 160px;
+    margin: 24px auto 0;
+    padding: 14px 0;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor:pointer;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .start-btn:hover{ border-color:#fff; background:rgba(255,255,255,0.14); }
+
+  .menu-screen.hidden, .app.hidden{ display:none; }
+  .hidden{ display:none !important; }
+
+  /* ---------- App (game) screen ---------- */
+  .app{
+    max-width: 760px;
+    margin: 0 auto;
+    height: 100vh;
+    display:flex;
+    flex-direction:column;
+    padding: 8px 18px calc(var(--ad-h) + 18px);
+    overflow: hidden;
+  }
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    padding: 0 0 7px;
+  }
+  .back-btn{
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .back-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+
+  .scorebar{
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items:end;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #1c1c1a;
+  }
+  .score-side{ display:flex; flex-direction:column; gap:4px; }
+  .score-side.cpu{ align-items:flex-end; }
+  .score-label{
+    display:flex; align-items:center; gap:6px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    transition: color .25s ease, filter .25s ease;
+  }
+  .score-label.active-turn{
+    color: var(--text-primary);
+    filter: drop-shadow(0 0 5px rgba(244,242,236,0.85)) drop-shadow(0 0 12px rgba(244,242,236,0.55));
+    animation: turnGlowPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes turnGlowPulse{
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(244,242,236,0.85)) drop-shadow(0 0 12px rgba(244,242,236,0.55)); }
+    50%      { filter: drop-shadow(0 0 7px rgba(244,242,236,1)) drop-shadow(0 0 18px rgba(244,242,236,0.8)); }
+  }
+  .score-label svg{ width:14px; height:14px; flex-shrink:0; }
+  .score-value{
+    font-family:'Noto Serif JP', serif;
+    font-weight: 600;
+    font-size: 36px;
+    line-height:1;
+    letter-spacing: -0.01em;
+  }
+  .score-value.you{ color: var(--box-player-line); }
+  .score-value.cpu{ color: var(--text-dim); }
+
+  .titleblock{
+    text-align:center;
+    display:flex; flex-direction:column; gap:4px;
+    padding-bottom: 4px;
+  }
+  .title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.24em;
+    color: var(--text-primary);
+  }
+  .subtitle{
+    font-family:'Noto Serif JP', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: #55554f;
+  }
+
+  .board-wrap{
+    flex:1;
+    min-height: 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 18px 0 6px;
+    overflow: hidden;
+  }
+  svg.board{
+    width: 100%;
+    height: auto;
+    max-width: 620px;
+    max-height: 100%;
+    overflow: visible;
+    background: var(--bg);
+    border-radius: 4px;
+    transform: translateY(-20px);
+  }
+
+  .dot{ fill: var(--dot-idle); }
+
+  .edge-hit{
+    stroke: transparent;
+    stroke-width: 22;
+    fill:none;
+    cursor:pointer;
+  }
+  .edge-hit.disabled{ cursor:default; }
+
+  .edge-line{
+    stroke-linecap: round;
+    fill:none;
+    pointer-events:none;
+    transition: stroke-dashoffset .35s ease, opacity .2s ease;
+  }
+  .edge-line.hover-preview{
+    stroke: #3a3a37;
+    stroke-width: 5;
+    opacity:0;
+    transition: opacity .15s ease;
+  }
+  .edge-hit:hover + .edge-line.hover-preview{ opacity: 1; }
+
+  .edge-line.filled-player{
+    stroke: var(--line-player);
+    stroke-width: 5;
+    filter: drop-shadow(0 0 6px var(--line-player-glow));
+  }
+  .edge-outline{
+    stroke: transparent;
+    stroke-width: 6.6;
+    stroke-linecap: round;
+    fill:none;
+    pointer-events:none;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .edge-outline.filled-cpu{
+    stroke: var(--line-cpu-outline);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px var(--line-cpu-glow));
+  }
+  .edge-line.filled-cpu{
+    stroke: var(--line-cpu);
+    stroke-width: 5;
+  }
+
+  .box-fill{
+    opacity: 0;
+    transform-origin: center;
+    transform: scale(0.85);
+    transition: opacity .3s ease, transform .3s cubic-bezier(.2,1.4,.4,1);
+    pointer-events:none;
+  }
+  .box-fill.shown{ opacity: 1; transform: scale(1); }
+  .box-fill.player{ fill: url(#hatch-player); stroke: var(--box-player-line); stroke-width: 1.5; }
+  .box-fill.cpu{ fill: url(#hatch-cpu); stroke: var(--box-cpu-line); stroke-width: 1.5; }
+
+  .box-symbol{
+    opacity:0;
+    stroke-linecap: round;
+    transition: opacity .3s ease .1s;
+    pointer-events:none;
+  }
+  .box-symbol.shown{ opacity: 1; }
+  .box-symbol.player{ stroke: var(--box-player-line); fill:none; stroke-width:2.2; }
+  .box-symbol.cpu{ stroke: var(--box-cpu-line); fill:none; stroke-width:2.2; }
+
+  .float-score{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    fill: var(--accent-gold);
+    text-anchor: middle;
+    pointer-events:none;
+    animation: floatUp 0.9s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%   { opacity: 0; transform: translateY(6px); }
+    18%  { opacity: 1; transform: translateY(0px); }
+    75%  { opacity: 1; transform: translateY(-26px); }
+    100% { opacity: 0; transform: translateY(-34px); }
+  }
+
+  .end-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(6,6,6,0.88);
+    backdrop-filter: blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .35s ease;
+    z-index: 20;
+  }
+  .end-overlay.shown{ opacity:1; pointer-events:auto; }
+  .end-card{
+    display:flex; flex-direction:column; align-items:center;
+    gap: 18px;
+    transform: translateY(14px);
+    transition: transform .35s ease;
+  }
+  .end-overlay.shown .end-card{ transform: translateY(0); }
+  .end-title{
+    font-family:'Noto Sans JP', sans-serif;
+    font-size: 28px;
+    font-weight:700;
+    letter-spacing: 0.04em;
+  }
+  .end-title.win{ color: var(--box-player-line); }
+  .end-title.lose{ color: var(--text-dim); }
+  .end-score{
+    font-family:'Noto Serif JP', serif;
+    font-size: 18px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  .end-actions{
+    display:flex; gap: 10px; margin-top: 6px;
+  }
+  .play-again, .change-stage{
+    background: transparent;
+    border: 1px solid #3a3a37;
+    color: var(--text-primary);
+    font-family:'Noto Sans JP', sans-serif;
+    letter-spacing: 0.04em;
+    font-size: 14px;
+    padding: 12px 26px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .play-again:hover, .change-stage:hover{ border-color:#6a6a66; background:#151513; }
+
+  .view-board{
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family:'Noto Sans JP', sans-serif;
+    letter-spacing: 0.04em;
+    font-size: 13px;
+    padding: 4px 0 0;
+    margin-top: 4px;
+    cursor:pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color .2s ease;
+  }
+  .view-board:hover{ color: var(--text-primary); }
+
+  .result-fab{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border-dim);
+    color: var(--text-primary);
+    font-family:'Noto Serif JP', serif;
+    font-size: 12px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor:pointer;
+    z-index: 25;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .result-fab.shown{ opacity: 1; pointer-events: auto; }
+
+  /* ---------- Ad slot (reserved space, ~1/8 of screen height) ---------- */
+  .ad-slot{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: var(--ad-h);
+    background: transparent;
+    z-index: 30;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="menu-screen" id="menuScreen">
+  <a href="index.html" class="home-btn" aria-label="ホームへ戻る">← ホーム</a>
+  <button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
+  <div id="bgSwitchPanel" class="bg-switch-panel hidden">
+    <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+    <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
+    <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
+    <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
+    <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
+  </div>
+
+  <div class="menu-header">
+    <div class="menu-title-bar">ドット&amp;ボックス</div>
+    <div class="menu-title-en">DOTS &amp; BOXES</div>
+  </div>
+
+  <div class="menu-card">
+    <div class="menu-section-title">ステージ選択</div>
+    <div class="size-list" id="sizeGrid">
+      <button class="size-row active" data-rows="3" data-cols="3">
+        <span class="row-title">3 × 3</span>
+        <span class="row-sub">9マス</span>
+      </button>
+      <button class="size-row" data-rows="4" data-cols="4">
+        <span class="row-title">4 × 4</span>
+        <span class="row-sub">16マス</span>
+      </button>
+      <button class="size-row" data-rows="4" data-cols="5">
+        <span class="row-title">4 × 5</span>
+        <span class="row-sub">20マス</span>
+      </button>
+      <button class="size-row" data-rows="4" data-cols="6">
+        <span class="row-title">4 × 6</span>
+        <span class="row-sub">24マス</span>
+      </button>
+    </div>
+
+    <div class="menu-mode-title">対戦モード</div>
+    <div class="menu-mode-label">モードを選ぶ</div>
+    <div class="mode-row">
+      <button class="mode-card active" id="mode2p" data-mode="2p">2人対戦</button>
+      <button class="mode-card" id="modeCpu" data-mode="cpu">CPU対戦</button>
+    </div>
+
+    <button class="start-btn" id="startBtn">はじめる</button>
+  </div>
+</div>
+
+<div class="app hidden" id="gameScreen">
+  <div class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="ホームへ戻る">← ホーム</button>
+  </div>
+
+  <div class="scorebar">
+    <div class="score-side you">
+      <div class="score-label" id="p1ScoreLabel">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span id="p1Label">白</span>
+      </div>
+      <div class="score-value you" id="scoreYou">0</div>
+    </div>
+
+    <div class="titleblock">
+      <div class="title">DOTS &amp; BOXES</div>
+      <div class="subtitle" id="gridLabel">6 × 6</div>
+    </div>
+
+    <div class="score-side cpu">
+      <div class="score-label" id="p2ScoreLabel">
+        <svg viewBox="0 0 16 16"><line x1="3" y1="3" x2="13" y2="13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="13" y1="3" x2="3" y2="13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span id="p2Label">黒</span>
+      </div>
+      <div class="score-value cpu" id="scoreCpu">0</div>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <svg class="board" id="board" viewBox="0 0 640 640">
+      <defs>
+        <pattern id="hatch-player" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="rgba(217,205,176,0.14)"/>
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(243,239,228,0.65)" stroke-width="2"/>
+        </pattern>
+        <pattern id="hatch-cpu" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="rgba(60,60,58,0.5)"/>
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(150,150,144,0.3)" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <g id="boxLayer"></g>
+      <g id="symbolLayer"></g>
+      <g id="lineLayer"></g>
+      <g id="hitLayer"></g>
+      <g id="dotLayer"></g>
+      <g id="floatLayer"></g>
+    </svg>
+  </div>
+</div>
+
+<div class="end-overlay" id="endOverlay">
+  <div class="end-card">
+    <div class="end-title" id="endTitle">白の勝ち</div>
+    <div class="end-score" id="endScore">18 – 14</div>
+    <div class="end-actions">
+      <button class="play-again" id="playAgainBtn">もう一度</button>
+      <button class="change-stage" id="changeStageBtn">ステージ選択</button>
+    </div>
+    <button class="view-board" id="viewBoardBtn">盤面を見る</button>
+  </div>
+</div>
+
+<button class="result-fab" id="resultFab">結果を見る</button>
+
+<div class="ad-slot" id="adSlot"></div>
+
+<script>
+(function(){
+  // 画面のスワイプ/バウンススクロールを完全にロックする
+  document.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive: false });
+  // ---------- Labels (fixed: 白 / 黒) ----------
+  const LABEL_P1 = '白';
+  const LABEL_P2 = '黒';
+
+  // ---------- DOM refs ----------
+  const menuScreen = document.getElementById('menuScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const sizeGrid = document.getElementById('sizeGrid');
+  const mode2pBtn = document.getElementById('mode2p');
+  const modeCpuBtn = document.getElementById('modeCpu');
+  const startBtn = document.getElementById('startBtn');
+
+  const board = document.getElementById('board');
+  const dotLayer = document.getElementById('dotLayer');
+  const hitLayer = document.getElementById('hitLayer');
+  const lineLayer = document.getElementById('lineLayer');
+  const boxLayer = document.getElementById('boxLayer');
+  const symbolLayer = document.getElementById('symbolLayer');
+  const floatLayer = document.getElementById('floatLayer');
+
+  const scoreYouEl = document.getElementById('scoreYou');
+  const scoreCpuEl = document.getElementById('scoreCpu');
+  const gridLabelEl = document.getElementById('gridLabel');
+
+  const p1ScoreLabelEl = document.getElementById('p1ScoreLabel');
+  const p2ScoreLabelEl = document.getElementById('p2ScoreLabel');
+
+  const endOverlay = document.getElementById('endOverlay');
+  const endTitle = document.getElementById('endTitle');
+  const endScore = document.getElementById('endScore');
+
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(NS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // ---------- Menu state ----------
+  let selectedRows = 3, selectedCols = 3;
+  let selectedMode = '2p';
+  let gameStartedAt = null;
+
+  sizeGrid.querySelectorAll('.size-row').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sizeGrid.querySelectorAll('.size-row').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedRows = parseInt(btn.dataset.rows, 10);
+      selectedCols = parseInt(btn.dataset.cols, 10);
+    });
+  });
+
+  function setMode(m){
+    selectedMode = m;
+    mode2pBtn.classList.toggle('active', m === '2p');
+    modeCpuBtn.classList.toggle('active', m === 'cpu');
+  }
+  mode2pBtn.addEventListener('click', () => setMode('2p'));
+  modeCpuBtn.addEventListener('click', () => setMode('cpu'));
+
+  // 先攻は常に白(player)、後攻は常に黒(cpu)で固定
+  startBtn.addEventListener('click', () => startGame(selectedRows, selectedCols, selectedMode));
+
+  function showMenu(){
+    endOverlay.classList.remove('shown');
+    resultFab.classList.remove('shown');
+    gameScreen.classList.add('hidden');
+    menuScreen.classList.remove('hidden');
+  }
+
+  // ---------- Game config / state ----------
+  const PAD = 40;
+  let ROWS = 4, COLS = 4, CELL = 100, SVG_W = 640, SVG_H = 640;
+  let mode = 'cpu';
+  let horiz = [], vert = [], boxOwner = [];
+  let scoreYou = 0, scoreCpu = 0;
+  let currentTurn = 'player'; // 'player' = 白, 'cpu' = 黒
+  let gameOver = false;
+  let totalBoxes = 16;
+
+  const boxFillEls = {};
+  const boxSymbolEls = {};
+  const lineEls = {};
+  const outlineEls = {};
+  const hitEls = {};
+
+  function keyH(r,c){ return `h_${r}_${c}`; }
+  function keyV(r,c){ return `v_${r}_${c}`; }
+  function dotXY(r,c){ return [PAD + c*CELL, PAD + r*CELL]; }
+
+  function isCpuMode(){ return mode === 'cpu'; }
+  function runAiMove(){ expertMove(); }
+
+  function startGame(rows, cols, gameMode){
+    ROWS = rows; COLS = cols; mode = gameMode;
+    totalBoxes = ROWS * COLS;
+    CELL = 100;
+    SVG_W = PAD*2 + COLS*CELL;
+    SVG_H = PAD*2 + ROWS*CELL;
+    board.setAttribute('viewBox', `0 0 ${SVG_W} ${SVG_H}`);
+    board.style.aspectRatio = `${SVG_W} / ${SVG_H}`;
+    gridLabelEl.textContent = `${ROWS} × ${COLS}`;
+
+    menuScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+
+    initState();
+    buildBoard();
+    gameStartedAt = Date.now();
+    // 先攻は常に白(player)なので、ここでCPUの自動着手は発生しない
+  }
+
+  function initState(){
+    horiz = Array.from({length: ROWS+1}, () => Array(COLS).fill(null));
+    vert  = Array.from({length: ROWS},   () => Array(COLS+1).fill(null));
+    boxOwner = Array.from({length: ROWS}, () => Array(COLS).fill(null));
+    scoreYou = 0; scoreCpu = 0; currentTurn = 'player'; gameOver = false;
+    scoreYouEl.textContent = '0';
+    scoreCpuEl.textContent = '0';
+    updateTurnIndicator();
+    endOverlay.classList.remove('shown');
+  }
+
+  function buildBoard(){
+    dotLayer.innerHTML = '';
+    hitLayer.innerHTML = '';
+    lineLayer.innerHTML = '';
+    boxLayer.innerHTML = '';
+    symbolLayer.innerHTML = '';
+    floatLayer.innerHTML = '';
+    for(const k in boxFillEls) delete boxFillEls[k];
+    for(const k in boxSymbolEls) delete boxSymbolEls[k];
+    for(const k in lineEls) delete lineEls[k];
+    for(const k in outlineEls) delete outlineEls[k];
+    for(const k in hitEls) delete hitEls[k];
+
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const [x,y] = dotXY(r,c);
+        const rect = el('rect', { x: x+8, y: y+8, width: CELL-16, height: CELL-16, rx: 4, class: 'box-fill' });
+        boxLayer.appendChild(rect);
+        boxFillEls[`${r}_${c}`] = rect;
+
+        const cx = x + CELL/2, cy = y + CELL/2;
+        const g = el('g', {class:'box-symbol'});
+        const circle = el('circle', {cx: cx, cy: cy, r: 15});
+        const xSize = 13;
+        const tri = el('path', {d: `M ${cx-xSize} ${cy-xSize} L ${cx+xSize} ${cy+xSize} M ${cx+xSize} ${cy-xSize} L ${cx-xSize} ${cy+xSize}`});
+        g.appendChild(circle);
+        g.appendChild(tri);
+        circle.style.display = 'none';
+        tri.style.display = 'none';
+        symbolLayer.appendChild(g);
+        boxSymbolEls[`${r}_${c}`] = {g, circle, tri};
+      }
+    }
+
+    for(let r=0;r<=ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const [x1,y1] = dotXY(r,c);
+        const [x2,y2] = dotXY(r,c+1);
+        addEdge('h', r, c, x1,y1,x2,y2);
+      }
+    }
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<=COLS;c++){
+        const [x1,y1] = dotXY(r,c);
+        const [x2,y2] = dotXY(r+1,c);
+        addEdge('v', r, c, x1,y1,x2,y2);
+      }
+    }
+
+    for(let r=0;r<=ROWS;r++){
+      for(let c=0;c<=COLS;c++){
+        const [x,y] = dotXY(r,c);
+        dotLayer.appendChild(el('circle', {cx:x, cy:y, r:3.5, class:'dot'}));
+      }
+    }
+  }
+
+  function addEdge(type, r, c, x1,y1,x2,y2){
+    const preview = el('line', {x1,y1,x2,y2, class:'edge-line hover-preview'});
+    lineLayer.appendChild(preview);
+    const outline = el('line', {x1,y1,x2,y2, class:'edge-outline'});
+    lineLayer.appendChild(outline);
+    const line = el('line', {x1,y1,x2,y2, class:'edge-line'});
+    lineLayer.appendChild(line);
+    const hit = el('line', {x1,y1,x2,y2, class:'edge-hit'});
+    hit.addEventListener('click', () => onEdgeClick(type, r, c));
+    hitLayer.appendChild(hit);
+
+    const key = type==='h' ? keyH(r,c) : keyV(r,c);
+    lineEls[key] = line;
+    outlineEls[key] = outline;
+    hitEls[key] = hit;
+  }
+
+  function edgeVal(type,r,c){ return type==='h' ? horiz[r][c] : vert[r][c]; }
+  function setEdge(type,r,c,owner){ if(type==='h') horiz[r][c]=owner; else vert[r][c]=owner; }
+
+  function boxEdges(r,c){
+    return [
+      {type:'h', r:r,   c:c},
+      {type:'h', r:r+1, c:c},
+      {type:'v', r:r,   c:c},
+      {type:'v', r:r,   c:c+1},
+    ];
+  }
+  function boxSidesFilled(r,c){
+    return boxEdges(r,c).filter(e => edgeVal(e.type,e.r,e.c) !== null).length;
+  }
+  function getAvailableEdges(){
+    const list = [];
+    for(let r=0;r<=ROWS;r++) for(let c=0;c<COLS;c++) if(horiz[r][c]===null) list.push({type:'h',r,c});
+    for(let r=0;r<ROWS;r++) for(let c=0;c<=COLS;c++) if(vert[r][c]===null) list.push({type:'v',r,c});
+    return list;
+  }
+  function boxesTouchingEdge(type,r,c){
+    const boxes = [];
+    if(type==='h'){
+      if(r>0) boxes.push([r-1,c]);
+      if(r<ROWS) boxes.push([r,c]);
+    } else {
+      if(c>0) boxes.push([r,c-1]);
+      if(c<COLS) boxes.push([r,c]);
+    }
+    return boxes;
+  }
+  function wouldCompleteCount(edge){
+    const boxes = boxesTouchingEdge(edge.type, edge.r, edge.c);
+    return boxes.filter(([br,bc]) => boxSidesFilled(br,bc) === 3).length;
+  }
+
+  function onEdgeClick(type,r,c){
+    if(gameOver) return;
+    if(edgeVal(type,r,c) !== null) return;
+    if(isCpuMode() && currentTurn !== 'player') return; // block clicks during CPU's (黒) turn
+    placeEdge(type,r,c,currentTurn);
+  }
+
+  function placeEdge(type,r,c,owner){
+    setEdge(type,r,c,owner);
+    const key = type==='h'?keyH(r,c):keyV(r,c);
+    const line = lineEls[key];
+    line.classList.add(owner==='player' ? 'filled-player' : 'filled-cpu');
+    if(owner==='cpu'){ outlineEls[key].classList.add('filled-cpu'); }
+    hitEls[key].classList.add('disabled');
+
+    const boxes = boxesTouchingEdge(type,r,c);
+    let completed = 0;
+    boxes.forEach(([br,bc]) => {
+      if(boxOwner[br][bc]===null && boxSidesFilled(br,bc)===4){
+        boxOwner[br][bc] = owner;
+        revealBox(br,bc,owner);
+        completed++;
+        if(owner==='player'){ scoreYou++; scoreYouEl.textContent = scoreYou; }
+        else { scoreCpu++; scoreCpuEl.textContent = scoreCpu; }
+      }
+    });
+
+    if(scoreYou + scoreCpu >= totalBoxes){
+      endGame();
+      return;
+    }
+
+    if(completed === 0){
+      currentTurn = owner==='player' ? 'cpu' : 'player';
+      updateTurnIndicator();
+    }
+
+    if(isCpuMode() && currentTurn === 'cpu'){
+      setTimeout(runAiMove, 550);
+    }
+  }
+
+  function revealBox(r,c,owner){
+    const rect = boxFillEls[`${r}_${c}`];
+    rect.classList.add(owner, 'shown');
+
+    const sym = boxSymbolEls[`${r}_${c}`];
+    sym.g.classList.add(owner, 'shown');
+    if(owner==='player'){ sym.circle.style.display=''; }
+    else { sym.tri.style.display=''; }
+
+    const [x,y] = dotXY(r,c);
+    const cx = x + CELL/2, cy = y + CELL/2;
+    const txt = el('text', {x:cx, y:cy, class:'float-score'});
+    txt.textContent = '+1';
+    floatLayer.appendChild(txt);
+    setTimeout(() => txt.remove(), 950);
+  }
+
+  function updateTurnIndicator(){
+    const p1Active = currentTurn === 'player';
+    p1ScoreLabelEl.classList.toggle('active-turn', p1Active);
+    p2ScoreLabelEl.classList.toggle('active-turn', !p1Active);
+  }
+
+  function endGame(){
+    gameOver = true;
+    const win = scoreYou > scoreCpu;
+    const tie = scoreYou === scoreCpu;
+    if(tie){
+      endTitle.textContent = 'ひきわけ';
+    } else {
+      endTitle.textContent = win ? `${LABEL_P1}の勝ち` : `${LABEL_P2}の勝ち`;
+    }
+    endTitle.classList.toggle('win', win);
+    endTitle.classList.toggle('lose', !win && !tie);
+    endScore.textContent = `${scoreYou} – ${scoreCpu}`;
+    setTimeout(() => endOverlay.classList.add('shown'), 250);
+
+    // ホーム画面の「記録」タブ用に対局結果を記録しておく
+    if(window.hitotokiStats){
+      window.hitotokiStats.recordGameEnd('dots_and_boxes', 'ドット＆ボックス', {
+        vsCPU: isCpuMode(),
+        won: isCpuMode() && !tie ? win : undefined,
+        durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
+      });
+    }
+  }
+
+  function cpuMove(){
+    if(gameOver) return;
+    const available = getAvailableEdges();
+    if(available.length===0) return;
+
+    let capturing = available
+      .map(e => ({e, n: wouldCompleteCount(e)}))
+      .filter(x => x.n > 0)
+      .sort((a,b) => b.n - a.n);
+    if(capturing.length){
+      const pick = capturing[0].e;
+      placeEdge(pick.type, pick.r, pick.c, 'cpu');
+      return;
+    }
+
+    const safe = available.filter(e => {
+      const boxes = boxesTouchingEdge(e.type, e.r, e.c);
+      return boxes.every(([br,bc]) => boxSidesFilled(br,bc) < 2);
+    });
+    const pool = safe.length ? safe : available;
+    const pick = pool[Math.floor(Math.random()*pool.length)];
+    placeEdge(pick.type, pick.r, pick.c, 'cpu');
+  }
+
+  // ---------- 達人CPU(チェイン読み + ダブルクロス戦略) ----------
+  // 盤面のコピー上でシミュレーションするためのヘルパー
+  function simMissingEdges(h, v, r, c){
+    return boxEdges(r, c).filter(e => (e.type==='h' ? h[e.r][e.c] : v[e.r][e.c]) === null);
+  }
+
+  // startBox(3辺埋まっている箱)から連鎖的に確定する取り筋を辿る。
+  // 戻り値: { boxes: [{r,c,edge}], isLoop: bool }
+  function traceChain(h, v, startR, startC){
+    const lh = h.map(row => row.slice());
+    const lv = v.map(row => row.slice());
+    const seq = [];
+    const visited = new Set();
+    let cur = {r:startR, c:startC};
+
+    while(true){
+      const key = `${cur.r}_${cur.c}`;
+      if(visited.has(key)) return { boxes: seq, isLoop: true };
+      visited.add(key);
+
+      const missing = simMissingEdges(lh, lv, cur.r, cur.c);
+      if(missing.length !== 1) break; // 想定外(安全策として打ち切り)
+      const edge = missing[0];
+      seq.push({ r: cur.r, c: cur.c, edge });
+
+      if(edge.type==='h') lh[edge.r][edge.c] = 'sim'; else lv[edge.r][edge.c] = 'sim';
+
+      const neighbors = boxesTouchingEdge(edge.type, edge.r, edge.c)
+        .filter(([br,bc]) => !(br===cur.r && bc===cur.c));
+      if(neighbors.length === 0) break; // 外周に抜けた(チェインの端)
+
+      const [nr, nc] = neighbors[0];
+      if(visited.has(`${nr}_${nc}`)) return { boxes: seq, isLoop: true };
+
+      const nMissing = simMissingEdges(lh, lv, nr, nc).length;
+      if(nMissing === 1){ cur = {r:nr, c:nc}; continue; }
+      break; // 隣の箱がまだ確定しない(通常のチェイン終端)
+    }
+    return { boxes: seq, isLoop: false };
+  }
+
+  // 全ての未確定の箱の中から、今すぐ取れる(3辺埋まっている)箱を1つ探す
+  function findCapturableBox(){
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        if(boxOwner[r][c]===null && boxSidesFilled(r,c)===3) return {r,c};
+      }
+    }
+    return null;
+  }
+
+  // 安全な手が無いとき、開けるチェインが最短になる一手を選ぶ
+  function findShortestOpeningEdge(available){
+    let bestEdges = [];
+    let bestLen = Infinity;
+    for(const e of available){
+      const lh = horiz.map(row => row.slice());
+      const lv = vert.map(row => row.slice());
+      if(e.type==='h') lh[e.r][e.c] = 'sim'; else lv[e.r][e.c] = 'sim';
+
+      let exposedLen = null;
+      for(const [br,bc] of boxesTouchingEdge(e.type, e.r, e.c)){
+        if(simMissingEdges(lh, lv, br, bc).length === 1){
+          const len = traceChain(lh, lv, br, bc).boxes.length;
+          if(exposedLen === null || len > exposedLen) exposedLen = len;
+        }
+      }
+      if(exposedLen === null) continue;
+
+      if(exposedLen < bestLen){ bestLen = exposedLen; bestEdges = [e]; }
+      else if(exposedLen === bestLen){ bestEdges.push(e); }
+    }
+    const pool = bestEdges.length ? bestEdges : available;
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+
+  function expertMove(){
+    if(gameOver) return;
+    const available = getAvailableEdges();
+    if(available.length===0) return;
+
+    const startBox = findCapturableBox();
+
+    if(startBox){
+      const chain = traceChain(horiz, vert, startBox.r, startBox.c);
+      const n = chain.boxes.length;
+      const otherContentExists = (scoreYou + scoreCpu + n) < totalBoxes;
+
+      let chosen;
+      if(chain.isLoop || n === 1 || !otherContentExists){
+        // ループ/単箱/最後のチェインはそのまま取り切る
+        chosen = chain.boxes[0].edge;
+      } else if(n === 2){
+        // ダブルクロス: 2箱とも取らずに相手へ差し出し、主導権を握る
+        chosen = chain.boxes[1].edge;
+      } else {
+        // 3箱以上残っているうちは先頭を通常通り確保していく
+        chosen = chain.boxes[0].edge;
+      }
+      placeEdge(chosen.type, chosen.r, chosen.c, 'cpu');
+      return;
+    }
+
+    // 今すぐ取れる箱が無い場合:安全な手を探す
+    const safe = available.filter(e => {
+      const boxes = boxesTouchingEdge(e.type, e.r, e.c);
+      return boxes.every(([br,bc]) => boxSidesFilled(br,bc) < 2);
+    });
+
+    if(safe.length){
+      const pick = safe[Math.floor(Math.random()*safe.length)];
+      placeEdge(pick.type, pick.r, pick.c, 'cpu');
+      return;
+    }
+
+    // 安全な手が無い場合:最も短いチェインを開ける
+    const pick = findShortestOpeningEdge(available);
+    placeEdge(pick.type, pick.r, pick.c, 'cpu');
+  }
+
+  // ---------- Controls ----------
+  const resultFab = document.getElementById('resultFab');
+
+  document.getElementById('playAgainBtn').addEventListener('click', () => {
+    endOverlay.classList.remove('shown');
+    resultFab.classList.remove('shown');
+    initState();
+    buildBoard();
+  });
+  document.getElementById('changeStageBtn').addEventListener('click', showMenu);
+  document.getElementById('viewBoardBtn').addEventListener('click', () => {
+    endOverlay.classList.remove('shown');
+    resultFab.classList.add('shown');
+  });
+  resultFab.addEventListener('click', () => {
+    endOverlay.classList.add('shown');
+    resultFab.classList.remove('shown');
+  });
+  document.getElementById('backBtn').addEventListener('click', showMenu);
+
+  // --- user-selectable background color switch (menu screen only) ---
+  // 他のゲームと同じ localStorage キーを共有し、どちらで選んでも
+  // アプリ全体でテーマが揃うようにしている
+  (function(){
+    const BG_STORAGE_KEY = 'pref_bg_gradient';
+    const btn = document.getElementById('bgSwitchBtn');
+    const panel = document.getElementById('bgSwitchPanel');
+    const swatches = document.querySelectorAll('.bg-swatch[data-grad]');
+
+    function applyBg(gradStops){
+      document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+    }
+
+    function setActiveSwatch(gradStops){
+      swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-grad') === gradStops));
+    }
+
+    let savedGrad = null;
+    try{ savedGrad = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
+    if(savedGrad){
+      applyBg(savedGrad);
+      setActiveSwatch(savedGrad);
+    }
+
+    btn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+
+    swatches.forEach(sw => {
+      sw.addEventListener('click', () => {
+        const grad = sw.getAttribute('data-grad');
+        applyBg(grad);
+        setActiveSwatch(grad);
+        try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
+        panel.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if(!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn){
+        panel.classList.add('hidden');
+      }
+    });
+  })();
+})();
+</script>
+<script src="timer-watcher.js"></script>
+<script src="bg-theme.js"></script>
+<script src="stats-tracker.js"></script>
+<script src="bgm-player.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コネクトフォー — 7×6 重力四目</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
+
+  :root{
+    --bg-0: #050505;
+    --bg-1: #0e0e0e;
+    --void: #060606;
+    --void-rim: #2a2a2a;
+    --ivory-hi: #ffffff;
+    --ivory-mid: #f2efe6;
+    --ivory-low: #b8b3a4;
+    --ebony-hi: #4a4a4a;
+    --ebony-mid: #232323;
+    --ebony-low: #000000;
+    --silver: #cfcfcf;
+    --silver-dim: #6f6f6f;
+    --paper: #f5f3ee;
+    --ink: #141414;
+    --hairline: rgba(255,255,255,0.14);
+
+    /* --- matte anodized material tokens (flat, monochrome, low-contrast) --- */
+    --wood-deep: #060606;
+    --wood-mid: #131313;
+    --wood-light: #1c1c1c;
+    --brass: #a8a8a8;
+    --brass-dim: rgba(255,255,255,0.10);
+    --brass-glow: rgba(255,255,255,0.45);
+  }
+
+  *{ box-sizing:border-box; }
+
+  .hidden{ display:none !important; }
+
+  html{
+    height: 100%;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  .home-btn{
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 100;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .home-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+
+  .bg-switch-btn{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 100;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .bg-switch-btn:hover{ background: rgba(255,255,255,0.24); border-color:#fff; }
+
+  .bg-switch-panel{
+    position: fixed;
+    top: 52px;
+    right: 14px;
+    z-index: 100;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 10px;
+    background: rgba(20,20,20,0.9);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .bg-swatch{
+    width:22px; height:22px;
+    border-radius:50%;
+    background: var(--sw, #0a0a0a);
+    border: 1px solid rgba(255,255,255,0.35);
+    cursor:pointer;
+    padding:0;
+    transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
+  .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+
+  body{
+    margin:0;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    background:
+  radial-gradient(
+    ellipse at 50% -10%,
+    #1c1c1c 0%,
+    #0a0a0a 55%,
+    #000000 100%
+  );
+    transition: background-color 0.4s ease;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    color: var(--paper);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .app{
+    width:100%;
+    max-width: 560px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+
+  header{ text-align:center; margin-top:50px; }
+  h1{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size: clamp(1.25rem, 5.5vw, 1.7rem);
+    letter-spacing: 0.06em;
+    margin:0;
+    color:#fff;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.12);
+  }
+  h1 .small{
+    display:block;
+    font-size:0.56rem;
+    letter-spacing:0.4em;
+    font-weight:500;
+    color:var(--silver-dim);
+    margin-top:4px;
+    text-transform: uppercase;
+  }
+
+  /* --- turn indicator --- */
+  .turn-wrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-height:36px;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 6px 20px;
+  }
+  .turn-info{ min-width:0; }
+  .again-inline{
+    margin-left:auto;
+    flex-shrink:0;
+    padding: 7px 12px;
+    font-size:0.66rem;
+    white-space:nowrap;
+  }
+  .turn-chip{
+    width:32px; height:32px;
+    border-radius:50%;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5), inset 0 3px 4px rgba(255,255,255,0.5), inset 0 -4px 6px rgba(0,0,0,0.3);
+    transition: background .2s ease;
+  }
+  .turn-chip.white{ background: radial-gradient(circle at 35% 30%, var(--ivory-hi), var(--ivory-mid) 55%, var(--ivory-low)); }
+  .turn-chip.black{ background: radial-gradient(circle at 35% 30%, var(--ebony-hi), var(--ebony-mid) 55%, var(--ebony-low)); box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5), inset 0 3px 4px rgba(255,255,255,0.15), inset 0 -4px 6px rgba(0,0,0,0.6), 0 0 0 1px var(--silver-dim); }
+  .turn-chip.pulse{ animation: pop .3s ease; }
+  @keyframes pop{
+    0%{ transform: scale(0.5); opacity:0.4; }
+    60%{ transform: scale(1.15); }
+    100%{ transform: scale(1); }
+  }
+  .turn-label{
+    font-family:'Kaisei Decol', serif;
+    font-weight:500;
+    font-size:1rem;
+    letter-spacing:0.08em;
+  }
+  .status-text{ font-size:0.7rem; color:var(--silver-dim); letter-spacing:0.06em; margin-top:2px; }
+
+  /* --- scoreboard --- */
+  .score-row{
+    display:flex;
+    gap:24px;
+    font-size:0.75rem;
+    letter-spacing: 0.06em;
+  }
+  .score-pill{
+    display:flex; align-items:center; gap:8px;
+    color: var(--silver);
+  }
+  .score-pill .dot{ width:12px; height:12px; border-radius:50%; }
+  .score-pill .dot.white{ background: var(--ivory-mid); box-shadow: 0 0 0 1px var(--silver-dim); }
+  .score-pill .dot.black{ background: var(--ebony-mid); box-shadow: 0 0 0 1px var(--silver-dim); }
+  .score-pill b{ font-family:'Kaisei Decol', serif; color:#fff; font-size:0.95rem; }
+
+  /* --- board frame: ebonized wood + tabletop tilt --- */
+  .board-perspective{
+    position:relative;
+    perspective: 1300px;
+    padding-bottom: 14px;
+  }
+  .board-perspective::after{
+    content:"";
+    position:absolute;
+    left:50%; bottom:2px;
+    transform: translateX(-50%);
+    width:72%; height:20px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.6), rgba(0,0,0,0) 72%);
+    filter: blur(3px);
+    z-index:-1;
+  }
+
+  .board-frame{
+    position:relative;
+    padding: 16px 13px 20px;
+    border-radius: 9px;
+    overflow:hidden;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7' result='n'/%3E%3CfeColorMatrix in='n' type='matrix' values='0.25 0.25 0.25 0 0 0.25 0.25 0.25 0 0 0.25 0.25 0.25 0 0 0 0 0 0.45 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E") repeat,
+      radial-gradient(160% 130% at 50% -6%, var(--wood-light) 0%, var(--wood-mid) 58%, var(--wood-deep) 100%);
+    background-size: 140px 140px, cover;
+    background-blend-mode: soft-light, normal;
+    box-shadow:
+      0 22px 38px rgba(0,0,0,0.7),
+      0 3px 0 rgba(0,0,0,0.5),
+      inset 0 0 0 1px var(--brass-dim),
+      inset 0 -10px 16px rgba(0,0,0,0.5);
+    transform: rotateX(5deg);
+    transform-origin: 50% 100%;
+    touch-action: none;
+  }
+
+  .col-buttons{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    width: min(430px, 90vw);
+    margin-bottom: 6px;
+  }
+  .col-btn{
+    height: 20px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--brass-dim);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 0.7rem;
+    transition: color .15s ease, border-color .15s ease, text-shadow .15s ease;
+  }
+  .col-btn:hover:not(:disabled){ color: var(--brass-glow); border-color: var(--brass-dim); text-shadow: 0 0 6px var(--brass-glow); }
+  .col-btn:disabled{ opacity:0.2; cursor:default; }
+  .col-btn:focus-visible{ outline: 1px solid #fff; outline-offset:2px; }
+
+  .board-stage{ position:relative; }
+
+  .board{
+    position:relative;
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    width: min(430px, 90vw);
+    height: calc(min(430px, 90vw) * 6 / 7);
+    background: radial-gradient(120% 100% at 50% 30%, #0b0b0b 0%, #030303 75%);
+    border-radius: 2px;
+    box-shadow: inset 0 4px 14px rgba(0,0,0,0.85), inset 0 0 0 1px var(--void-rim);
+    overflow: hidden;
+  }
+
+  .cell{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .hole{
+    width:78%; height:78%;
+    border-radius:50%;
+    background: var(--void);
+    box-shadow:
+      inset 0 4px 8px rgba(0,0,0,0.95),
+      inset 0 -1px 2px rgba(255,255,255,0.04),
+      0 1px 0 rgba(255,214,170,0.05),
+      0 0 0 1px rgba(0,0,0,0.5);
+  }
+
+  .chip-layer{
+    position:absolute; inset:0;
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .chip{
+    position:relative;
+    width:78%; height:78%;
+    justify-self:center; align-self:center;
+    border-radius:50%;
+    overflow:hidden;
+    animation: drop 0.62s both;
+  }
+  @keyframes drop{
+    0%{ transform: translateY(var(--drop-from, -600%)); animation-timing-function: cubic-bezier(.55,0,.85,.35); }
+    60%{ transform: translateY(0%); animation-timing-function: ease-out; }
+    71%{ transform: translateY(-9%); animation-timing-function: ease-in; }
+    83%{ transform: translateY(0%); animation-timing-function: ease-out; }
+    91%{ transform: translateY(-3%); animation-timing-function: ease-in; }
+    97%{ transform: translateY(0%); animation-timing-function: ease-out; }
+    100%{ transform: translateY(0%); }
+  }
+  /* acrylic disc material: glassy fill + specular highlight + edge rim */
+  .chip.white{
+    background: radial-gradient(circle at 34% 30%, #f2eee2 0%, #e8e3d3 40%, #d3cdbc 74%, #b3ae9f 100%);
+    box-shadow:
+      0 4px 0 rgba(0,0,0,0.35),
+      0 7px 12px rgba(0,0,0,0.5),
+      inset 0 3px 5px rgba(255,255,255,0.4),
+      inset 0 -6px 9px rgba(110,102,84,0.32),
+      inset 0 0 0 1px rgba(255,255,255,0.22),
+      0 0 0 1px rgba(0,0,0,0.25);
+  }
+  .chip.white::before{
+    content:"";
+    position:absolute;
+    left:20%; top:15%;
+    width:28%; height:16%;
+    background: rgba(255,255,255,0.4);
+    border-radius:50%;
+    filter: blur(4px);
+    opacity:0.6;
+  }
+  .chip.white::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08), inset 0 0 9px 2px rgba(170,162,142,0.14);
+  }
+  .chip.black{
+    background: radial-gradient(circle at 34% 30%, #3c3c3c 0%, #242424 40%, #141414 74%, #060606 100%);
+    box-shadow:
+      0 4px 0 rgba(0,0,0,0.55),
+      0 7px 12px rgba(0,0,0,0.6),
+      inset 0 3px 5px rgba(255,255,255,0.09),
+      inset 0 -6px 9px rgba(0,0,0,0.65),
+      inset 0 0 0 1px rgba(100,100,112,0.28),
+      0 0 0 1px rgba(0,0,0,0.6);
+  }
+  .chip.black::before{
+    content:"";
+    position:absolute;
+    left:20%; top:15%;
+    width:24%; height:13%;
+    background: rgba(255,255,255,0.22);
+    border-radius:50%;
+    filter: blur(4px);
+    opacity:0.55;
+  }
+  .chip.black::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    box-shadow: inset 0 0 0 2px rgba(120,120,140,0.14), inset 0 0 9px 2px rgba(0,0,0,0.4);
+  }
+  .chip.win{ animation: drop 0.62s both, glow 1.1s ease-in-out 0.62s infinite; }
+  @keyframes glow{
+    0%,100%{ box-shadow: 0 0 4px 1px rgba(255,255,255,0.25), 0 0 14px 4px rgba(255,255,255,0.15); }
+    50%{ box-shadow: 0 0 14px 6px rgba(255,255,255,0.65), 0 0 32px 12px rgba(255,255,255,0.35); }
+  }
+  .chip.dim{ opacity:0.35; filter: grayscale(0.35); transition: opacity .45s ease, filter .45s ease; }
+
+  .chip.fall-out{
+    animation: chipFallOut 0.62s cubic-bezier(.45,0,.85,1) both !important;
+  }
+  @keyframes chipFallOut{
+    0%{ transform: translateY(0); opacity:1; }
+    30%{ transform: translateY(8%); opacity:1; }
+    80%{ transform: translateY(650%); opacity:1; }
+    100%{ transform: translateY(900%); opacity:1; }
+  }
+
+  /* landing impact ring */
+  .impact-ring{
+    width:80%; height:80%;
+    justify-self:center; align-self:center;
+    border-radius:50%;
+    border: 3px solid rgba(255,255,255,0.65);
+    animation: ringPulse .42s cubic-bezier(.2,.8,.4,1) forwards;
+    pointer-events:none;
+  }
+  @keyframes ringPulse{
+    0%{ transform: scale(0.3); opacity:0.85; }
+    100%{ transform: scale(1.55); opacity:0; }
+  }
+
+  /* column hover preview: inverted-triangle drop pointer */
+  .preview-pointer{
+    position:absolute;
+    top:-38px;
+    width:0; height:0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 11px solid #ffffff;
+    opacity:0;
+    pointer-events:none;
+    transform: translateX(-50%) translateY(-6px);
+    transition: opacity .14s ease, left .12s ease;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+  }
+  .preview-pointer.show{ opacity:0.9; animation: floatBob 1s ease-in-out infinite; }
+  @keyframes floatBob{
+    0%,100%{ transform: translateX(-50%) translateY(-6px); }
+    50%{ transform: translateX(-50%) translateY(0px); }
+  }
+
+  .mode-toggle-row{ display:flex; gap:8px; }
+  #modeToggleRow{
+    flex-direction: column;
+    width:100%;
+  }
+  #modeToggleRow .mode-toggle-btn{
+    width:100%;
+    padding: 12px 16px;
+    font-size:0.78rem;
+  }
+  .mode-toggle-subrow{
+    display:flex;
+    gap:8px;
+    width:100%;
+  }
+  .mode-toggle-subrow .mode-toggle-btn{
+    width:auto;
+    flex:1;
+  }
+
+  /* --- setup screen (mode selection), styled after ウサギと猟犬's mode-select:
+     no boxed frame — a plain title + a small section label above the buttons --- */
+  .setup-screen{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+  }
+  .setup-card{
+    width:100%;
+    max-width: 380px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    margin-top:20px;
+  }
+  .setup-mode-title{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.1rem;
+    letter-spacing:0.12em;
+    color:#fff;
+  }
+  .setup-section-label{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.2em;
+    color:var(--silver-dim);
+    align-self:flex-start;
+    margin-top:-6px;
+  }
+  .start-btn{
+    width:100%;
+    padding: 12px 16px;
+    font-size:0.8rem;
+    background:#fff;
+    color:#141414;
+    border-color:#fff;
+  }
+  .start-btn:hover{ background:#eee; border-color:#eee; }
+  .setup-rules-btn{
+    background: transparent;
+    color: var(--silver);
+    border-color: var(--silver-dim);
+    margin-top: -6px;
+  }
+  .setup-rules-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+
+  /* --- game screen --- */
+  .game-screen{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    width:100%;
+  }
+  .mode-toggle-btn{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.68rem;
+    letter-spacing:0.06em;
+    color: var(--silver);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--silver-dim);
+    border-radius:3px;
+    padding: 6px 12px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .mode-toggle-btn.active{ background:#fff; color:#141414; border-color:#fff; }
+
+  .controls{ display:flex; gap:12px; margin-top:0; }
+  button.main-btn{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    color:#fff;
+    background: transparent;
+    border: 1px solid var(--silver-dim);
+    border-radius:2px;
+    padding: 8px 16px;
+    cursor:pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  button.main-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+  button.main-btn:active{ transform: translateY(1px); }
+  button:focus-visible{ outline: 1px solid #fff; outline-offset: 3px; }
+
+  /* --- modal overlay (rules / confirm) --- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background: rgba(0,0,0,0.62);
+    backdrop-filter: blur(2px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 20px;
+  }
+  .modal-overlay.hidden{ display:none; }
+
+  .modal-box{
+    position:relative;
+    width:100%;
+    max-width: 360px;
+    background: linear-gradient(160deg, #202020, #141414 45%, #030303);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 24px 22px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.65);
+    animation: modalPop 0.22s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes modalPop{
+    0%{ transform: scale(0.85); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
+  }
+
+  .modal-close{
+    position:absolute;
+    top:10px; right:10px;
+    width:28px; height:28px;
+    display:flex; align-items:center; justify-content:center;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius:50%;
+    color:#fff;
+    font-size:0.95rem;
+    line-height:1;
+    cursor:pointer;
+  }
+  .modal-close:hover{ border-color:#fff; }
+
+  .rules-box h2{
+    font-family:'Kaisei Decol', serif;
+    font-weight:500;
+    font-size:0.95rem;
+    margin: 0 0 12px;
+    color:#fff;
+    letter-spacing: 0.05em;
+  }
+  .rules-box ul{
+    margin:4px 0 0;
+    padding-left:1.1em;
+    font-size:0.78rem;
+    line-height:1.9;
+    color:#cfcfcf;
+  }
+
+  .confirm-box{
+    text-align:center;
+  }
+  .confirm-text{
+    font-family:'Kaisei Decol', serif;
+    font-size:0.95rem;
+    color:#fff;
+    letter-spacing:0.04em;
+    line-height:1.7;
+    margin-bottom:20px;
+  }
+  .confirm-actions{
+    display:flex;
+    gap:10px;
+  }
+  .confirm-actions .main-btn{
+    flex:1;
+    padding: 11px 10px;
+  }
+  .confirm-ok{
+    background:#fff;
+    color:#141414;
+    border-color:#fff;
+  }
+  .confirm-ok:hover{ background:#eee; border-color:#eee; }
+
+  .controls .main-btn.hidden{ display:none; }
+
+  /* --- 横画面専用：左右の「手番コイン」インジケーター ---
+     左＝白コイン、右＝黒コイン。
+     白コインは自分の番＝不透明、相手の番＝半透明。
+     黒コインは常に黒のままにして、自分の番のときだけ白いフチが浮き出る。
+     決着時の文字はコインの上に絶対配置のラベルとして出すので、
+     ラベルの有無でコイン自体の位置がズレることはない。 */
+  .side-turn-coin{
+    display:none;
+    position:fixed;
+    top:50%;
+    transform: translateY(-50%);
+    width: 15vh;
+    height: 15vh;
+    max-width:100px;
+    max-height:100px;
+    min-width:52px;
+    min-height:52px;
+    border-radius:50%;
+    z-index:60;
+    box-sizing:border-box;
+    transition: opacity .2s ease, border-color .2s ease;
+  }
+  .side-turn-coin.left{
+    left: calc(max(7vw, 22px) + env(safe-area-inset-left, 0px));
+    background:#f2efe6;
+    opacity:1;
+  }
+  .side-turn-coin.left.dim{ opacity:0.5; }
+
+  .side-turn-coin.right{
+    right: calc(max(7vw, 22px) + env(safe-area-inset-right, 0px));
+    background:#141414;
+    border: 3px solid transparent;
+  }
+  .side-turn-coin.right:not(.dim){ border-color:#fff; }
+
+  .side-turn-label{
+    display:none;
+    position:absolute;
+    bottom: 100%;
+    left:50%;
+    transform: translateX(-50%);
+    margin-bottom: 16px;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size: clamp(0.64rem, 1.9vh, 0.8rem);
+    letter-spacing:0.06em;
+    color:#fff;
+    border: 1.5px solid #fff;
+    border-radius: 3px;
+    padding: 8px 14px;
+    white-space:nowrap;
+    background: rgba(0,0,0,0.35);
+  }
+  .side-turn-label.show{ display:block; }
+
+  /* --- 横画面専用：対局終了後のタップ検知オーバーレイ ---
+     終了直後は透明のまま画面全体のタップだけを拾い、タップされたら
+     中央に「次の対局へ」ボタンをポップ表示する。ボタン以外の場所を
+     タップするとポップを閉じ、勝敗時の盤面がそのまま見える状態に戻る。 */
+  .landscape-end-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:250;
+    align-items:center;
+    justify-content:center;
+    background: transparent;
+    transition: background .2s ease;
+  }
+  .landscape-end-overlay.show-popup{
+    background: rgba(0,0,0,0.55);
+  }
+  .landscape-next-btn{
+    opacity:0;
+    transform: scale(0.9);
+    pointer-events:none;
+    transition: opacity .18s ease, transform .18s ease;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.82rem;
+    letter-spacing:0.08em;
+    color:#141414;
+    background:#fff;
+    border:1px solid #fff;
+    border-radius:4px;
+    padding: 14px 30px;
+    cursor:pointer;
+  }
+  .landscape-end-overlay.show-popup .landscape-next-btn{
+    opacity:1;
+    transform: scale(1);
+    pointer-events:auto;
+  }
+
+  /* ============================================================
+     横画面（スマホを横向きに持った時）向けレイアウト
+     画面の高さが小さい横向き状態を対象にし、タイトル・ホーム/背景ボタン・
+     手番表示をたたんで、盤面をできるだけ大きく見せる。
+     ============================================================ */
+  @media (orientation: landscape) and (max-height: 600px){
+
+    .home-btn,
+    .bg-switch-btn,
+    .bg-switch-panel{
+      display:none !important;
+    }
+
+    header{ display:none; }
+
+    body{
+      align-items:center;
+      padding: 4px;
+    }
+    .app{ gap:6px; }
+
+    /* 手番表示（帯）は左右のコインに置き換わるので非表示 */
+    .turn-wrap{
+      display:none;
+      border:none;
+      padding:0;
+      min-height:0;
+    }
+
+    .score-row{
+      font-size:0.6rem;
+      gap:14px;
+    }
+
+    /* 盤面は画面幅ではなく高さを基準にスケールさせ、横向きでも収まるようにする */
+    .board-perspective{ padding-bottom:6px; }
+    .col-buttons,
+    .board{
+      width: min(74vh, 92vw);
+    }
+    .board{ height: calc(min(74vh, 92vw) * 6 / 7); }
+
+    .controls{ margin-top:0; gap:8px; }
+    .controls .main-btn{
+      padding: 6px 11px;
+      font-size:0.6rem;
+    }
+
+    /* モード選択画面（対局開始前）も横向きなら少しコンパクトに */
+    .setup-card{ margin-top:4px; padding:16px 18px; gap:10px; }
+
+    .side-turn-coin{ display:block; }
+    .landscape-end-overlay.active{ display:flex; }
+  }
+</style>
+</head>
+<body>
+<button type="button" id="homeBtn" class="home-btn" aria-label="ホームへ戻る">← ホーム</button>
+<button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
+<div id="bgSwitchPanel" class="bg-switch-panel hidden">
+  <button
+  class="bg-swatch active"
+  data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%"
+  style="--sw:#0a0a0a"
+  aria-label="クラシック"
+></button>
+  <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
+  <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
+  <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
+  <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
+</div>
+<div class="app">
+
+  <header>
+    <h1>コネクトフォー<span class="small">CONNECT FOUR</span></h1>
+  </header>
+
+  <div id="setupScreen" class="setup-screen">
+    <div class="setup-card">
+      <div class="setup-mode-title">対戦モード</div>
+      <div class="setup-section-label">モードを選ぶ</div>
+      <div class="mode-toggle-row" id="modeToggleRow">
+        <button class="mode-toggle-btn active" id="modeTwoPlayerBtn">2人対戦</button>
+        <div class="mode-toggle-subrow">
+          <button class="mode-toggle-btn" id="modeCPUBtn">CPU対戦</button>
+          <button class="mode-toggle-btn" id="modeCPUMasterBtn">達人CPU</button>
+        </div>
+      </div>
+      <div class="mode-toggle-row hidden" id="sideToggleRow">
+        <button class="mode-toggle-btn active" id="sideWhiteBtn">先行で対戦</button>
+        <button class="mode-toggle-btn" id="sideBlackBtn">後攻で対戦</button>
+      </div>
+      <button id="startGameBtn" class="main-btn start-btn">はじめる</button>
+      <button id="setupRulesBtn" class="main-btn start-btn setup-rules-btn">遊び方</button>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="game-screen hidden">
+
+    <div class="turn-wrap">
+      <div id="turnChip" class="turn-chip white"></div>
+      <div class="turn-info">
+        <div id="turnLabel" class="turn-label">白 の番</div>
+        <div id="statusText" class="status-text">列を選んでコインを落としてください</div>
+      </div>
+      <button id="againBtn" class="main-btn again-inline hidden">次の対局へ</button>
+    </div>
+
+    <div class="score-row">
+      <div class="score-pill"><span class="dot white"></span>白 <b id="whiteScore">0</b></div>
+      <div class="score-pill"><span class="dot black"></span>黒 <b id="blackScore">0</b></div>
+    </div>
+
+    <div class="board-perspective">
+      <div class="board-frame">
+        <div id="colButtons" class="col-buttons"></div>
+        <div class="board-stage">
+          <div id="board" class="board"></div>
+          <div id="chipLayer" class="chip-layer"></div>
+          <div id="previewPointer" class="preview-pointer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 横画面専用：左右の手番コイン（白=左／黒=右）。今の手番、決着後は勝った方を強調表示 -->
+    <div id="sideTurnLeft" class="side-turn-coin left">
+      <div class="side-turn-label" id="sideTurnLeftText"></div>
+    </div>
+    <div id="sideTurnRight" class="side-turn-coin right">
+      <div class="side-turn-label" id="sideTurnRightText"></div>
+    </div>
+
+    <!-- 横画面専用：対局終了後にタップで「次の対局へ」をポップ表示するオーバーレイ -->
+    <div id="landscapeEndOverlay" class="landscape-end-overlay">
+      <button id="landscapeNextBtn" class="landscape-next-btn">次の対局へ</button>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="rulesModal" class="modal-overlay hidden">
+  <div class="modal-box rules-box">
+    <button class="modal-close" id="rulesCloseBtn" aria-label="閉じる">×</button>
+    <h2>遊び方</h2>
+    <ul>
+      <li>7列×6段の盤に、交互にコインを落とします</li>
+      <li>コインは列の一番下の空きマスまで重力で落ちます</li>
+      <li>縦・横・斜め、どちらの向きでも4つ並べたら勝利です</li>
+      <li>全マスが埋まって誰も揃わなければ引き分けです</li>
+      <li>スコアは「はじめから」を押すまで対局をまたいで記録されます</li>
+    </ul>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="modal-box confirm-box">
+    <div class="confirm-text">このゲームは終了しますか？</div>
+    <div class="confirm-actions">
+      <button id="confirmCancelBtn" class="main-btn">キャンセル</button>
+      <button id="confirmOkBtn" class="main-btn confirm-ok">終了する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const COLS = 7, ROWS = 6;
+  let grid, turn, gameOver, colHeights, score;
+  let lastResult = null; // { winner: 'white'|'black'|null, draw: boolean } | null
+  let dropCooldownUntil = 0; // 2人対戦時のみ、直前の一手からの誤連打を防ぐ
+  let vsCPU = false;
+  let cpuDifficulty = 'normal';
+  let humanSide = 'white';
+  let cpuThinking = false;
+  let cpuMovesMade = 0;
+  let gameStartedAt = null;
+
+  function cpuSide(){
+    if(!vsCPU) return null;
+    return humanSide === 'white' ? 'black' : 'white';
+  }
+
+  // --- CPU AI: minimax with alpha-beta pruning over a standard Connect Four heuristic ---
+  function cloneGrid(g){ return g.map(row => row.slice()); }
+
+  function getValidCols(heights){
+    const cols = [];
+    for(let c=0;c<COLS;c++){ if(heights[c] < ROWS) cols.push(c); }
+    return cols;
+  }
+
+  function simulateDrop(g, heights, col, player){
+    const r = ROWS - 1 - heights[col];
+    g[r][col] = player;
+    heights[col]++;
+    return r;
+  }
+
+  function evaluateWindow(cells, player){
+    const opp = player === 'white' ? 'black' : 'white';
+    const countPlayer = cells.filter(v => v === player).length;
+    const countOpp = cells.filter(v => v === opp).length;
+    const countEmpty = cells.filter(v => v === null).length;
+    let score = 0;
+    if(countPlayer === 4) score += 100;
+    else if(countPlayer === 3 && countEmpty === 1) score += 5;
+    else if(countPlayer === 2 && countEmpty === 2) score += 2;
+    if(countOpp === 3 && countEmpty === 1) score -= 4;
+    return score;
+  }
+
+  function evaluatePosition(g, player){
+    let score = 0;
+    const centerCol = Math.floor(COLS / 2);
+    for(let r=0;r<ROWS;r++){ if(g[r][centerCol] === player) score += 3; }
+
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<=COLS-4;c++){
+        score += evaluateWindow([g[r][c],g[r][c+1],g[r][c+2],g[r][c+3]], player);
+      }
+    }
+    for(let c=0;c<COLS;c++){
+      for(let r=0;r<=ROWS-4;r++){
+        score += evaluateWindow([g[r][c],g[r+1][c],g[r+2][c],g[r+3][c]], player);
+      }
+    }
+    for(let r=0;r<=ROWS-4;r++){
+      for(let c=0;c<=COLS-4;c++){
+        score += evaluateWindow([g[r][c],g[r+1][c+1],g[r+2][c+2],g[r+3][c+3]], player);
+        score += evaluateWindow([g[r+3][c],g[r+2][c+1],g[r+1][c+2],g[r][c+3]], player);
+      }
+    }
+    return score;
+  }
+
+  function checkWinGrid(g, r, c, player){
+    const dirs = [ [[0,1],[0,-1]], [[1,0],[-1,0]], [[1,1],[-1,-1]], [[1,-1],[-1,1]] ];
+    for(const pair of dirs){
+      let count = 1;
+      for(const [dr,dc] of pair){
+        let nr=r+dr, nc=c+dc;
+        while(nr>=0 && nr<ROWS && nc>=0 && nc<COLS && g[nr][nc] === player){
+          count++; nr+=dr; nc+=dc;
+        }
+      }
+      if(count >= 4) return true;
+    }
+    return false;
+  }
+
+  function minimax(g, heights, depth, alpha, beta, maximizing, aiPlayer){
+    const validCols = getValidCols(heights);
+    if(depth === 0 || validCols.length === 0){
+      return evaluatePosition(g, aiPlayer);
+    }
+    const currentPlayer = maximizing ? aiPlayer : (aiPlayer === 'white' ? 'black' : 'white');
+
+    if(maximizing){
+      let value = -Infinity;
+      for(const col of validCols){
+        const g2 = cloneGrid(g), h2 = heights.slice();
+        const r = simulateDrop(g2, h2, col, currentPlayer);
+        if(checkWinGrid(g2, r, col, currentPlayer)){
+          value = Math.max(value, 100000 + depth);
+        } else {
+          value = Math.max(value, minimax(g2, h2, depth - 1, alpha, beta, false, aiPlayer));
+        }
+        alpha = Math.max(alpha, value);
+        if(alpha >= beta) break;
+      }
+      return value;
+    } else {
+      let value = Infinity;
+      for(const col of validCols){
+        const g2 = cloneGrid(g), h2 = heights.slice();
+        const r = simulateDrop(g2, h2, col, currentPlayer);
+        if(checkWinGrid(g2, r, col, currentPlayer)){
+          value = Math.min(value, -100000 - depth);
+        } else {
+          value = Math.min(value, minimax(g2, h2, depth - 1, alpha, beta, true, aiPlayer));
+        }
+        beta = Math.min(beta, value);
+        if(alpha >= beta) break;
+      }
+      return value;
+    }
+  }
+
+  function cpuChooseColumn(){
+    const aiPlayer = cpuSide();
+    const CPU_DEPTH = cpuDifficulty === 'master' ? 5 : 3;
+    const validCols = getValidCols(colHeights);
+    let bestCol = validCols[0];
+    let bestScore = -Infinity;
+    // Prefer center columns when scores tie, by iterating from center outward.
+    const centerOrder = validCols.slice().sort((a,b) => Math.abs(a-3) - Math.abs(b-3));
+    for(const col of centerOrder){
+      const g2 = cloneGrid(grid), h2 = colHeights.slice();
+      const r = simulateDrop(g2, h2, col, aiPlayer);
+      let score;
+      if(checkWinGrid(g2, r, col, aiPlayer)){
+        score = 100000 + CPU_DEPTH;
+      } else {
+        score = minimax(g2, h2, CPU_DEPTH, -Infinity, Infinity, false, aiPlayer);
+      }
+      if(score > bestScore){ bestScore = score; bestCol = col; }
+    }
+    return bestCol;
+  }
+
+  function cpuTakeTurn(){
+    cpuThinking = false;
+    if(gameOver || !vsCPU || turn !== cpuSide()) return;
+    const col = cpuChooseColumn();
+    cpuMovesMade++;
+    dropInColumn(col);
+  }
+
+  function resetBoard(){
+    grid = Array.from({length:ROWS}, () => Array(COLS).fill(null));
+    colHeights = Array(COLS).fill(0);
+    turn = 'white';
+    gameOver = false;
+    cpuMovesMade = 0;
+    lastResult = null;
+    dropCooldownUntil = 0;
+    gameStartedAt = Date.now();
+    document.getElementById('chipLayer').innerHTML = '';
+    hidePreview();
+    renderBoardHoles();
+    renderColButtons();
+    updateTurnUI(false);
+
+    if(vsCPU && cpuSide() === 'white' && !gameOver){
+      cpuThinking = true;
+      document.getElementById('statusText').textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + '（白）が考え中…';
+      updateColButtonsState();
+      setTimeout(cpuTakeTurn, 1500);
+    }
+  }
+
+  // 対局終了後、盤上のコインを下へ落として消してから次の対局へ移る
+  function resetBoardWithFall(){
+    const chipLayer = document.getElementById('chipLayer');
+    const chips = Array.from(chipLayer.querySelectorAll('.chip'));
+    if(chips.length === 0){
+      resetBoard();
+      return;
+    }
+    chips.forEach(el => {
+      const col = parseInt(el.style.gridColumnStart, 10) - 1;
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.classList.add('fall-out');
+      el.style.animationDelay = (Math.max(0, col) * 0.045) + 's';
+    });
+    const totalMs = (0.62 + (COLS - 1) * 0.045) * 1000 + 40;
+    setTimeout(resetBoard, totalMs);
+  }
+
+  function resetAll(){
+    score = { white:0, black:0 };
+    updateScoreUI();
+    resetBoard();
+  }
+
+  function renderBoardHoles(){
+    const boardEl = document.getElementById('board');
+    boardEl.innerHTML = '';
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const hole = document.createElement('div');
+        hole.className = 'hole';
+        cell.appendChild(hole);
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function renderColButtons(){
+    const wrap = document.getElementById('colButtons');
+    wrap.innerHTML = '';
+    for(let c=0;c<COLS;c++){
+      const btn = document.createElement('button');
+      btn.className = 'col-btn';
+      btn.textContent = '▼';
+      btn.setAttribute('aria-label', (c+1) + '列目に落とす');
+      wrap.appendChild(btn);
+    }
+  }
+
+  function updateColButtonsState(){
+    const btns = document.querySelectorAll('.col-btn');
+    btns.forEach((btn, c) => {
+      btn.disabled = gameOver || colHeights[c] >= ROWS || (vsCPU && turn === cpuSide());
+    });
+  }
+
+  // --- column position preview: drop pointer ---
+  function showPreview(col){
+    if(gameOver || colHeights[col] >= ROWS || (vsCPU && turn === cpuSide())) return;
+    const preview = document.getElementById('previewPointer');
+    preview.style.left = ((col + 0.5) / COLS * 100) + '%';
+    preview.classList.add('show');
+  }
+  function hidePreview(){
+    document.getElementById('previewPointer').classList.remove('show');
+  }
+
+  function updateTurnUI(pulse){
+    const chip = document.getElementById('turnChip');
+    const label = document.getElementById('turnLabel');
+    const statusText = document.getElementById('statusText');
+    const againBtn = document.getElementById('againBtn');
+
+    if(gameOver && lastResult){
+      if(lastResult.draw){
+        label.textContent = '引き分け';
+        statusText.textContent = '盤面が埋まりました';
+      } else {
+        chip.className = 'turn-chip ' + lastResult.winner + (pulse ? ' pulse' : '');
+        if(pulse){ void chip.offsetWidth; chip.classList.add('pulse'); }
+        label.textContent = (lastResult.winner === 'white' ? '白' : '黒') + 'の勝ち！';
+        statusText.textContent = '4つ並びました';
+      }
+      againBtn.classList.remove('hidden');
+      showLandscapeEndOverlay();
+    } else {
+      chip.className = 'turn-chip ' + turn + (pulse ? ' pulse' : '');
+      if(pulse){ void chip.offsetWidth; chip.classList.add('pulse'); }
+      label.textContent = (turn === 'white' ? '白' : '黒') + ' の番';
+      statusText.textContent = '列を選んでコインを落としてください';
+      againBtn.classList.add('hidden');
+      hideLandscapeEndOverlay();
+    }
+    updateColButtonsState();
+    updateSideTurnIndicators();
+    hidePreview();
+  }
+
+  // --- 横画面用：左（白）／右（黒）の手番コイン表示 ---
+  function updateSideTurnIndicators(){
+    const left = document.getElementById('sideTurnLeft');
+    const right = document.getElementById('sideTurnRight');
+    const leftText = document.getElementById('sideTurnLeftText');
+    const rightText = document.getElementById('sideTurnRightText');
+    if(!left || !right) return;
+
+    left.classList.remove('dim');
+    right.classList.remove('dim');
+    leftText.textContent = '';
+    rightText.textContent = '';
+    leftText.classList.remove('show');
+    rightText.classList.remove('show');
+
+    if(gameOver && lastResult){
+      if(lastResult.draw){
+        leftText.textContent = '今回は引き分けです';
+        rightText.textContent = '今回は引き分けです';
+      } else if(lastResult.winner === 'white'){
+        leftText.textContent = 'あなたの勝利です';
+        rightText.textContent = 'あなたの負けです';
+        right.classList.add('dim');
+      } else {
+        leftText.textContent = 'あなたの負けです';
+        rightText.textContent = 'あなたの勝利です';
+        left.classList.add('dim');
+      }
+      leftText.classList.add('show');
+      rightText.classList.add('show');
+    } else {
+      if(turn === 'white'){
+        right.classList.add('dim');
+      } else {
+        left.classList.add('dim');
+      }
+    }
+  }
+
+  // --- 横画面用：対局終了後、タップで「次の対局へ」をポップ表示するオーバーレイ ---
+  function showLandscapeEndOverlay(){
+    const overlay = document.getElementById('landscapeEndOverlay');
+    if(!overlay) return;
+    overlay.classList.add('active');
+    overlay.classList.remove('show-popup');
+  }
+  function hideLandscapeEndOverlay(){
+    const overlay = document.getElementById('landscapeEndOverlay');
+    if(!overlay) return;
+    overlay.classList.remove('active', 'show-popup');
+  }
+
+  function updateScoreUI(){
+    document.getElementById('whiteScore').textContent = score.white;
+    document.getElementById('blackScore').textContent = score.black;
+  }
+
+  // --- landing impact feedback: shockwave ring only (board itself stays still) ---
+  function spawnImpact(r, c){
+    const ring = document.createElement('div');
+    ring.className = 'impact-ring';
+    ring.style.gridRowStart = r + 1;
+    ring.style.gridColumnStart = c + 1;
+    ring.addEventListener('animationend', () => ring.remove());
+    document.getElementById('chipLayer').appendChild(ring);
+  }
+
+  function dropInColumn(c){
+    if(gameOver) return;
+    if(colHeights[c] >= ROWS) return;
+    hidePreview();
+    if(!vsCPU) dropCooldownUntil = Date.now() + 500;
+    const r = ROWS - 1 - colHeights[c];
+    grid[r][c] = turn;
+    colHeights[c]++;
+
+    const chipEl = document.createElement('div');
+    chipEl.className = 'chip ' + turn;
+    chipEl.style.gridRowStart = r + 1;
+    chipEl.style.gridColumnStart = c + 1;
+    chipEl.style.setProperty('--drop-from', (-(r+1) * 128) + '%');
+    chipEl.addEventListener('animationend', (e) => {
+      if(e.animationName === 'drop') spawnImpact(r, c);
+    });
+    document.getElementById('chipLayer').appendChild(chipEl);
+
+    const win = checkWin(r, c, turn);
+    if(win){
+      const chips = document.querySelectorAll('.chip');
+      chips.forEach(el => {
+        const rr = parseInt(el.style.gridRowStart) - 1, cc = parseInt(el.style.gridColumnStart) - 1;
+        const inWin = win.some(([wr,wc]) => wr === rr && wc === cc);
+        if(inWin) el.classList.add('win');
+        else el.classList.add('dim');
+      });
+      gameOver = true;
+      score[turn]++;
+      updateScoreUI();
+      showWinner(turn, false);
+      updateTurnUI(false);
+      return;
+    }
+
+    if(colHeights.every(h => h >= ROWS)){
+      gameOver = true;
+      showWinner(null, true);
+      updateTurnUI(false);
+      return;
+    }
+
+    turn = turn === 'white' ? 'black' : 'white';
+    updateTurnUI(true);
+
+    if(vsCPU && turn === cpuSide() && !gameOver){
+      cpuThinking = true;
+      const sideLabel = cpuSide() === 'white' ? '白' : '黒';
+      document.getElementById('statusText').textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + '（' + sideLabel + '）が考え中…';
+      updateColButtonsState();
+      setTimeout(cpuTakeTurn, cpuMovesMade === 0 ? 1500 : 550);
+    }
+  }
+
+  function checkWin(r, c, player){
+    const dirs = [
+      [[0,1],[0,-1]],
+      [[1,0],[-1,0]],
+      [[1,1],[-1,-1]],
+      [[1,-1],[-1,1]],
+    ];
+    for(const pair of dirs){
+      let line = [[r,c]];
+      for(const [dr,dc] of pair){
+        let nr=r+dr, nc=c+dc;
+        while(nr>=0 && nr<ROWS && nc>=0 && nc<COLS && grid[nr][nc] === player){
+          line.push([nr,nc]);
+          nr+=dr; nc+=dc;
+        }
+      }
+      if(line.length >= 4) return line;
+    }
+    return null;
+  }
+
+  function showWinner(winner, draw){
+    lastResult = draw ? { winner: null, draw: true } : { winner: winner, draw: false };
+
+    // ホーム画面の「記録」タブ用に対局結果を記録しておく
+    if(window.hitotokiStats){
+      window.hitotokiStats.recordGameEnd('connect_four', 'コネクトフォー', {
+        vsCPU: vsCPU,
+        won: (vsCPU && !draw) ? (winner === humanSide) : undefined,
+        durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
+      });
+    }
+  }
+
+  function setMode(newVsCPU, newDifficulty){
+    if(vsCPU === newVsCPU && cpuDifficulty === newDifficulty) return;
+    vsCPU = newVsCPU;
+    cpuDifficulty = newDifficulty;
+    document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !vsCPU);
+    document.getElementById('modeCPUBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'normal');
+    document.getElementById('modeCPUMasterBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'master');
+    document.getElementById('sideToggleRow').classList.toggle('hidden', !vsCPU);
+    resetBoard();
+  }
+
+  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => setMode(false, 'normal'));
+  document.getElementById('modeCPUBtn').addEventListener('click', () => setMode(true, 'normal'));
+  document.getElementById('modeCPUMasterBtn').addEventListener('click', () => setMode(true, 'master'));
+
+  document.getElementById('sideWhiteBtn').addEventListener('click', () => {
+    if(humanSide === 'white') return;
+    humanSide = 'white';
+    document.getElementById('sideWhiteBtn').classList.add('active');
+    document.getElementById('sideBlackBtn').classList.remove('active');
+    resetBoard();
+  });
+  document.getElementById('sideBlackBtn').addEventListener('click', () => {
+    if(humanSide === 'black') return;
+    humanSide = 'black';
+    document.getElementById('sideBlackBtn').classList.add('active');
+    document.getElementById('sideWhiteBtn').classList.remove('active');
+    resetBoard();
+  });
+
+  document.getElementById('againBtn').addEventListener('click', resetBoardWithFall);
+
+  // --- 横画面用：終了オーバーレイのタップ挙動 ---
+  // ポップが出ていない状態でタップ → ポップを表示
+  // ポップが出ている状態で、ボタン以外をタップ → ポップを閉じて盤面を見せる
+  // ボタンをタップ → 次の対局へ
+  (function(){
+    const overlay = document.getElementById('landscapeEndOverlay');
+    const nextBtn = document.getElementById('landscapeNextBtn');
+
+    overlay.addEventListener('click', (e) => {
+      if(e.target === nextBtn) return;
+      overlay.classList.toggle('show-popup');
+    });
+
+    nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideLandscapeEndOverlay();
+      resetBoardWithFall();
+    });
+  })();
+
+  // --- rules modal ---
+  const rulesModal = document.getElementById('rulesModal');
+  function openRulesModal(){ rulesModal.classList.remove('hidden'); }
+  function closeRulesModal(){ rulesModal.classList.add('hidden'); }
+  document.getElementById('setupRulesBtn').addEventListener('click', openRulesModal);
+  document.getElementById('rulesCloseBtn').addEventListener('click', closeRulesModal);
+  rulesModal.addEventListener('click', (e) => {
+    if(e.target === rulesModal) closeRulesModal();
+  });
+
+  // --- confirm-before-leaving-game modal ---
+  const confirmModal = document.getElementById('confirmModal');
+  let pendingConfirmAction = null;
+
+  function hasChipsPlaced(){
+    return colHeights && colHeights.some(h => h > 0);
+  }
+
+  function runOrConfirm(action){
+    if(hasChipsPlaced()){
+      pendingConfirmAction = action;
+      confirmModal.classList.remove('hidden');
+    } else {
+      action();
+    }
+  }
+
+  document.getElementById('confirmOkBtn').addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    const action = pendingConfirmAction;
+    pendingConfirmAction = null;
+    if(action) action();
+  });
+  document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    pendingConfirmAction = null;
+  });
+  confirmModal.addEventListener('click', (e) => {
+    if(e.target === confirmModal){
+      confirmModal.classList.add('hidden');
+      pendingConfirmAction = null;
+    }
+  });
+
+  function returnToSetupScreen(){
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    document.getElementById('bgSwitchBtn').classList.remove('hidden');
+  }
+
+  document.getElementById('startGameBtn').addEventListener('click', () => {
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+    document.getElementById('bgSwitchBtn').classList.add('hidden');
+    document.getElementById('bgSwitchPanel').classList.add('hidden');
+    resetAll();
+  });
+
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    const onGameScreen = !document.getElementById('gameScreen').classList.contains('hidden');
+    if(onGameScreen){
+      runOrConfirm(returnToSetupScreen);
+      return;
+    }
+    window.location.href = 'index.html';
+  });
+
+  // --- drag-to-drop: press anywhere on the board frame, slide to a column, release to drop ---
+  (function(){
+    const boardFrame = document.querySelector('.board-frame');
+    const boardEl = document.getElementById('board');
+    let dragging = false;
+    let dragPointerId = null;
+
+    function canDropNow(){
+      if(gameOver) return false;
+      if(vsCPU && turn === cpuSide()) return false;
+      if(!vsCPU && Date.now() < dropCooldownUntil) return false;
+      return true;
+    }
+
+    function colFromClientX(clientX){
+      const rect = boardEl.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const ratio = Math.min(0.999, Math.max(0, x / rect.width));
+      return Math.floor(ratio * COLS);
+    }
+
+    boardFrame.addEventListener('pointerdown', (e) => {
+      if(!canDropNow()) return;
+      dragging = true;
+      dragPointerId = e.pointerId;
+      try{ boardFrame.setPointerCapture(e.pointerId); }catch(err){}
+      showPreview(colFromClientX(e.clientX));
+    });
+
+    boardFrame.addEventListener('pointermove', (e) => {
+      if(!dragging || e.pointerId !== dragPointerId) return;
+      if(!canDropNow()){ hidePreview(); return; }
+      showPreview(colFromClientX(e.clientX));
+    });
+
+    function finishDrag(e){
+      if(!dragging || e.pointerId !== dragPointerId) return;
+      dragging = false;
+      hidePreview();
+      if(canDropNow()){
+        const col = colFromClientX(e.clientX);
+        if(colHeights[col] < ROWS) dropInColumn(col);
+      }
+    }
+    boardFrame.addEventListener('pointerup', finishDrag);
+    boardFrame.addEventListener('pointercancel', () => { dragging = false; hidePreview(); });
+  })();
+
+  // --- user-selectable background color switch ---
+  // ホーム画面（⚙→ゲーム→背景）と同じ localStorage キーを共有し、
+  // どちらで選んでも全ページに反映されるようにしている
+  (function(){
+    const BG_STORAGE_KEY = 'pref_bg_gradient';
+    const btn = document.getElementById('bgSwitchBtn');
+    const panel = document.getElementById('bgSwitchPanel');
+    const swatches = document.querySelectorAll('.bg-swatch[data-grad]');
+
+    const NOISE_LAYER = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 0.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\") repeat";
+
+    function applyBg(gradStops){
+      document.body.style.background =
+        'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+    }
+
+    function setActiveSwatch(gradStops){
+      swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-grad') === gradStops));
+    }
+
+    // ページを開いた時点で、他の画面で選ばれていたテーマがあればそれを反映する
+    let savedGrad = null;
+    try{ savedGrad = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
+    if(savedGrad){
+      applyBg(savedGrad);
+      setActiveSwatch(savedGrad);
+    }
+
+    btn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+
+    swatches.forEach(sw => {
+      sw.addEventListener('click', () => {
+        const grad = sw.getAttribute('data-grad');
+        applyBg(grad);
+        setActiveSwatch(grad);
+        try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
+        panel.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if(!panel.classList.contains('hidden') && !panel.contains(e.target) && e.target !== btn){
+        panel.classList.add('hidden');
+      }
+    });
+  })();
+
+  // モード選択画面（設定・対局側の切替、はじめる）のどのボタンを最初に押しても、
+  // その瞬間にBGMが鳴り始めるようにする。ミニ将棋と同じ考え方の修正。
+  ['modeTwoPlayerBtn','modeCPUBtn','modeCPUMasterBtn','sideWhiteBtn','sideBlackBtn','startGameBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('click', () => { if(window.hitotokiBGM) window.hitotokiBGM.play(); });
+  });
+})();
+</script>
+<script src="timer-watcher.js"></script>
+<script src="bgm-player.js?v=2"></script>
+<script src="stats-tracker.js"></script>
+</body>
+</html>

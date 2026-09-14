@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>お問い合わせ | hitotoki</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Jost:wght@500;600;700&display=swap');
+
+  :root{
+    --hairline: rgba(255,255,255,0.14);
+    --silver: #cfcfcf;
+    --silver-dim: #6f6f6f;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, #1c1c1c 0%, #0a0a0a 55%, #000000 100%);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    color: var(--silver);
+    display:flex;
+    justify-content:center;
+    padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+
+  .page{
+    width:100%;
+    max-width:560px;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+  }
+
+  header{
+    position:relative;
+    text-align:center;
+    padding-top: 6px;
+  }
+
+  .back-btn{
+    position:absolute;
+    left:0;
+    top:0;
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,255,255,0.05);
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    color:#fff;
+    font-size:1.2rem;
+    text-decoration:none;
+  }
+
+  h1{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size: clamp(1.3rem, 5.5vw, 1.6rem);
+    letter-spacing: 0.06em;
+    margin:0;
+    color:#fff;
+  }
+
+  .updated{
+    margin-top:10px;
+    font-size:0.65rem;
+    letter-spacing:0.15em;
+    color: var(--silver-dim);
+  }
+
+  main{
+    background: linear-gradient(160deg, #202020, #101010 55%, #030303);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 26px 22px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+  }
+
+  .intro{
+    font-size:0.82rem;
+    line-height:1.9;
+    color: var(--silver);
+  }
+  .intro strong{
+    color:#fff;
+    font-weight:700;
+  }
+
+  section{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  section h2{
+    font-family:'Kaisei Decol', serif;
+    font-size:0.95rem;
+    letter-spacing:0.04em;
+    color:#fff;
+    margin:0;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--hairline);
+  }
+
+  section h2 .num{
+    font-family:'Jost', sans-serif;
+    font-weight:600;
+    font-size:0.7rem;
+    color: var(--silver-dim);
+    letter-spacing:0.05em;
+    margin-right:8px;
+  }
+
+  section p{
+    margin:0;
+    font-size:0.8rem;
+    line-height:1.9;
+    color: var(--silver);
+  }
+
+  section ul{
+    margin:0;
+    padding-left: 1.1em;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  section ul li{
+    font-size:0.8rem;
+    line-height:1.7;
+    color: var(--silver);
+  }
+
+  .contact-box{
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 16px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .contact-box .row{
+    display:flex;
+    gap:8px;
+    font-size:0.78rem;
+  }
+  .contact-box .label{
+    color: var(--silver-dim);
+    min-width: 6.5em;
+    letter-spacing:0.04em;
+  }
+  .contact-box .value{
+    color:#fff;
+  }
+
+  .mail-link{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:4px;
+    padding: 13px 20px;
+    background: transparent;
+    border: 1px solid var(--silver-dim);
+    border-radius: 2px;
+    color:#fff;
+    text-decoration:none;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.78rem;
+    letter-spacing:0.1em;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .mail-link:hover{
+    background: rgba(255,255,255,0.06);
+    border-color:#fff;
+  }
+
+  footer{
+    text-align:center;
+    font-size:0.62rem;
+    letter-spacing:0.1em;
+    color: var(--silver-dim);
+    padding-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <a class="back-btn" href="index.html">‹</a>
+    <h1>お問い合わせ</h1>
+    <div class="updated">HITOTOKI CONTACT</div>
+  </header>
+
+  <main>
+
+    <p class="intro">
+      <strong>hitotoki</strong>に関するご意見・ご要望・不具合のご報告などがございましたら、以下の連絡先までお気軽にお問い合わせください。
+    </p>
+
+    <section>
+      <h2><span class="num">01</span>連絡先</h2>
+      <div class="contact-box">
+        <div class="row"><span class="label">アプリ名</span><span class="value">hitotoki</span></div>
+        <div class="row"><span class="label">開発者</span><span class="value">〇〇（開発者名）</span></div>
+        <div class="row"><span class="label">メールアドレス</span><span class="value">〇〇（メールアドレス）</span></div>
+      </div>
+      <a class="mail-link" href="mailto:example@example.com">メールを送る</a>
+    </section>
+
+    <section>
+      <h2><span class="num">02</span>お問い合わせ時のお願い</h2>
+      <ul>
+        <li>不具合のご報告の際は、お使いの端末・OSのバージョン、発生した状況をあわせてお知らせいただけるとスムーズです。</li>
+        <li>内容によっては返信までお時間をいただく場合や、お答えできない場合がございます。あらかじめご了承ください。</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>© hitotoki</footer>
+
+</div>
+
+</body>
+</html>
