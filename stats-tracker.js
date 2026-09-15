@@ -37,11 +37,21 @@
  *   });
  *
  * 2人対戦（vsCPUなし）の場合は { } のみ、または省略してよい（wonはnull扱いになる）。
+ *
+ * --- プレイヤー名（v2で追加） ---
+ * ホーム画面（⚙→ゲーム→プレイヤー名）で入力された名前を、全ゲームページ共通で
+ * 参照できるようにするための仕組み。最大5文字。
+ * 各ゲーム側で「1P」「あなた」等の代わりに表示したい場合は、以下を呼び出す：
+ *   var name = window.hitotokiStats.getPlayerName(); // 未設定なら空文字 ''
+ * 名前が空の場合は、各ゲーム側で今まで通り「1P」等のデフォルト表示にフォールバックすること。
  */
 (function(){
   var KEY = 'hitotoki_stats';
   var MAX_HISTORY = 500;
   var SCHEMA_VERSION = 2;
+
+  var PLAYER_NAME_KEY = 'hitotoki_player_name';
+  var MAX_PLAYER_NAME_LENGTH = 5;
 
   function loadStats(){
     try{
@@ -89,8 +99,28 @@
     return stats;
   }
 
+  // 保存されているプレイヤー名を取得する。未設定なら空文字を返す。
+  function getPlayerName(){
+    try{
+      var name = localStorage.getItem(PLAYER_NAME_KEY);
+      return name ? name : '';
+    }catch(e){
+      return '';
+    }
+  }
+
+  // プレイヤー名を保存する（最大5文字。前後の空白は取り除く）。
+  // 保存した実際の文字列（切り詰め後）を返す。
+  function setPlayerName(name){
+    var trimmed = (name == null ? '' : String(name)).trim().slice(0, MAX_PLAYER_NAME_LENGTH);
+    try{ localStorage.setItem(PLAYER_NAME_KEY, trimmed); }catch(e){}
+    return trimmed;
+  }
+
   window.hitotokiStats = {
     load: loadStats,
     recordGameEnd: recordGameEnd,
+    getPlayerName: getPlayerName,
+    setPlayerName: setPlayerName,
   };
 })();
