@@ -1839,6 +1839,29 @@ body.panel-open .setting-btn{
   margin-top:6px;
 }
 
+/* プレイヤー名入力欄（最大5文字） */
+.player-name-input{
+  width:74px;
+  flex-shrink:0;
+  text-align:right;
+  font-family:'Zen Kaku Gothic New', sans-serif;
+  font-size:0.82rem;
+  letter-spacing:0.04em;
+  color:#fff;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--silver-dim);
+  padding:2px 2px 4px;
+  outline:none;
+  transition: border-color .15s ease;
+}
+.player-name-input::placeholder{
+  color: var(--silver-dim);
+}
+.player-name-input:focus{
+  border-bottom-color:#fff;
+}
+
 /* ON/OFFスイッチ */
 .switch{
   position:relative;
@@ -2090,8 +2113,9 @@ body.panel-open .setting-btn{
         <button class="theme-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
       </div>
     </div>
-    <div class="setting-menu-item placeholder-item">
-      <span>プレイヤー名</span><span class="arrow">›</span>
+    <div class="setting-menu-item">
+      <span>プレイヤー名</span>
+      <input type="text" id="playerNameInput" class="player-name-input" maxlength="5" placeholder="1P" autocomplete="off" autocapitalize="off" spellcheck="false">
     </div>
     <div class="setting-menu-item">
       <span>タイマー機能</span>
@@ -3380,6 +3404,21 @@ if(languageMenuItem){
   languageMenuItem.addEventListener('click', () => {
     showSimpleToast('準備中です');
   });
+}
+
+// --- プレイヤー名（⚙→ゲーム→プレイヤー名）：最大5文字。
+//     stats-tracker.js 側に保存されるので、各ゲームページからも
+//     window.hitotokiStats.getPlayerName() で共通して参照できる ---
+const playerNameInput = document.getElementById('playerNameInput');
+if(playerNameInput && window.hitotokiStats){
+  playerNameInput.value = window.hitotokiStats.getPlayerName();
+
+  function savePlayerName(){
+    const saved = window.hitotokiStats.setPlayerName(playerNameInput.value);
+    playerNameInput.value = saved; // 前後の空白を取り除いた後の値に揃えておく
+  }
+  playerNameInput.addEventListener('change', savePlayerName);
+  playerNameInput.addEventListener('blur', savePlayerName);
 }
 
 // --- タイマー機能のON/OFF（⚙→ゲーム→タイマー機能）：
