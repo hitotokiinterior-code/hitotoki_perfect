@@ -180,7 +180,8 @@
     -webkit-user-select: none;
     user-select: none;
     background:
-      radial-gradient(ellipse at 50% -10%, #1c1c1c 0%, #0a0a0a 55%, #000000 100%);
+      radial-gradient(ellipse at 50% -10%, rgba(28,28,28,0.55) 0%, rgba(10,10,10,0.75) 55%, rgba(0,0,0,0.88) 100%),
+      url('assets/backgrounds/mini-shogi-default-bg.jpg') center/cover no-repeat fixed;
     transition: background-color 0.4s ease;
     font-family:'Zen Kaku Gothic New', sans-serif;
     color: var(--silver);
@@ -749,7 +750,7 @@
     cursor:pointer;
     transition: all .15s ease;
   }
-  .mode-toggle-btn.active{ background:rgba(255,255,255,0.82); color:#141414; border-color:rgba(255,255,255,0.82); }
+  .mode-toggle-btn.active{ background:var(--piece-face); color:#141414; border-color:var(--piece-face); }
   .mode-toggle-btn-oni.active{
     background: #7a1f1f;
     color: #ffe9e9;
@@ -850,11 +851,11 @@
     width:100%;
     padding: 12px 16px;
     font-size:0.8rem;
-    background: rgba(255,255,255,0.82);
+    background: var(--piece-face);
     color:#141414;
-    border-color: rgba(255,255,255,0.82);
+    border-color: var(--piece-face);
   }
-  .start-btn:hover{ background: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.9); }
+  .start-btn:hover{ background: var(--piece-face-2); border-color: var(--piece-face-2); }
   .setup-rules-btn{
     width: auto;
     align-self: center;
@@ -986,7 +987,7 @@
 <button type="button" id="homeBtn" class="home-btn" aria-label="ホームへ戻る">← ホーム</button>
 <button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
 <div id="bgSwitchPanel" class="bg-switch-panel hidden">
-  <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+  <button class="bg-swatch active" data-grad="IMAGE" style="--sw:#1a130d; background-image:url('assets/backgrounds/mini-shogi-default-bg.jpg'); background-size:cover; background-position:center;" aria-label="クラシック"></button>
   <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
   <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
   <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
@@ -2241,7 +2242,12 @@
     const swatches = document.querySelectorAll('.bg-swatch[data-grad]');
 
     function applyBg(gradStops){
-      document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+      if(gradStops === 'IMAGE'){
+        document.body.style.background =
+          "radial-gradient(ellipse at 50% -10%, rgba(28,28,28,0.55) 0%, rgba(10,10,10,0.75) 55%, rgba(0,0,0,0.88) 100%), url('assets/backgrounds/mini-shogi-default-bg.jpg') center/cover no-repeat fixed";
+      } else {
+        document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+      }
     }
 
     function setActiveSwatch(gradStops){
