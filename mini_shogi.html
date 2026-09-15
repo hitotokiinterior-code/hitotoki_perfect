@@ -28,6 +28,8 @@
     --paper-deep: #050505;
     --hairline: rgba(255,255,255,0.14);
     --shadow: rgba(0,0,0,0.7);
+    --accent-gold: #c9a54a;
+    --accent-gold-dim: rgba(201,165,74,0.16);
   }
 
   *{ box-sizing: border-box; }
@@ -739,6 +741,89 @@
     text-align:center;
   }
   .oni-hint.show{ display: block; }
+
+  /* --- mode-select: 2x2 grid of blocks (2人対戦 / CPU対戦 / 達人CPU / 鬼CPU) ---
+     アイコンは .mode-grid-icon の中に後から差し込む想定（今は空スロット） */
+  .mode-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width:100%;
+  }
+  .mode-grid-btn{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height: 118px;
+    padding: 18px 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--silver-dim);
+    border-radius: 6px;
+    cursor:pointer;
+    text-align:center;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .mode-grid-btn:hover{ background: rgba(255,255,255,0.07); border-color:#fff; }
+  .mode-grid-icon{
+    position:relative;
+    width: 32px;
+    height: 32px;
+  }
+  .mode-grid-icon img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    transition: opacity .15s ease;
+  }
+  .mode-grid-icon .icon-active{ opacity:0; }
+  .mode-grid-btn.active .mode-grid-icon .icon-default{ opacity:0; }
+  .mode-grid-btn.active .mode-grid-icon .icon-active{ opacity:1; }
+  .mode-grid-title{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.82rem;
+    letter-spacing:0.06em;
+    color:#fff;
+  }
+  .mode-grid-desc{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.6rem;
+    letter-spacing:0.03em;
+    color: var(--silver-dim);
+  }
+  .mode-grid-btn.active{
+    border-color: var(--accent-gold);
+    background: var(--accent-gold-dim);
+  }
+  .mode-grid-btn.active::after{
+    content:'✓';
+    position:absolute;
+    bottom:8px; right:8px;
+    width:18px; height:18px;
+    border-radius:50%;
+    background: var(--accent-gold);
+    color:#141414;
+    font-size:0.6rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .mode-grid-btn-oni.active{
+    border-color:#b23a3a;
+    background: rgba(122,31,31,0.14);
+  }
+  .mode-grid-btn-oni.active::after{
+    background:#b23a3a;
+    color:#ffe9e9;
+  }
+  .mode-grid .oni-hint{ grid-column: 1 / -1; margin-top:-2px; }
+
   .start-btn{
     width:100%;
     padding: 12px 16px;
@@ -749,10 +834,13 @@
   }
   .start-btn:hover{ background:#eee; border-color:#eee; }
   .setup-rules-btn{
+    width: auto;
+    align-self: center;
     background: transparent;
     color: var(--silver);
     border-color: var(--silver-dim);
-    margin-top: -6px;
+    margin-top: 4px;
+    padding: 8px 20px;
   }
   .setup-rules-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
   .game-screen{
@@ -895,17 +983,43 @@
   <div id="setupScreen" class="setup-screen">
     <div class="setup-card">
       <div class="setup-mode-title">対戦モード</div>
-      <div class="setup-section-label">モードを選ぶ</div>
-      <div class="mode-toggle-row" id="modeToggleRow">
-        <button class="mode-toggle-btn active" id="modeTwoPlayerBtn">2人対戦</button>
-        <div class="mode-toggle-subrow">
-          <button class="mode-toggle-btn" id="modeCPUBtn">CPU対戦</button>
-          <button class="mode-toggle-btn" id="modeCPUMasterBtn">達人CPU</button>
-        </div>
-        <button class="mode-toggle-btn mode-toggle-btn-oni" id="modeCPUOniBtn">鬼CPU</button>
+      <div class="setup-section-label">どの相手と対局しますか？</div>
+      <div class="mode-grid" id="modeToggleRow">
+        <button class="mode-grid-btn active" id="modeTwoPlayerBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-2p-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-2p-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">2人対戦</span>
+          <span class="mode-grid-desc">友達と対局する</span>
+        </button>
+        <button class="mode-grid-btn" id="modeCPUBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-cpu-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-cpu-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">CPU対戦</span>
+          <span class="mode-grid-desc">標準のAIと対局する</span>
+        </button>
+        <button class="mode-grid-btn" id="modeCPUMasterBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-master-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-master-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">達人CPU</span>
+          <span class="mode-grid-desc">強いAIと対局する</span>
+        </button>
+        <button class="mode-grid-btn mode-grid-btn-oni" id="modeCPUOniBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-oni-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-oni-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">鬼CPU</span>
+          <span class="mode-grid-desc">最強のAIと対局する</span>
+        </button>
         <div class="oni-hint" id="oniHint">待った禁止・持ち時間20秒</div>
       </div>
-      <div class="mode-toggle-row hidden" id="sideToggleRow">
+      <div class="mode-toggle-row" id="sideToggleRow">
         <button class="mode-toggle-btn active" id="sideSenteBtn">先手で対戦</button>
         <button class="mode-toggle-btn" id="sideGoteBtn">後手で対戦</button>
       </div>
@@ -1092,8 +1206,8 @@
     document.getElementById('winnerOverlay').classList.remove('show');
     document.getElementById('promotionOverlay').classList.remove('show');
 
-    document.getElementById('boardFrame').classList.toggle('flipped', vsCPU && humanSide === 'gote');
-    document.getElementById('boardRow').classList.toggle('swap-trays', vsCPU && humanSide === 'gote');
+    document.getElementById('boardFrame').classList.toggle('flipped', humanSide === 'gote');
+    document.getElementById('boardRow').classList.toggle('swap-trays', humanSide === 'gote');
     document.getElementById('undoBtn').classList.toggle('hidden', cpuSide() === 'sente');
     document.getElementById('undoBtnGote').classList.toggle('hidden', cpuSide() === 'gote');
     updateUndoButtonSeats();
@@ -1818,10 +1932,12 @@
 
   // Whichever player's zone currently sits at the bottom of the screen (the
   // comfortable/near side) gets the bottom glow and the bottom-left 待った
-  // button; the other gets the top glow and the top-right button. This tracks
-  // the same top/bottom tray swap used for CPU-as-gote games.
+  // button; the other gets the top glow and the top-right button. Seating is
+  // driven by the 先手/後手 choice on the setup screen — in 2-player mode this
+  // just decides who sits at the near seat first; in CPU modes it decides
+  // which side the human plays.
   function isTurnAtBottom(owner){
-    const swapped = vsCPU && humanSide === 'gote';
+    const swapped = humanSide === 'gote';
     return swapped ? owner === 'gote' : owner === 'sente';
   }
 
@@ -1920,7 +2036,6 @@
     const oniActive = setupVsCPU && setupCpuDifficulty === 'oni';
     oniBtn.classList.toggle('active', oniActive);
     document.getElementById('oniHint').classList.toggle('show', oniActive);
-    document.getElementById('sideToggleRow').classList.toggle('hidden', !setupVsCPU);
     document.getElementById('sideSenteBtn').classList.toggle('active', setupHumanSide === 'sente');
     document.getElementById('sideGoteBtn').classList.toggle('active', setupHumanSide === 'gote');
   }
