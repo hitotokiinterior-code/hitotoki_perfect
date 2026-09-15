@@ -3413,12 +3413,27 @@ const playerNameInput = document.getElementById('playerNameInput');
 if(playerNameInput && window.hitotokiStats){
   playerNameInput.value = window.hitotokiStats.getPlayerName();
 
+  // iOSでは、入力欄にフォーカスするとキーボード表示のために画面全体が
+  // 強制的に少し上へスクロールされてしまうことがある（overflow:hiddenでも起きる）。
+  // フォーカスが外れたタイミングで、ページの表示位置を確実に元へ戻しておく。
+  function resetPageScroll(){
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
+
   function savePlayerName(){
     const saved = window.hitotokiStats.setPlayerName(playerNameInput.value);
     playerNameInput.value = saved; // 前後の空白を取り除いた後の値に揃えておく
   }
   playerNameInput.addEventListener('change', savePlayerName);
-  playerNameInput.addEventListener('blur', savePlayerName);
+  playerNameInput.addEventListener('blur', () => {
+    savePlayerName();
+    // キーボードが閉じるアニメーションの後にもズレ直すことがあるため、
+    // 即時と少し遅らせた分の両方でリセットしておく
+    resetPageScroll();
+    setTimeout(resetPageScroll, 300);
+  });
 }
 
 // --- タイマー機能のON/OFF（⚙→ゲーム→タイマー機能）：
