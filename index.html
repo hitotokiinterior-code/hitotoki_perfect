@@ -1343,6 +1343,19 @@
   .game-card .tag.cpu{ color:#dcd6c0; border-color: rgba(220,214,192,0.35); }
   .game-card .tag.master{ color:#fff; border-color: rgba(255,255,255,0.5); }
 
+  /* カード右端の「›」マーク */
+  .game-card .card-chevron{
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    color:#fff;
+    font-size:1.15rem;
+    line-height:1;
+    pointer-events:none;
+    z-index:2;
+  }
+
   /* 画像付きカード：左30%に写真、右70%に本文（番号・タイトル） */
   .game-card.has-image{
     flex-direction:row;
@@ -2584,6 +2597,11 @@ body.panel-open .setting-btn{
     } else {
       a.appendChild(info);
     }
+
+    const chevron = document.createElement('div');
+    chevron.className = 'card-chevron';
+    chevron.textContent = '›';
+    a.appendChild(chevron);
 
     return a;
   }
@@ -3864,6 +3882,15 @@ function renderRecordsHistory(history){
       result.classList.add('win');
     } else if(h.vsCPU && h.won === false){
       result.textContent = '負け';
+    } else if(!h.vsCPU && (h.winner === 1 || h.winner === 2)){
+      // 2人対戦で勝者が記録されている場合：1Pは登録したプレイヤー名（未登録なら「1P」）で表示する
+      const playerName = (window.hitotokiStats && window.hitotokiStats.getPlayerName && window.hitotokiStats.getPlayerName()) || '';
+      if(h.winner === 1){
+        result.textContent = `${playerName || '1P'}の勝ち`;
+        result.classList.add('win');
+      } else {
+        result.textContent = '2Pの勝ち';
+      }
     } else {
       result.textContent = '2人対戦';
     }
