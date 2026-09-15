@@ -687,6 +687,27 @@
     letter-spacing:0.12em;
     color:#fff;
   }
+  .setup-divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    max-width: 260px;
+    margin: -4px 0 -4px;
+  }
+  .setup-divider .divider-line{
+    flex:1;
+    height:1px;
+    background: #fff;
+    opacity:0.7;
+  }
+  .setup-divider .divider-diamond{
+    width:9px;
+    height:9px;
+    border: 1.5px solid #fff;
+    transform: rotate(45deg);
+    flex-shrink:0;
+  }
   .setup-section-label{
     font-family:'Zen Kaku Gothic New', sans-serif;
     font-size:0.66rem;
@@ -983,6 +1004,11 @@
 
   <div id="setupScreen" class="setup-screen">
     <div class="setup-card">
+      <div class="setup-divider">
+        <span class="divider-line"></span>
+        <span class="divider-diamond"></span>
+        <span class="divider-line"></span>
+      </div>
       <div class="setup-mode-title">対戦モード</div>
       <div class="setup-section-label">どの相手と対局しますか？</div>
       <div class="mode-grid" id="modeToggleRow">
