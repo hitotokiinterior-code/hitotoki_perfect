@@ -42,9 +42,9 @@
   }
   .btn{
     font-family:inherit; font-size:15px; letter-spacing:.18em;
-    background:rgba(255,255,255,0.08); color:var(--ink);
-    border:0.6px solid #8a8a8a; padding:9.5px 34px;
-    cursor:pointer; border-radius:4px;
+    background:transparent; color:var(--ink);
+    border:0.5px solid rgba(255,255,255,0.6); padding:9px 34px;
+    cursor:pointer; border-radius:8px;
   }
   .btn.solid{ background:var(--white); color:#000; border-color:var(--white); font-weight:700; }
   .btn:active{ opacity:.6; }
@@ -136,31 +136,25 @@
 
   /* ---------- MODE SELECT ---------- */
   #screen-mode{padding:78px 22px 0; justify-content:flex-start;}
+  .game-title{
+    font-size:22px; letter-spacing:.14em; font-weight:700; color:var(--ink);
+    text-align:center; margin:0 0 22px;
+  }
+  .game-title .small{
+    display:block; font-size:10px; letter-spacing:.32em; font-weight:500;
+    color:var(--ink-dim); margin-top:6px; text-transform:uppercase;
+  }
   .mode-title{font-size:18px; letter-spacing:.2em; margin-bottom:26px; font-weight:700;}
   .section-label{font-size:11px; letter-spacing:.25em; color:var(--ink-dim); margin-bottom:8px; align-self:flex-start;}
   .pair-row{display:flex; gap:10px; width:100%; max-width:320px; margin-bottom:22px;}
   .opt-card{
-    flex:1; text-align:center; padding:11.5px 4px; border:0.6px solid #8a8a8a;
+    flex:1; text-align:center; padding:10px 4px; border:0.5px solid rgba(255,255,255,0.6);
     font-size:13px; letter-spacing:.12em; cursor:pointer; color:var(--ink-dim);
-    border-radius:4px; background:rgba(255,255,255,0.08);
+    border-radius:8px;
   }
   .opt-card.selected{ background:var(--white); color:#000; border-color:var(--white); font-weight:700; }
   .mode-wrap{display:flex; flex-direction:column; align-items:center; width:100%; max-width:320px;}
   #role-block{width:100%;}
-  .rules{
-    width:100%; max-width:320px; margin-top:12px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--line);
-    border-radius:6px;
-    padding: 14px 16px;
-    font-size:12px; line-height:1.8; color: var(--ink-dim);
-    display:none; max-height:200px; overflow-y:auto;
-  }
-  .rules.open{ display:block; }
-  .rules h2{ font-size:14px; margin:0 0 8px; color:var(--ink); letter-spacing:.08em; font-weight:700; }
-  .rules ul{ margin:4px 0; padding-left:1.1em; }
-  .rules li{ margin-bottom:6px; }
-  .rules b{ color:var(--ink); }
 
   /* ---------- GAME ---------- */
   #screen-game{
@@ -197,6 +191,7 @@
   .node-bg{ fill:#0a0a0a; stroke:var(--line); stroke-width:1.5; }
   .node-hit{ fill:transparent; }
   .legal-mark{ fill:none; stroke:var(--white); stroke-width:2; filter:drop-shadow(0 0 5px rgba(255,255,255,.9)); }
+  .hint-mark{ fill:none; stroke:rgba(255,255,255,0.5); stroke-width:1.5; filter:drop-shadow(0 0 3px rgba(255,255,255,.4)); }
   .piece-hare{ filter:drop-shadow(0 0 6px rgba(255,255,255,.85)); }
   .piece-hound{ filter:drop-shadow(0 0 5px rgba(255,255,255,.7)); }
   .piece-hound.selected, .piece-hare.selected{ filter:drop-shadow(0 0 12px rgba(255,255,255,1)); }
@@ -218,7 +213,7 @@
 <body>
 <button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
 <div id="bgSwitchPanel" class="bg-switch-panel hidden">
-  <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+  <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" data-default="true" style="--sw:#0a0a0a" aria-label="デフォルト"></button>
   <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
   <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
   <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
@@ -229,6 +224,7 @@
   <!-- MODE SELECT -->
   <div class="screen active" id="screen-mode">
     <a class="home-btn" id="home-btn-mode" href="index.html">← ホーム</a>
+    <div class="game-title">ウサギと猟犬<span class="small">RABBIT AND HOUNDS</span></div>
     <div class="mode-title">対戦モード</div>
     <div class="mode-wrap">
       <div class="section-label">モードを選ぶ</div>
@@ -247,20 +243,8 @@
       </div>
 
       <div style="display:flex; gap:10px; margin-top:8px; width:100%;">
-        <button class="btn solid" id="btn-start-game" style="flex:1; padding:6.5px 34px; line-height:1.3;">はじめる</button>
-        <button class="btn" id="btn-random-hare" style="flex:1; padding:6.5px 12px; line-height:1.25; font-size:11px;">ウサギ<br>ランダム</button>
-      </div>
-      <button class="btn" id="btn-rules" style="width:100%; margin-top:10px; padding:6.5px 12px; font-size:12px;">遊び方</button>
-      <div class="rules" id="rules-panel">
-        <h2>遊び方</h2>
-        <ul>
-          <li>猟犬(3匹)とウサギ(1匹)が交互に1マスずつ移動します</li>
-          <li>猟犬は前方向・横方向にのみ進めます(後ろには戻れません)</li>
-          <li>ウサギはどの方向にも自由に移動できます</li>
-          <li>ウサギが盤面の左端(猟犬の出口側)まで逃げ切ると<b>ウサギの勝ち</b>です</li>
-          <li>猟犬に囲まれてウサギが身動きできなくなると<b>猟犬の勝ち</b>です</li>
-          <li>合計30手が経過すると、決着がついていなくても<b>ウサギの特殊勝利(千日手)</b>になります</li>
-        </ul>
+        <button class="btn solid" id="btn-start-game" style="flex:1; padding:6px 34px; line-height:1.3;">はじめる</button>
+        <button class="btn" id="btn-random-hare" style="flex:1; padding:6px 12px; line-height:1.25; font-size:11px;">ウサギ<br>ランダム</button>
       </div>
     </div>
   </div>
@@ -341,6 +325,9 @@
 
   /* ---------------- game state ---------------- */
   let state, config, selected=null, animating=false, randomHareStart=false;
+  let hintTimer=null, hintActive=false, suppressHintArm=false;
+  let gameStartedAt = null;
+  const HINT_IDLE_MS = 5000;
 
   function initState(){
     const houndStart = ['D','A','I'];
@@ -497,6 +484,29 @@
     return state.turn === config.playerRole;
   }
 
+  function allLegalDestsForCurrentPlayer(){
+    const set = new Set();
+    if(state.turn==='hound'){
+      state.hounds.forEach((h,idx)=> houndMoves(state.hounds, state.hare, idx).forEach(d=>set.add(d)));
+    } else {
+      hareMoves(state.hounds, state.hare).forEach(d=>set.add(d));
+    }
+    return Array.from(set);
+  }
+
+  function armHintTimer(){
+    if(hintTimer){ clearTimeout(hintTimer); hintTimer=null; }
+    const gameScreenActive = document.getElementById('screen-game').classList.contains('active');
+    const resultShown = document.getElementById('screen-result').classList.contains('active');
+    if(!isHumanTurn() || animating || !gameScreenActive || resultShown) return;
+    hintTimer = setTimeout(()=>{
+      hintActive = true;
+      suppressHintArm = true;
+      render();
+      suppressHintArm = false;
+    }, HINT_IDLE_MS);
+  }
+
   function render(){
     svg.innerHTML='';
     ensureGlowDef();
@@ -510,9 +520,18 @@
       if(state.turn==='hound') legalDests = houndMoves(state.hounds, state.hare, selected);
       else legalDests = hareMoves(state.hounds, state.hare);
     }
+    // idle hint: after 5s with no action, softly mark every square any of
+    // the current player's pieces could move to (only when nothing selected)
+    let hintDests = [];
+    if(selected===null && hintActive && isHumanTurn()){
+      hintDests = allLegalDestsForCurrentPlayer();
+    }
     // node background dots
     Object.keys(NODES).forEach(p=>{
       svg.appendChild(el('circle',{class:'node-bg', cx:px(p), cy:py(p), r:6}));
+    });
+    hintDests.forEach(d=>{
+      svg.appendChild(el('circle',{class:'hint-mark', cx:px(d), cy:py(d), r:11, 'data-hint':d}));
     });
     legalDests.forEach(d=>{
       svg.appendChild(el('circle',{class:'legal-mark', cx:px(d), cy:py(d), r:12, 'data-dest':d}));
@@ -543,7 +562,7 @@
     }
     // hit targets (clickable, invisible, larger)
     Object.keys(NODES).forEach(p=>{
-      const t = el('circle',{class:'node-hit', cx:px(p), cy:py(p), r:16, 'data-point':p});
+      const t = el('circle',{class:'node-hit', cx:px(p), cy:py(p), r:24, 'data-point':p});
       t.style.cursor='pointer';
       t.addEventListener('click', ()=>onPointClick(p));
       svg.appendChild(t);
@@ -568,6 +587,11 @@
       statusEl.textContent = isHumanTurn() ? 'あなたの番です' : (config.mode==='master' ? '達人CPU思考中…' : 'CPU思考中…');
     } else {
       statusEl.textContent='';
+    }
+
+    if(!suppressHintArm){
+      hintActive = false;
+      armHintTimer();
     }
   }
 
@@ -670,6 +694,38 @@
     else if(winner==='hound') txt.textContent='猟犬の 勝ち';
     else txt.textContent='引き分け';
     document.getElementById('screen-result').classList.add('active');
+
+    // ホーム画面の「記録」タブ用に対局結果を記録しておく
+    if(window.hitotokiStats){
+      const vsCPU = config.mode !== 'pvp';
+      let won;
+      // 2人対戦(pvp)の場合の1P/2P判定：
+      // モード選択画面の「白の役割」で選んだ役割(config.whiteRole)を持つ側が「1P」、
+      // もう一方（逆の役割）が「2P」という扱いにする。
+      let winnerPlayer = null;
+      const winningRole = (winner === 'hare' || winner === 'hare_special') ? 'hare'
+        : (winner === 'hound') ? 'hound'
+        : null;
+
+      if(!vsCPU){
+        won = undefined;
+        if(winningRole && config.whiteRole){
+          winnerPlayer = (winningRole === config.whiteRole) ? 1 : 2;
+        }
+      } else if(winner === 'hare' || winner === 'hare_special'){
+        won = config.playerRole === 'hare';
+      } else if(winner === 'hound'){
+        won = config.playerRole === 'hound';
+      } else {
+        won = undefined;
+      }
+      window.hitotokiStats.recordGameEnd('rabbit_and_hounds', 'ウサギと猟犬', {
+        vsCPU: vsCPU,
+        won: won,
+        winner: winnerPlayer,
+        durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
+      });
+    }
   }
 
   /* ---------------- screen navigation ---------------- */
@@ -682,6 +738,7 @@
     if(!isModeScreen) document.getElementById('bgSwitchPanel').classList.add('hidden');
     document.getElementById('gameBgSwitchBtn').classList.toggle('hidden', !isGameScreen);
     if(!isGameScreen) document.getElementById('gameBgSwitchPanel').classList.add('hidden');
+    if(!isGameScreen && hintTimer){ clearTimeout(hintTimer); hintTimer=null; hintActive=false; }
   }
 
   document.getElementById('home-btn-game').addEventListener('click', ()=> showScreen('screen-mode'));
@@ -709,10 +766,6 @@
     document.querySelectorAll('#role-pair .opt-card').forEach(c=>c.classList.toggle('selected', c===card));
   });
 
-  document.getElementById('btn-rules').addEventListener('click', ()=>{
-    document.getElementById('rules-panel').classList.toggle('open');
-  });
-
   document.getElementById('btn-start-game').addEventListener('click', ()=>{
     config = { mode: chosenMode, whiteRole: chosenRole, playerRole: chosenRole };
     randomHareStart = false;
@@ -726,6 +779,7 @@
 
   function startGame(){
     initState();
+    gameStartedAt = Date.now();
     showScreen('screen-game');
     render();
     proceedTurn();
@@ -753,6 +807,11 @@
     if(savedGrad){
       applyBg(savedGrad);
       setActiveSwatch(savedGrad);
+    } else {
+      // 保存されている色テーマが無い＝デフォルト状態。ホーム画面と同じく「未選択」のままにしておく
+      document.documentElement.style.removeProperty('--bg');
+      const defaultSwatch = document.querySelector('#bgSwitchPanel .bg-swatch[data-default="true"]');
+      if(defaultSwatch) setActiveSwatch(defaultSwatch.getAttribute('data-grad'));
     }
 
     btn.addEventListener('click', () => {
@@ -762,9 +821,15 @@
     swatches.forEach(sw => {
       sw.addEventListener('click', () => {
         const grad = sw.getAttribute('data-grad');
-        applyBg(grad);
+        if(sw.dataset.default === 'true'){
+          // 「デフォルト」を選んだ場合：保存値を消して、ホーム画面の新しいデフォルト（写真）表示と揃える
+          try{ localStorage.removeItem(BG_STORAGE_KEY); }catch(e){}
+          document.documentElement.style.removeProperty('--bg');
+        } else {
+          applyBg(grad);
+          try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
+        }
         setActiveSwatch(grad);
-        try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
         panel.classList.add('hidden');
       });
     });
@@ -829,5 +894,6 @@
 
 })();
 </script>
+<script src="stats-tracker.js"></script>
 </body>
 </html>
