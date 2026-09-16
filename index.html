@@ -289,6 +289,17 @@
     opacity:0.85;
   }
 
+  /* カード中央のひし形：カバーがどちら側を覆っているかによって、見えている半分だけが
+     三角形として現れる（＝逆側へスライドできることを視覚的に示すヒント） */
+  .timer-diamond{
+    position:absolute;
+    left:50%; top:50%;
+    width:14px; height:14px;
+    transform: translate(-50%, -50%) rotate(45deg);
+    background:#ece4d1; /* 生成り色 */
+    pointer-events:none;
+  }
+
   .view-placeholder{
     width:100%;
     min-height: 240px;
@@ -2247,6 +2258,8 @@ body.panel-open .setting-btn{
         <div class="timer-display-sub" id="timerDisplaySub">スライドして時間を設定</div>
         <button class="timer-stop-btn" id="timerStopBtn" title="タイマーを止めて時計に戻す">■</button>
       </div>
+
+      <div class="timer-diamond"></div>
 
       <div class="timer-cover" id="timerCover">
         <div class="timer-cover-fade">
