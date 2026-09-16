@@ -610,6 +610,13 @@
     letter-spacing:0.05em;
   }
   .rules ul{ margin:4px 0; padding-left:1.1em; }
+  .rules-close-btn{
+    display:block;
+    width:100%;
+    margin-top: 16px;
+    padding: 11px 10px;
+    font-size:0.76rem;
+  }
 
   .winner-overlay{
     position:fixed; inset:0;
@@ -1112,6 +1119,7 @@
       <li>同一局面が4回現れたら千日手となり、先手の負け（連続王手による場合はその手を選べない）</li>
       <li><b>相手の「王」を詰ませたら勝利</b></li>
     </ul>
+    <button id="rulesCloseBtn" class="rules-close-btn">閉じる</button>
   </div>
 </div>
 
@@ -2160,6 +2168,7 @@
   function closeRules(){ document.getElementById('rules').classList.remove('open'); }
 
   document.getElementById('setupRulesBtn').addEventListener('click', openRules);
+  document.getElementById('rulesCloseBtn').addEventListener('click', closeRules);
   document.getElementById('rules').addEventListener('click', (e) => {
     if(e.target.id === 'rules') closeRules();
   });
