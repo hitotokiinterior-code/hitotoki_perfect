@@ -294,9 +294,10 @@
   .timer-diamond{
     position:absolute;
     left:50%; top:50%;
-    width:14px; height:14px;
+    width:10px; height:10px;
     transform: translate(-50%, -50%) rotate(45deg);
-    background:#ece4d1; /* 生成り色 */
+    background:transparent;
+    border: 1.5px solid #ece4d1;
     pointer-events:none;
   }
 
@@ -4178,6 +4179,10 @@ navButtons.forEach(btn => {
     next = Math.min(maxOffset, Math.max(0, next));
     dragOffset = next;
     setCoverX(next);
+
+    // 右端（開いた状態）から少しでも左へ動かしたら、その場で穴を閉じる。
+    // 完全に右端まで戻せば、離す前でも穴が再び開く（見た目がその場でリアルタイムに追従する）
+    if(coverFade) coverFade.classList.toggle('hole-open', next >= maxOffset && maxOffset > 0);
   }
 
   function onPointerUp(){
