@@ -2,76 +2,97 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>ヒット＆ブロー — 3桁の暗証番号解読</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dots &amp; Boxes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Jost:wght@500;600;700&display=swap');
-
   :root{
-    --frame-hi: #2a2a2a;
-    --frame-mid: #141414;
-    --frame-low: #030303;
-    --void: #060606;
-    --void-rim: #2a2a2a;
-    --gold: #cfcfcf;
-    --gold-bright: #f2efe6;
-    --gold-dim: #6f6f6f;
-    --cream: #f2efe6;
-    --cream-box: #ece7db;
-    --ink: #17130c;
-    --hairline: rgba(255,255,255,0.14);
-    --hit: #f2efe6;
-    --blow: #6f6f6f;
-    --ivory-btn: #e6e4dc;
-    --ivory-btn-hover: #d4d2c8;
-    --accent-gold: #c9a54a;
-    --accent-gold-dim: rgba(201,165,74,0.16);
+    --bg: #0a0a0a;
+    --panel: #0d0d0c;
+    --dot-idle: #4d4d4a;
+    --line-player: #f3efe4;
+    --line-player-glow: rgba(243,239,228,0.55);
+    --line-cpu: #16160f;
+    --line-cpu-outline: #f3efe4;
+    --line-cpu-glow: rgba(190,190,182,0.5);
+    --box-player-fill: #d9cdb0;
+    --box-player-line: #efe6cf;
+    --box-cpu-fill: #2c2c2a;
+    --box-cpu-line: #a8a8a2;
+    --text-primary: #f4f2ec;
+    --text-dim: #8b8b86;
+    --accent-gold: #e8b93f;
+    --border-dim: #262624;
+    --white-fill: #f4f2ec;
+    --ad-h: clamp(72px, 14vh, 120px);
   }
 
-  *{ box-sizing:border-box; }
+  *{ box-sizing: border-box; }
 
-  html{
-    height: 100%;
+  html, body{
+    margin:0; padding:0;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(20,20,20,0.35) 0%, rgba(10,10,10,0.5) 55%, rgba(0,0,0,0.65) 100%),
+      url('assets/backgrounds/game-home-default.jpg') center/cover no-repeat fixed;
+    color: var(--text-primary);
+    font-family: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+    height:100%;
+    width:100%;
+    position: fixed;
+    overflow:hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  /* ---------- Menu screen ---------- */
+  .menu-screen{
+    height: 100vh;
     overflow: hidden;
-    touch-action: manipulation;
+    padding: 0 0 calc(var(--ad-h) + 20px);
+    font-family: 'Noto Serif JP', serif;
   }
-
   .home-btn{
     position: fixed;
     top: 14px;
     left: 14px;
     z-index: 100;
-    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-family: 'Noto Sans JP', sans-serif;
     font-weight:700;
     font-size:0.7rem;
     letter-spacing:0.06em;
-    color: var(--cream);
+    color: #fff;
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.4);
     border-radius: 3px;
     padding: 7px 12px;
     cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
     backdrop-filter: blur(4px);
     transition: background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .home-btn:hover{ background: rgba(255,255,255,0.24); color:var(--gold-bright); }
+  .home-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
 
   .bg-switch-btn{
     position: fixed;
     top: 14px;
     right: 14px;
     z-index: 100;
-    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-family: 'Noto Sans JP', sans-serif;
     font-weight:700;
     font-size:0.7rem;
     letter-spacing:0.06em;
-    color: var(--cream);
+    color: #fff;
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.4);
     border-radius: 3px;
     padding: 7px 12px;
     cursor:pointer;
     backdrop-filter: blur(4px);
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
     transition: background .15s ease, color .15s ease, border-color .15s ease;
   }
   .bg-switch-btn:hover{ background: rgba(255,255,255,0.24); border-color:#fff; }
@@ -103,188 +124,48 @@
   .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
   .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
 
-  body{
-    margin:0;
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
-    overscroll-behavior: none;
-    touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
-    background:
-      radial-gradient(ellipse at 50% -10%, rgba(20,20,20,0.35) 0%, rgba(10,10,10,0.5) 55%, rgba(0,0,0,0.65) 100%),
-      url('assets/backgrounds/game-home-default.jpg') center/cover no-repeat fixed;
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    color: var(--gold);
-    display:flex;
-    justify-content:center;
-    align-items:flex-start;
-    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
-  }
-
-  .app{
-    width:100%;
-    max-width: 480px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:10px;
-  }
-
-  header{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-top: 50px;
-    padding: 0 0 10px;
-  }
-  h1{
-    font-family:'Kaisei Decol', serif;
-    font-weight:700;
-    font-size: clamp(1.15rem, 5vw, 1.45rem);
-    letter-spacing: 0.08em;
-    margin:0;
-    color:var(--cream);
-    text-shadow: 0 2px 10px rgba(255,255,255,0.16);
+  .menu-header{
     text-align:center;
+    margin-top: 60px;
+    padding-bottom: 14px;
   }
-  h1 .small{
-    display:block;
-    font-size:0.55rem;
-    letter-spacing:0.36em;
-    font-weight:500;
-    color:var(--gold-dim);
-    margin-top:4px;
+  .menu-title-bar{
+    font-family:'Noto Serif JP', serif;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .menu-title-en{
+    margin-top: 4px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--text-dim);
     text-transform: uppercase;
   }
 
-  .status-bar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
-    padding: 10px 4px;
-    width: 100%;
-  }
-  .mode-badge{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.68rem;
-    letter-spacing:0.04em;
-    color: var(--gold);
-    border: 1px solid var(--gold-dim);
-    border-radius: 3px;
-    padding: 6px 10px;
-    white-space:nowrap;
+  .menu-card{
+    max-width: 640px;
+    margin: 20px auto 0;
+    padding: 0 18px 20px;
   }
 
-  .mode-toggle-row{ display:flex; gap:8px; }
-  .mode-toggle-btn{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.66rem;
-    letter-spacing:0.06em;
-    color: var(--gold);
-    background: rgba(0,0,0,0.35);
-    border: 1px solid var(--gold-dim);
-    border-radius:6px;
-    padding: 6px 12px;
-    cursor:pointer;
-    transition: all .15s ease;
-  }
-  .mode-toggle-btn.active{ background:rgba(255,255,255,0.03); color:var(--ivory-btn); border-color:var(--ivory-btn); }
-  .full-width-btn{
-    width:100%;
-    padding: 8px 16px;
-    font-size:0.8rem;
-    background: rgba(255,255,255,0.03);
-    color: var(--ivory-btn);
-    border-color: var(--ivory-btn);
-  }
-  #modeStartBtn:hover{ background: rgba(255,255,255,0.08); border-color: var(--ivory-btn-hover); color: var(--ivory-btn-hover); }
-  #modeRulesBtn{
-    width: auto;
-    align-self: center;
-    background: transparent;
-    color: var(--gold);
-    border-color: var(--gold-dim);
-    margin-top: -6px;
-    padding: 8px 20px;
-    font-size:0.72rem;
-  }
-  #modeRulesBtn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
-  .seal{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size: 0.78rem;
-    color: var(--cream);
-    letter-spacing: 0.04em;
-    white-space:nowrap;
-    transition: color .2s ease;
-  }
-  .seal::before{
-    content:'◆';
-    color: var(--gold-bright);
-    font-size:0.7rem;
-    transition: color .2s ease;
-  }
-  .seal.gote{ color: var(--cream); }
-  .seal.gote::before{ color:#8f8f8f; }
-  .seal.pulse{ animation: sealPulse .3s ease; }
-  @keyframes sealPulse{
-    0%{ opacity:0.2; transform: translateX(-3px); }
-    100%{ opacity:1; transform: translateX(0); }
-  }
-  .status-text{ display:none; }
-  .status-text .bolt{ color:var(--gold-bright); }
-
-  /* --- card panel (shared by setup / handoff / game) --- */
-  .panel{
-    position:relative;
-    width:100%;
-    background: linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
-    border-radius: 6px;
-    padding: 18px 20px;
-    box-shadow:
-      0 16px 32px rgba(0,0,0,0.6),
-      inset 0 1px 0 rgba(255,255,255,0.12),
-      inset 0 0 0 1px rgba(255,255,255,0.08);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-  }
-
-  /* --- mode select screen: no boxed frame, matching ウサギと猟犬 etc ---
-     a plain title + a small section label above the mode buttons --- */
-  #modeScreen{
-    background: none;
-    border-radius: 0;
-    padding: 8px 4px 0;
-    box-shadow: none;
-  }
-  .setup-mode-title{
-    font-family:'Kaisei Decol', serif;
-    font-weight:700;
-    font-size: 1.1rem;
-    letter-spacing:0.1em;
-    color: var(--cream);
+  .menu-section-title{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
     text-align:center;
   }
+  .menu-section-title.second{ margin-top: 26px; }
+
   .setup-divider{
     display:flex;
     align-items:center;
     gap:12px;
     width:100%;
     max-width: 260px;
-    margin: 0 auto -4px;
+    margin: 4px auto 16px;
   }
   .setup-divider .divider-line{
     flex:1;
@@ -299,22 +180,79 @@
     transform: rotate(45deg);
     flex-shrink:0;
   }
-  .setup-section-label{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-size:0.66rem;
-    letter-spacing:0.2em;
-    color: var(--gold-dim);
-    align-self:center;
+
+  .menu-mode-title{
+    font-family:'Noto Serif JP', serif;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.1em;
+    color: var(--text-primary);
+    margin-top: 4px;
     text-align:center;
-    margin-top:-6px;
+  }
+  .menu-mode-label{
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    margin-top: 2px;
+    margin-bottom: 12px;
+    text-align:center;
   }
 
-  /* --- mode-select: 2x2 grid of blocks (2人対戦 / CPU対戦 / 達人CPU / 空欄) --- */
+  .size-list{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .size-row{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+    text-align:left;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    cursor:pointer;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .size-row:hover{ border-color:#fff; }
+  .size-row .row-title{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .size-row .row-sub{
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+  .size-row.active{
+    background: rgba(232,185,63,0.14);
+    border-color: var(--accent-gold);
+  }
+  .size-row.active::after{
+    content:'✓';
+    position:absolute;
+    bottom:6px; right:8px;
+    width:16px; height:16px;
+    border-radius:50%;
+    background: var(--accent-gold);
+    color:#16160f;
+    font-size:0.55rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* --- mode-select: 2x2 grid of blocks with icons, matching the other games --- */
   .mode-grid{
     display:grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    width:100%;
+    margin-bottom: 4px;
   }
   .mode-grid-btn{
     position:relative;
@@ -325,18 +263,15 @@
     gap:8px;
     min-height: 113px;
     padding: 18px 10px 14px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--gold-dim);
-    border-radius: 6px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-dim);
     cursor:pointer;
     text-align:center;
-    transition: background .15s ease, border-color .15s ease;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
   }
-  .mode-grid-btn:hover{ background: rgba(255,255,255,0.07); border-color:#fff; }
-  .mode-grid-empty{
-    min-height: 113px;
-    visibility:hidden;
-  }
+  .mode-grid-btn:hover{ border-color:#fff; }
   .mode-grid-icon{
     position:relative;
     width: 32px;
@@ -354,21 +289,17 @@
   .mode-grid-btn.active .mode-grid-icon .icon-default{ opacity:0; }
   .mode-grid-btn.active .mode-grid-icon .icon-active{ opacity:1; }
   .mode-grid-title{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.82rem;
-    letter-spacing:0.06em;
-    color:var(--cream);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
   }
   .mode-grid-desc{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-size:0.6rem;
-    letter-spacing:0.03em;
-    color: rgba(255,255,255,0.78);
+    font-size: 9px;
+    color: var(--text-dim);
   }
   .mode-grid-btn.active{
+    background: rgba(232,185,63,0.14);
     border-color: var(--accent-gold);
-    background: var(--accent-gold-dim);
   }
   .mode-grid-btn.active::after{
     content:'✓';
@@ -377,7 +308,7 @@
     width:18px; height:18px;
     border-radius:50%;
     background: var(--accent-gold);
-    color:#141414;
+    color:#16160f;
     font-size:0.6rem;
     font-weight:700;
     display:flex;
@@ -385,325 +316,413 @@
     justify-content:center;
   }
 
-  .panel-title{
-    font-family:'Kaisei Decol', serif;
-    font-size: 1.05rem;
-    color:var(--cream);
-    letter-spacing:0.06em;
-    text-align:center;
+  .start-btn{
+    display:block;
+    width: 100%;
+    margin: 24px auto 0;
+    padding: 14px 0;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor:pointer;
+    transition: border-color .2s ease, background .2s ease;
   }
-  .panel-sub{
-    font-size:0.75rem;
-    color:var(--gold-dim);
-    text-align:center;
-    line-height:1.7;
-    max-width: 320px;
+  .start-btn:hover{ border-color:#fff; background:rgba(255,255,255,0.14); }
+  .how-to-btn{
+    display:block;
+    width: auto;
+    margin: 8px auto 0;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 500;
+    cursor:pointer;
+    transition: border-color .2s ease, background .2s ease, color .2s ease;
   }
+  .how-to-btn:hover{ border-color:#fff; background:rgba(255,255,255,0.06); color: var(--text-primary); }
 
-  /* --- digit dial inputs --- */
-  .dial-row{
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background: rgba(0,0,0,0.62);
+    backdrop-filter: blur(4px);
     display:flex;
-    gap:10px;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-box{
+    position:relative;
     width:100%;
     max-width: 380px;
+    background: linear-gradient(160deg, #1c1c1a, var(--panel) 55%, #050504);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 26px 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    animation: modalPop .22s cubic-bezier(.2,.8,.3,1);
   }
-  .dial{
-    flex:1;
-    height: 76px;
-    background: var(--cream-box);
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 -3px 0 rgba(0,0,0,0.12), inset 0 0 0 2px var(--gold-dim);
-    display:flex; align-items:center; justify-content:center;
-    transition: box-shadow .15s ease;
+  @keyframes modalPop{
+    0%{ transform: scale(0.9); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
   }
-  .keypad{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    width: 100%;
-    max-width: 340px;
-  }
-  .keypad-btn{
-    height: 47px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--gold-dim);
-    color: var(--cream);
-    font-family:'Jost', sans-serif;
-    font-weight:600;
-    font-size: 1.1rem;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background .1s ease, transform .1s ease, border-color .1s ease;
-  }
-  .keypad-btn:active{ background: rgba(255,255,255,0.2); border-color: var(--gold-bright); transform: scale(0.95); }
-  .keypad-btn.blank{ visibility:hidden; pointer-events:none; }
-  .keypad-btn.backspace{ font-size: 1.1rem; color: var(--gold-dim); }
-  .dial input{
-    width:100%; height:100%;
-    background: transparent;
-    border: none;
-    text-align:center;
-    font-family:'Jost', sans-serif;
-    font-size: 2.1rem;
-    font-weight:700;
-    color: var(--ink);
-    caret-color: var(--gold-dim);
-  }
-  .dial input:focus{ outline: none; }
-  .dial.filled{ box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 -3px 0 rgba(0,0,0,0.12), inset 0 0 0 2px var(--gold-bright); }
-  .dial-row.shake{ animation: shake .4s ease; }
-  @keyframes shake{
-    0%,100%{ transform: translateX(0); }
-    20%{ transform: translateX(-6px); }
-    40%{ transform: translateX(6px); }
-    60%{ transform: translateX(-4px); }
-    80%{ transform: translateX(4px); }
-  }
-
-  .inline-error{
-    font-size:0.7rem;
-    color:#e8b4b4;
-    letter-spacing:0.04em;
-    min-height: 0;
+  .howto-title{
+    font-family:'Noto Serif JP', serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+    margin: 0 0 16px;
     text-align:center;
   }
-
-  .lock-icon{
-    width:40px; height:40px;
-    opacity:0.8;
-  }
-
-  button.main-btn{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.78rem;
-    letter-spacing:0.1em;
-    color:var(--cream);
-    background: transparent;
-    border: 1px solid var(--gold-dim);
-    border-radius:2px;
-    padding: 11px 24px;
-    cursor:pointer;
-    transition: background .15s ease, border-color .15s ease;
-  }
-  button.main-btn:hover{ background: rgba(255,255,255,0.08); border-color:var(--gold-bright); }
-  button.main-btn:active{ transform: translateY(1px); }
-  button.main-btn:disabled{ opacity:0.3; cursor:default; }
-  button:focus-visible{ outline: 1px solid var(--gold-bright); outline-offset: 3px; }
-
-  .controls{ display:flex; gap:10px; margin-top:2px; flex-wrap:wrap; justify-content:center; }
-  .controls .main-btn{ padding: 10px 16px; font-size:0.72rem; }
-
-  /* --- guess history --- */
-  .history-wrap{
-    width:100%;
+  .howto-list{
+    margin:0 0 20px;
+    padding:0;
+    list-style:none;
     display:flex;
     flex-direction:column;
-    gap:6px;
-    overflow-y:auto;
-    flex:1;
-    min-height:0;
-  }
-  .history-cols{
-    width:100%;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .history-col{
-    padding: 4px 2px;
-  }
-  .history-col h3{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.72rem;
-    margin:0 0 4px;
-    color:var(--cream);
-    letter-spacing:0.04em;
-    display:flex;
-    align-items:center;
-    gap:5px;
-  }
-  .history-col h3::before{ content:'◆'; font-size:0.62rem; color:var(--gold-bright); }
-  .history-col.gote h3::before{ color:#8f8f8f; }
-  .history-col-head{
-    display:grid;
-    grid-template-columns: 18px 1fr 30px 30px;
-    gap:4px;
-    font-size:0.6rem;
-    color:var(--gold-dim);
-    letter-spacing:0.04em;
-    padding: 0 2px 3px;
-    border-bottom: 1px solid var(--hairline);
-    margin-bottom:4px;
-  }
-  .history-col-head span:nth-child(3), .history-col-head span:nth-child(4){ text-align:center; }
-  .history-list{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-  }
-  .history-list.expanded{
-    max-height: 280px;
-    overflow-y:auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
-  .history-toggle-btn{
-    text-align:center;
-    font-size:0.64rem;
-    letter-spacing:0.05em;
-    color: var(--gold-dim);
-    padding: 4px 0 0;
-    cursor:pointer;
-  }
-  .history-toggle-btn:hover{ color: var(--gold-bright); }
-  .history-toggle{ min-height: 21px; }
-  .history-item{
-    display:grid;
-    grid-template-columns: 18px 1fr 30px 30px;
-    gap:4px;
-    align-items:center;
-  }
-  .history-num{
-    font-family:'Jost', sans-serif;
-    font-size:0.64rem;
-    color: var(--gold-dim);
-  }
-  .history-digits{ display:flex; gap:4px; }
-  .hdigit{
-    flex:1;
-    min-width:0;
-    aspect-ratio: 5 / 3;
-    display:flex; align-items:center; justify-content:center;
-    background: var(--void);
-    border: 1px solid var(--gold-dim);
-    border-radius: 3px;
-    font-family:'Jost', sans-serif;
-    font-weight:600;
-    font-size:0.76rem;
-    color: var(--cream);
-  }
-  .history-result{
-    font-family:'Jost', sans-serif;
-    font-size:0.7rem;
-    color: var(--gold-dim);
-    text-align:center;
-  }
-  .history-result.hit-val{ color: var(--cream); }
-  .empty-hint{ color:var(--gold-dim); font-size:0.7rem; text-align:center; padding: 8px 0; grid-column: 1/-1; }
-
-
-  .guess-area{
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
     gap:12px;
   }
-
-  .rules{
+  .howto-list li{
+    font-size: 12.5px;
+    line-height:1.7;
+    color: var(--text-dim);
+    letter-spacing:0.01em;
+    padding-left: 1.1em;
+    position:relative;
+  }
+  .howto-list li::before{
+    content:'・';
+    position:absolute;
+    left:0;
+    color: var(--text-primary);
+  }
+  .howto-close-btn{
+    display:block;
     width:100%;
-    max-width: 420px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--hairline);
-    border-radius: 4px;
-    padding: 14px 18px;
-    font-size:0.76rem;
-    line-height:1.8;
-    color:var(--gold);
-    display:none;
+    padding: 11px 0;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor:pointer;
+    transition: border-color .2s ease, background .2s ease;
   }
-  .rules.open{ display:block; }
-  .rules h2{
-    font-family:'Kaisei Decol', serif;
-    font-weight:500;
-    font-size:0.9rem;
-    margin: 0 0 8px;
-    color:var(--cream);
-    letter-spacing: 0.05em;
-  }
-  .rules ul{ margin:4px 0; padding-left:1.1em; }
+  .howto-close-btn:hover{ border-color:#fff; background:rgba(255,255,255,0.14); }
 
-  .winner-overlay{
-    position:fixed; inset:0;
-    background: rgba(0,0,0,0.85);
-    display:none;
-    align-items:center; justify-content:center;
-    z-index:20;
-    padding: 20px;
+  .menu-screen.hidden, .app.hidden{ display:none; }
+  .hidden{ display:none !important; }
+
+  /* ---------- App (game) screen ---------- */
+  .app{
+    max-width: 760px;
+    margin: 0 auto;
+    height: 100vh;
+    display:flex;
+    flex-direction:column;
+    padding: 8px 18px calc(var(--ad-h) + 18px);
+    overflow: hidden;
   }
-  .winner-overlay.show{ display:flex; }
-  .winner-card{
-    background: linear-gradient(180deg, #161616, #050505);
-    border: 1px solid var(--hairline);
-    border-radius: 4px;
-    padding: 32px 34px;
-    text-align:center;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-    max-width: 320px;
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    padding: 0 0 7px;
   }
-  .winner-card .big{
-    font-family:'Kaisei Decol', serif;
+  .back-btn{
+    font-family: 'Noto Sans JP', sans-serif;
     font-weight:700;
-    font-size:1.3rem;
-    color:var(--cream);
-    margin-bottom:10px;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px;
+    padding: 7px 12px;
+    cursor:pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .back-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+
+  .scorebar{
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items:end;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #1c1c1a;
+  }
+  .score-side{ display:flex; flex-direction:column; gap:4px; }
+  .score-side.cpu{ align-items:flex-end; }
+  .score-label{
+    display:flex; align-items:center; gap:6px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    transition: color .25s ease, filter .25s ease;
+  }
+  .score-label.active-turn{
+    color: var(--text-primary);
+    filter: drop-shadow(0 0 5px rgba(244,242,236,0.85)) drop-shadow(0 0 12px rgba(244,242,236,0.55));
+    animation: turnGlowPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes turnGlowPulse{
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(244,242,236,0.85)) drop-shadow(0 0 12px rgba(244,242,236,0.55)); }
+    50%      { filter: drop-shadow(0 0 7px rgba(244,242,236,1)) drop-shadow(0 0 18px rgba(244,242,236,0.8)); }
+  }
+  .score-label svg{ width:14px; height:14px; flex-shrink:0; }
+  .score-value{
+    font-family:'Noto Serif JP', serif;
+    font-weight: 600;
+    font-size: 36px;
+    line-height:1;
+    letter-spacing: -0.01em;
+  }
+  .score-value.you{ color: var(--box-player-line); }
+  .score-value.cpu{ color: var(--text-dim); }
+
+  .titleblock{
+    text-align:center;
+    display:flex; flex-direction:column; gap:4px;
+    padding-bottom: 4px;
+  }
+  .title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.24em;
+    color: var(--text-primary);
+  }
+  .subtitle{
+    font-family:'Noto Serif JP', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: #55554f;
+  }
+
+  .board-wrap{
+    flex:1;
+    min-height: 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 18px 0 6px;
+    overflow: hidden;
+  }
+  svg.board{
+    width: 100%;
+    height: auto;
+    max-width: 620px;
+    max-height: 100%;
+    overflow: visible;
+    background: var(--bg);
+    border-radius: 4px;
+    transform: translateY(-20px);
+  }
+
+  .dot{ fill: var(--dot-idle); }
+
+  .edge-hit{
+    stroke: transparent;
+    stroke-width: 22;
+    fill:none;
+    cursor:pointer;
+  }
+  .edge-hit.disabled{ cursor:default; }
+
+  .edge-line{
+    stroke-linecap: round;
+    fill:none;
+    pointer-events:none;
+    transition: stroke-dashoffset .35s ease, opacity .2s ease;
+  }
+  .edge-line.hover-preview{
+    stroke: #3a3a37;
+    stroke-width: 5;
+    opacity:0;
+    transition: opacity .15s ease;
+  }
+  .edge-hit:hover + .edge-line.hover-preview{ opacity: 1; }
+
+  .edge-line.filled-player{
+    stroke: var(--line-player);
+    stroke-width: 5;
+    filter: drop-shadow(0 0 6px var(--line-player-glow));
+  }
+  .edge-outline{
+    stroke: transparent;
+    stroke-width: 6.6;
+    stroke-linecap: round;
+    fill:none;
+    pointer-events:none;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .edge-outline.filled-cpu{
+    stroke: var(--line-cpu-outline);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px var(--line-cpu-glow));
+  }
+  .edge-line.filled-cpu{
+    stroke: var(--line-cpu);
+    stroke-width: 5;
+  }
+
+  .box-fill{
+    opacity: 0;
+    transform-origin: center;
+    transform: scale(0.85);
+    transition: opacity .3s ease, transform .3s cubic-bezier(.2,1.4,.4,1);
+    pointer-events:none;
+  }
+  .box-fill.shown{ opacity: 1; transform: scale(1); }
+  .box-fill.player{ fill: url(#hatch-player); stroke: var(--box-player-line); stroke-width: 1.5; }
+  .box-fill.cpu{ fill: url(#hatch-cpu); stroke: var(--box-cpu-line); stroke-width: 1.5; }
+
+  .box-symbol{
+    opacity:0;
+    stroke-linecap: round;
+    transition: opacity .3s ease .1s;
+    pointer-events:none;
+  }
+  .box-symbol.shown{ opacity: 1; }
+  .box-symbol.player{ stroke: var(--box-player-line); fill:none; stroke-width:2.2; }
+  .box-symbol.cpu{ stroke: var(--box-cpu-line); fill:none; stroke-width:2.2; }
+
+  .float-score{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    fill: var(--accent-gold);
+    text-anchor: middle;
+    pointer-events:none;
+    animation: floatUp 0.9s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%   { opacity: 0; transform: translateY(6px); }
+    18%  { opacity: 1; transform: translateY(0px); }
+    75%  { opacity: 1; transform: translateY(-26px); }
+    100% { opacity: 0; transform: translateY(-34px); }
+  }
+
+  .end-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(6,6,6,0.88);
+    backdrop-filter: blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .35s ease;
+    z-index: 20;
+  }
+  .end-overlay.shown{ opacity:1; pointer-events:auto; }
+  .end-card{
+    display:flex; flex-direction:column; align-items:center;
+    gap: 18px;
+    transform: translateY(14px);
+    transition: transform .35s ease;
+  }
+  .end-overlay.shown .end-card{ transform: translateY(0); }
+  .end-title{
+    font-family:'Noto Sans JP', sans-serif;
+    font-size: 28px;
+    font-weight:700;
     letter-spacing: 0.04em;
   }
-  .winner-card .code-reveal{
-    font-family:'Jost', sans-serif;
-    font-size:1.3rem;
-    letter-spacing:0.3em;
-    color:var(--cream);
-    margin-bottom: 14px;
+  .end-title.win{ color: var(--box-player-line); }
+  .end-title.lose{ color: var(--text-dim); }
+  .end-score{
+    font-family:'Noto Serif JP', serif;
+    font-size: 18px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
   }
-  .winner-card p{ color:var(--gold-dim); font-size:0.8rem; margin: 0 0 20px; letter-spacing:0.04em; }
+  .end-actions{
+    display:flex; gap: 10px; margin-top: 6px;
+  }
+  .play-again, .change-stage{
+    background: transparent;
+    border: 1px solid #3a3a37;
+    color: var(--text-primary);
+    font-family:'Noto Sans JP', sans-serif;
+    letter-spacing: 0.04em;
+    font-size: 14px;
+    padding: 12px 26px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .play-again:hover, .change-stage:hover{ border-color:#6a6a66; background:#151513; }
 
-  .hidden{ display:none !important; }
-  .invisible{ visibility:hidden; pointer-events:none; }
+  .view-board{
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family:'Noto Sans JP', sans-serif;
+    letter-spacing: 0.04em;
+    font-size: 13px;
+    padding: 4px 0 0;
+    margin-top: 4px;
+    cursor:pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color .2s ease;
+  }
+  .view-board:hover{ color: var(--text-primary); }
 
-  /* --- home confirm popup: gray, lightly transparent overlay --- */
-  .confirm-overlay{
-    position:fixed; inset:0;
-    background: rgba(140,140,140,0.32);
-    backdrop-filter: blur(2px);
-    display:none;
-    align-items:center; justify-content:center;
-    z-index: 200;
-    padding: 20px;
+  .result-fab{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border-dim);
+    color: var(--text-primary);
+    font-family:'Noto Serif JP', serif;
+    font-size: 12px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor:pointer;
+    z-index: 25;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
   }
-  .confirm-overlay.show{ display:flex; }
-  .confirm-card{
-    background: linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
-    border: 1px solid var(--hairline);
-    border-radius: 6px;
-    padding: 26px 24px;
-    text-align:center;
-    box-shadow: 0 24px 50px rgba(0,0,0,0.55);
-    max-width: 320px;
-    width:100%;
+  .result-fab.shown{ opacity: 1; pointer-events: auto; }
+
+  /* ---------- Ad slot (reserved space, ~1/8 of screen height) ---------- */
+  .ad-slot{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: var(--ad-h);
+    background: transparent;
+    z-index: 30;
+    pointer-events: none;
   }
-  .confirm-card .confirm-text{
-    font-family:'Kaisei Decol', serif;
-    font-size:0.95rem;
-    color:var(--cream);
-    letter-spacing:0.04em;
-    line-height:1.7;
-    margin-bottom:20px;
-  }
-  .confirm-actions{ display:flex; gap:10px; }
-  .confirm-actions .main-btn{ flex:1; padding:11px 10px; }
-  .confirm-ok{ background:var(--cream); color:var(--ink); border-color:var(--cream); }
-  .confirm-ok:hover{ background:#eee; border-color:#eee; }
 </style>
 </head>
 <body>
-<div class="app">
 
-  <button type="button" class="home-btn" id="homeBtn" aria-label="ホームへ戻る">← ホーム</button>
+<div class="menu-screen" id="menuScreen">
+  <a href="index.html" class="home-btn" aria-label="ホームへ戻る">← ホーム</a>
   <button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
   <div id="bgSwitchPanel" class="bg-switch-panel hidden">
     <button class="bg-swatch active" data-grad="IMAGE" style="--sw:#1a130d; background-image:url('assets/backgrounds/game-home-default.jpg'); background-size:cover; background-position:center;" aria-label="フォト"></button>
@@ -714,21 +733,21 @@
     <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
   </div>
 
-  <header>
-    <h1>ヒット＆ブロー<span class="small">HIT &amp; BLOW</span></h1>
-  </header>
+  <div class="menu-header">
+    <div class="menu-title-bar">ドット&amp;ボックス</div>
+    <div class="menu-title-en">DOTS &amp; BOXES</div>
+  </div>
 
-  <!-- MODE SELECT SCREEN -->
-  <div id="modeScreen" class="panel">
+  <div class="menu-card">
     <div class="setup-divider">
       <span class="divider-line"></span>
       <span class="divider-diamond"></span>
       <span class="divider-line"></span>
     </div>
-    <div class="setup-mode-title">対戦モード</div>
-    <div class="setup-section-label">どの相手と対局しますか？</div>
-    <div class="mode-grid" id="modeToggleRow">
-      <button class="mode-grid-btn active" id="modeTwoPlayerBtn">
+    <div class="menu-mode-title">対戦モード</div>
+    <div class="menu-mode-label">どの相手と対局しますか？</div>
+    <div class="mode-grid" id="modeRow">
+      <button class="mode-grid-btn active" id="mode2p" data-mode="2p">
         <span class="mode-grid-icon">
           <img class="icon-default" src="assets/icons/mode-icon-2p-white.png" alt="">
           <img class="icon-active" src="assets/icons/mode-icon-2p-active.png" alt="">
@@ -736,7 +755,7 @@
         <span class="mode-grid-title">2人対戦</span>
         <span class="mode-grid-desc">友達と対局する</span>
       </button>
-      <button class="mode-grid-btn" id="modeCPUBtn">
+      <button class="mode-grid-btn" id="modeCpu" data-mode="cpu">
         <span class="mode-grid-icon">
           <img class="icon-default" src="assets/icons/mode-icon-cpu-white.png" alt="">
           <img class="icon-active" src="assets/icons/mode-icon-cpu-active.png" alt="">
@@ -744,647 +763,617 @@
         <span class="mode-grid-title">CPU対戦</span>
         <span class="mode-grid-desc">標準のAIと対局する</span>
       </button>
-      <button class="mode-grid-btn" id="modeCPUMasterBtn">
-        <span class="mode-grid-icon">
-          <img class="icon-default" src="assets/icons/mode-icon-master-white.png" alt="">
-          <img class="icon-active" src="assets/icons/mode-icon-master-active.png" alt="">
-        </span>
-        <span class="mode-grid-title">達人CPU</span>
-        <span class="mode-grid-desc">強いAIと対局する</span>
+    </div>
+
+    <div class="menu-section-title second">ステージ選択</div>
+    <div class="size-list" id="sizeGrid">
+      <button class="size-row active" data-rows="3" data-cols="3">
+        <span class="row-title">3 × 3</span>
+        <span class="row-sub">9マス</span>
       </button>
-      <div class="mode-grid-empty" aria-hidden="true"></div>
+      <button class="size-row" data-rows="4" data-cols="4">
+        <span class="row-title">4 × 4</span>
+        <span class="row-sub">16マス</span>
+      </button>
+      <button class="size-row" data-rows="4" data-cols="5">
+        <span class="row-title">4 × 5</span>
+        <span class="row-sub">20マス</span>
+      </button>
+      <button class="size-row" data-rows="4" data-cols="6">
+        <span class="row-title">4 × 6</span>
+        <span class="row-sub">24マス</span>
+      </button>
     </div>
-    <div class="mode-toggle-row" id="sideToggleRow">
-      <button class="mode-toggle-btn active" id="sideSenteBtn">先手で対戦</button>
-      <button class="mode-toggle-btn" id="sideGoteBtn">後手で対戦</button>
-    </div>
-    <button class="main-btn full-width-btn" id="modeStartBtn">ゲーム開始</button>
-    <button class="main-btn full-width-btn" id="modeRulesBtn">遊び方</button>
+
+    <button class="start-btn" id="startBtn">はじめる</button>
+    <button class="how-to-btn" id="howToPlayBtn">遊び方</button>
+  </div>
+</div>
+
+<div class="app hidden" id="gameScreen">
+  <div class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="ホームへ戻る">← ホーム</button>
   </div>
 
-  <!-- SETUP SCREEN -->
-  <div id="setupScreen" class="panel hidden">
-    <div class="panel-title" id="setupTitle">白の暗証番号を設定してください</div>
-    <div class="panel-sub">0〜9の中から重複しない3桁を決めてください。相手には見えません。</div>
-    <div class="dial-row" id="setupDialRow">
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="0"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="1"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="2"></div>
-    </div>
-    <div class="keypad" id="setupKeypad"></div>
-    <div class="inline-error" id="setupError"></div>
-    <button class="main-btn" id="setupConfirmBtn">決定</button>
-  </div>
-
-  <!-- HANDOFF SCREEN -->
-  <div id="handoffScreen" class="panel hidden">
-    <div class="panel-title" id="handoffTitle">設定が完了しました</div>
-    <div class="panel-sub" id="handoffSub">端末を後手（黒）に渡してください。準備ができたら進めます。</div>
-    <button class="main-btn" id="handoffBtn">次へ進む</button>
-  </div>
-
-  <!-- GAME SCREEN -->
-  <div id="gameScreen" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; min-height:0; flex:1;">
-    <div class="status-bar">
-      <div class="mode-badge" id="modeBadge">2人対戦</div>
-      <div id="seal" class="seal">白の番</div>
-    </div>
-
-    <div class="dial-row" id="guessDialRow">
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="0"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="1"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="2"></div>
-    </div>
-    <div class="status-text" id="statusText">相手の3桁を予想してください</div>
-
-    <div class="history-wrap">
-      <div class="history-cols">
-        <div class="history-col">
-          <h3 id="senteHistoryLabel">白の予想</h3>
-          <div class="history-col-head"><span></span><span>数字</span><span>HIT</span><span>BLOW</span></div>
-          <div class="history-list" id="senteHistory"><div class="empty-hint">まだありません</div></div>
-          <div class="history-toggle" id="senteHistoryToggle"></div>
-        </div>
-        <div class="history-col gote">
-          <h3 id="goteHistoryLabel">黒の予想</h3>
-          <div class="history-col-head"><span></span><span>数字</span><span>HIT</span><span>BLOW</span></div>
-          <div class="history-list" id="goteHistory"><div class="empty-hint">まだありません</div></div>
-          <div class="history-toggle" id="goteHistoryToggle"></div>
-        </div>
+  <div class="scorebar">
+    <div class="score-side you">
+      <div class="score-label" id="p1ScoreLabel">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span id="p1Label">白</span>
       </div>
+      <div class="score-value you" id="scoreYou">0</div>
     </div>
 
-    <div class="keypad" id="guessKeypad"></div>
-    <div class="inline-error" id="guessError"></div>
-    <button class="main-btn" id="guessSubmitBtn" style="margin-top:-5px;">予想する</button>
+    <div class="titleblock">
+      <div class="title">DOTS &amp; BOXES</div>
+      <div class="subtitle" id="gridLabel">6 × 6</div>
+    </div>
+
+    <div class="score-side cpu">
+      <div class="score-label" id="p2ScoreLabel">
+        <svg viewBox="0 0 16 16"><line x1="3" y1="3" x2="13" y2="13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="13" y1="3" x2="3" y2="13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span id="p2Label">黒</span>
+      </div>
+      <div class="score-value cpu" id="scoreCpu">0</div>
+    </div>
   </div>
 
-  <div id="rules" class="rules">
-    <h2>遊び方</h2>
-    <ul>
-      <li>2人がそれぞれ0〜9から重複しない3桁の暗証番号を設定します</li>
-      <li>交互に相手の番号を予想し、3桁の数字を入力します</li>
-      <li><b>HIT</b>：数字も桁も合っている数（例：正解と同じ位置の一致数）</li>
-      <li><b>BLOW</b>：数字は合っているが桁が違う数</li>
-      <li>先に3 HIT（完全一致）を出した方の勝ちです</li>
+  <div class="board-wrap">
+    <svg class="board" id="board" viewBox="0 0 640 640">
+      <defs>
+        <pattern id="hatch-player" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="rgba(217,205,176,0.14)"/>
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(243,239,228,0.65)" stroke-width="2"/>
+        </pattern>
+        <pattern id="hatch-cpu" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="rgba(60,60,58,0.5)"/>
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(150,150,144,0.3)" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <g id="boxLayer"></g>
+      <g id="symbolLayer"></g>
+      <g id="lineLayer"></g>
+      <g id="hitLayer"></g>
+      <g id="dotLayer"></g>
+      <g id="floatLayer"></g>
+    </svg>
+  </div>
+</div>
+
+<div class="end-overlay" id="endOverlay">
+  <div class="end-card">
+    <div class="end-title" id="endTitle">白の勝ち</div>
+    <div class="end-score" id="endScore">18 – 14</div>
+    <div class="end-actions">
+      <button class="play-again" id="playAgainBtn">もう一度</button>
+      <button class="change-stage" id="changeStageBtn">ステージ選択</button>
+    </div>
+    <button class="view-board" id="viewBoardBtn">盤面を見る</button>
+  </div>
+</div>
+
+<div id="howToPlayModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="howto-title">遊び方</div>
+    <ul class="howto-list">
+      <li>交互に、隣り合う点と点を結ぶ線を1本引きます。</li>
+      <li>四角形の4辺すべてを埋めると、その箱は自分のものになります。</li>
+      <li>箱を1つ以上完成させたら、続けてもう一本線を引けます。揃わなければ相手の番になります。</li>
+      <li>すべての線が引かれたら対局終了。獲得した箱の数が多い方の勝ちです。</li>
     </ul>
-  </div>
-
-</div>
-
-<div id="winnerOverlay" class="winner-overlay">
-  <div class="winner-card">
-    <div id="winnerText" class="big">白の勝ち！</div>
-    <div class="code-reveal" id="codeReveal">0 1 2</div>
-    <p id="winnerSub">相手の暗証番号を解読しました</p>
-    <button id="againBtn" class="main-btn">もう一度</button>
+    <button id="howToPlayCloseBtn" class="howto-close-btn">閉じる</button>
   </div>
 </div>
 
-<div id="homeConfirmOverlay" class="confirm-overlay">
-  <div class="confirm-card">
-    <div class="confirm-text">ゲームを終了してモード選択に戻ります。よろしいですか？</div>
-    <div class="confirm-actions">
-      <button id="homeConfirmCancelBtn" class="main-btn">キャンセル</button>
-      <button id="homeConfirmOkBtn" class="main-btn confirm-ok">終了する</button>
-    </div>
-  </div>
-</div>
+<button class="result-fab" id="resultFab">結果を見る</button>
+
+<div class="ad-slot" id="adSlot"></div>
 
 <script>
 (function(){
-  let secrets, guesses, turn, phase, settingFor;
+  // 画面のスワイプ/バウンススクロールを完全にロックする
+  document.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive: false });
+  // ---------- Labels (fixed: 白 / 黒) ----------
+  const LABEL_P1 = '白';
+  const LABEL_P2 = '黒';
+
+  // ---------- DOM refs ----------
+  const menuScreen = document.getElementById('menuScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const sizeGrid = document.getElementById('sizeGrid');
+  const mode2pBtn = document.getElementById('mode2p');
+  const modeCpuBtn = document.getElementById('modeCpu');
+  const startBtn = document.getElementById('startBtn');
+
+  const board = document.getElementById('board');
+  const dotLayer = document.getElementById('dotLayer');
+  const hitLayer = document.getElementById('hitLayer');
+  const lineLayer = document.getElementById('lineLayer');
+  const boxLayer = document.getElementById('boxLayer');
+  const symbolLayer = document.getElementById('symbolLayer');
+  const floatLayer = document.getElementById('floatLayer');
+
+  const scoreYouEl = document.getElementById('scoreYou');
+  const scoreCpuEl = document.getElementById('scoreCpu');
+  const gridLabelEl = document.getElementById('gridLabel');
+
+  const p1ScoreLabelEl = document.getElementById('p1ScoreLabel');
+  const p2ScoreLabelEl = document.getElementById('p2ScoreLabel');
+
+  const endOverlay = document.getElementById('endOverlay');
+  const endTitle = document.getElementById('endTitle');
+  const endScore = document.getElementById('endScore');
+
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(NS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // ---------- Menu state ----------
+  let selectedRows = 3, selectedCols = 3;
+  let selectedMode = '2p';
   let gameStartedAt = null;
-  let historyExpanded = { sente: false, gote: false };
-  let vsCPU = false;
-  let cpuDifficulty = 'normal';
-  let humanSide = 'sente';
-  let cpuCandidates = [];
-  let cpuMovesMade = 0;
 
-  function cpuSide(){
-    if(!vsCPU) return null;
-    return humanSide === 'sente' ? 'gote' : 'sente';
-  }
-
-  function allPossibleCodes(){
-    const codes = [];
-    for(let a=0;a<10;a++){
-      for(let b=0;b<10;b++){
-        for(let c=0;c<10;c++){
-          if(a!==b && b!==c && a!==c) codes.push([a,b,c]);
-        }
-      }
-    }
-    return codes;
-  }
-
-  function randomCode(){
-    const codes = allPossibleCodes();
-    return codes[Math.floor(Math.random()*codes.length)];
-  }
-
-  function resetAll(){
-    secrets = { sente: null, gote: null };
-    guesses = { sente: [], gote: [] };
-    historyExpanded = { sente: false, gote: false };
-    turn = 'sente';
-    phase = 'setup';
-    cpuCandidates = allPossibleCodes();
-    cpuMovesMade = 0;
-    document.getElementById('winnerOverlay').classList.remove('show');
-    document.getElementById('senteHistory').innerHTML = '<div class="empty-hint">まだありません</div>';
-    document.getElementById('goteHistory').innerHTML = '<div class="empty-hint">まだありません</div>';
-    document.getElementById('senteHistoryToggle').innerHTML = '';
-    document.getElementById('goteHistoryToggle').innerHTML = '';
-
-    if(vsCPU){
-      secrets[cpuSide()] = randomCode();
-      showSetupFor(humanSide);
-    } else {
-      showSetupFor('sente');
-    }
-    show('setupScreen');
-  }
-
-  function show(id){
-    ['modeScreen','setupScreen','handoffScreen','gameScreen'].forEach(s => {
-      document.getElementById(s).classList.toggle('hidden', s !== id);
+  sizeGrid.querySelectorAll('.size-row').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sizeGrid.querySelectorAll('.size-row').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedRows = parseInt(btn.dataset.rows, 10);
+      selectedCols = parseInt(btn.dataset.cols, 10);
     });
-    const onModeScreen = id === 'modeScreen';
-    document.getElementById('homeBtn').setAttribute('aria-label', onModeScreen ? 'ホームへ戻る' : 'モード選択に戻る');
-
-    // ゲーム画面では背景切り替えボタンを表示しない
-    const bgBtn = document.getElementById('bgSwitchBtn');
-    const bgPanel = document.getElementById('bgSwitchPanel');
-    bgBtn.classList.toggle('hidden', id === 'gameScreen');
-    if(id === 'gameScreen') bgPanel.classList.add('hidden');
-
-    // モード選択画面以外に移動したら「遊び方」パネルは自動で閉じる
-    if(id !== 'modeScreen'){
-      document.getElementById('rules').classList.remove('open');
-    }
-  }
-
-  function goToModeSelect(){
-    document.getElementById('winnerOverlay').classList.remove('show');
-    show('modeScreen');
-  }
-
-  function showSetupFor(who){
-    settingFor = who;
-    document.getElementById('setupTitle').textContent = (who === 'sente' ? '白' : '黒') + 'の暗証番号を設定してください';
-    clearDials('setupDialRow');
-    document.getElementById('setupError').textContent = '';
-    show('setupScreen');
-    focusFirstDial('setupDialRow');
-  }
-
-  function clearDials(rowId){
-    document.querySelectorAll('#' + rowId + ' input').forEach(inp => { inp.value = ''; inp.closest('.dial').classList.remove('filled'); });
-  }
-
-  function focusFirstDial(rowId){
-    const first = document.querySelector('#' + rowId + ' input[data-idx="0"]');
-    if(first) setTimeout(() => first.focus(), 50);
-  }
-
-  function setupDialNav(rowId){
-    const inputs = Array.from(document.querySelectorAll('#' + rowId + ' input'));
-    inputs.forEach((inp, i) => {
-      inp.addEventListener('input', () => {
-        inp.value = inp.value.replace(/[^0-9]/g, '').slice(0,1);
-        inp.closest('.dial').classList.toggle('filled', inp.value !== '');
-        if(inp.value && i < inputs.length - 1) inputs[i+1].focus();
-      });
-      inp.addEventListener('keydown', (e) => {
-        if(e.key === 'Backspace' && !inp.value && i > 0){
-          inputs[i-1].focus();
-        }
-        if(e.key === 'Enter'){
-          e.preventDefault();
-          if(rowId === 'setupDialRow') document.getElementById('setupConfirmBtn').click();
-          else document.getElementById('guessSubmitBtn').click();
-        }
-      });
-    });
-  }
-
-  function buildKeypad(containerId, rowId){
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    const keys = ['1','2','3','4','5','6','7','8','9','','0','back'];
-    keys.forEach(key => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      if(key === ''){
-        btn.className = 'keypad-btn blank';
-      } else if(key === 'back'){
-        btn.className = 'keypad-btn backspace';
-        btn.textContent = '⌫';
-        btn.setAttribute('aria-label', '1文字消す');
-        btn.addEventListener('click', () => keypadBackspace(rowId));
-      } else {
-        btn.className = 'keypad-btn';
-        btn.textContent = key;
-        btn.addEventListener('click', () => keypadDigit(rowId, key));
-      }
-      container.appendChild(btn);
-    });
-  }
-
-  function keypadDigit(rowId, digit){
-    const inputs = Array.from(document.querySelectorAll('#' + rowId + ' input'));
-    const idx = inputs.findIndex(inp => inp.value === '');
-    if(idx === -1) return;
-    inputs[idx].value = digit;
-    inputs[idx].dispatchEvent(new Event('input'));
-  }
-
-  function keypadBackspace(rowId){
-    const inputs = Array.from(document.querySelectorAll('#' + rowId + ' input'));
-    let idx = -1;
-    for(let i = inputs.length - 1; i >= 0; i--){
-      if(inputs[i].value !== ''){ idx = i; break; }
-    }
-    if(idx === -1) return;
-    inputs[idx].value = '';
-    inputs[idx].dispatchEvent(new Event('input'));
-  }
-
-  function readDials(rowId){
-    return Array.from(document.querySelectorAll('#' + rowId + ' input')).map(inp => inp.value);
-  }
-
-  function validateDigits(values){
-    if(values.some(v => v === '')) return { ok:false, msg:'3桁すべて入力してください' };
-    if(new Set(values).size !== values.length) return { ok:false, msg:'重複しない数字を入力してください' };
-    return { ok:true };
-  }
-
-  function shakeRow(rowId){
-    const row = document.getElementById(rowId);
-    row.classList.remove('shake');
-    void row.offsetWidth;
-    row.classList.add('shake');
-  }
-
-  document.getElementById('setupConfirmBtn').addEventListener('click', () => {
-    const values = readDials('setupDialRow');
-    const check = validateDigits(values);
-    if(!check.ok){
-      document.getElementById('setupError').textContent = check.msg;
-      shakeRow('setupDialRow');
-      return;
-    }
-    secrets[settingFor] = values.map(Number);
-
-    if(vsCPU){
-      document.getElementById('handoffTitle').textContent = '設定が完了しました';
-      document.getElementById('handoffSub').textContent = 'CPUとの対局を開始します。';
-      show('handoffScreen');
-      document.getElementById('handoffBtn').onclick = startGame;
-      return;
-    }
-
-    if(settingFor === 'sente'){
-      document.getElementById('handoffTitle').textContent = '白の設定が完了しました';
-      document.getElementById('handoffSub').textContent = '端末を後手（黒）に渡してください。準備ができたら進めます。';
-      show('handoffScreen');
-      document.getElementById('handoffBtn').onclick = () => showSetupFor('gote');
-    } else {
-      document.getElementById('handoffTitle').textContent = '両者の設定が完了しました';
-      document.getElementById('handoffSub').textContent = '端末を先手（白）に渡してください。準備ができたら対局を開始します。';
-      show('handoffScreen');
-      document.getElementById('handoffBtn').onclick = startGame;
-    }
   });
 
-  function startGame(){
-    phase = 'playing';
-    turn = 'sente';
+  function setMode(m){
+    selectedMode = m;
+    mode2pBtn.classList.toggle('active', m === '2p');
+    modeCpuBtn.classList.toggle('active', m === 'cpu');
+  }
+  mode2pBtn.addEventListener('click', () => setMode('2p'));
+  modeCpuBtn.addEventListener('click', () => setMode('cpu'));
+
+  // 先攻は常に白(player)、後攻は常に黒(cpu)で固定
+  startBtn.addEventListener('click', () => startGame(selectedRows, selectedCols, selectedMode));
+
+  function showMenu(){
+    endOverlay.classList.remove('shown');
+    resultFab.classList.remove('shown');
+    gameScreen.classList.add('hidden');
+    menuScreen.classList.remove('hidden');
+  }
+
+  // ---------- Game config / state ----------
+  const PAD = 40;
+  let ROWS = 4, COLS = 4, CELL = 100, SVG_W = 640, SVG_H = 640;
+  let mode = 'cpu';
+  let horiz = [], vert = [], boxOwner = [];
+  let scoreYou = 0, scoreCpu = 0;
+  let currentTurn = 'player'; // 'player' = 白, 'cpu' = 黒
+  let gameOver = false;
+  let totalBoxes = 16;
+
+  const boxFillEls = {};
+  const boxSymbolEls = {};
+  const lineEls = {};
+  const outlineEls = {};
+  const hitEls = {};
+
+  function keyH(r,c){ return `h_${r}_${c}`; }
+  function keyV(r,c){ return `v_${r}_${c}`; }
+  function dotXY(r,c){ return [PAD + c*CELL, PAD + r*CELL]; }
+
+  function isCpuMode(){ return mode === 'cpu'; }
+  function runAiMove(){ expertMove(); }
+
+  function startGame(rows, cols, gameMode){
+    ROWS = rows; COLS = cols; mode = gameMode;
+    totalBoxes = ROWS * COLS;
+    CELL = 100;
+    SVG_W = PAD*2 + COLS*CELL;
+    SVG_H = PAD*2 + ROWS*CELL;
+    board.setAttribute('viewBox', `0 0 ${SVG_W} ${SVG_H}`);
+    board.style.aspectRatio = `${SVG_W} / ${SVG_H}`;
+    gridLabelEl.textContent = `${ROWS} × ${COLS}`;
+
+    menuScreen.classList.add('hidden');
+    document.getElementById('howToPlayModal').classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+
+    initState();
+    buildBoard();
     gameStartedAt = Date.now();
-    updateModeLabels();
-    show('gameScreen');
-    updateTurnUI(false);
-    if(vsCPU && turn === cpuSide()){
-      triggerCpuTurn();
-    }
+    // 先攻は常に白(player)なので、ここでCPUの自動着手は発生しない
   }
 
-  function updateModeLabels(){
-    const badge = document.getElementById('modeBadge');
-    const senteLabel = document.getElementById('senteHistoryLabel');
-    const goteLabel = document.getElementById('goteHistoryLabel');
-    if(!vsCPU){
-      badge.textContent = '対戦：2人対戦';
-      senteLabel.textContent = '白の予想';
-      goteLabel.textContent = '黒の予想';
-      return;
-    }
-    badge.textContent = '対戦：' + (cpuDifficulty === 'master' ? '達人CPU' : 'CPU');
-    const youLabel = 'あなたの入力';
-    const cpuLabel = '相手（CPU）の入力';
-    if(humanSide === 'sente'){
-      senteLabel.textContent = youLabel;
-      goteLabel.textContent = cpuLabel;
-    } else {
-      senteLabel.textContent = cpuLabel;
-      goteLabel.textContent = youLabel;
-    }
+  function initState(){
+    horiz = Array.from({length: ROWS+1}, () => Array(COLS).fill(null));
+    vert  = Array.from({length: ROWS},   () => Array(COLS+1).fill(null));
+    boxOwner = Array.from({length: ROWS}, () => Array(COLS).fill(null));
+    scoreYou = 0; scoreCpu = 0; currentTurn = 'player'; gameOver = false;
+    scoreYouEl.textContent = '0';
+    scoreCpuEl.textContent = '0';
+    updateTurnIndicator();
+    endOverlay.classList.remove('shown');
   }
 
-  function updateTurnUI(pulse){
-    const seal = document.getElementById('seal');
-    seal.className = 'seal' + (turn === 'gote' ? ' gote' : '') + (pulse ? ' pulse' : '');
-    if(pulse){ void seal.offsetWidth; seal.classList.add('pulse'); }
+  function buildBoard(){
+    dotLayer.innerHTML = '';
+    hitLayer.innerHTML = '';
+    lineLayer.innerHTML = '';
+    boxLayer.innerHTML = '';
+    symbolLayer.innerHTML = '';
+    floatLayer.innerHTML = '';
+    for(const k in boxFillEls) delete boxFillEls[k];
+    for(const k in boxSymbolEls) delete boxSymbolEls[k];
+    for(const k in lineEls) delete lineEls[k];
+    for(const k in outlineEls) delete outlineEls[k];
+    for(const k in hitEls) delete hitEls[k];
 
-    const isCpuTurn = vsCPU && turn === cpuSide();
-    if(vsCPU){
-      seal.textContent = isCpuTurn ? (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'のターン' : 'あなたのターン';
-    } else {
-      seal.textContent = (turn === 'sente' ? '白' : '黒') + 'の番';
-    }
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const [x,y] = dotXY(r,c);
+        const rect = el('rect', { x: x+8, y: y+8, width: CELL-16, height: CELL-16, rx: 4, class: 'box-fill' });
+        boxLayer.appendChild(rect);
+        boxFillEls[`${r}_${c}`] = rect;
 
-    document.getElementById('guessSubmitBtn').disabled = isCpuTurn;
-    document.querySelectorAll('#guessDialRow input').forEach(inp => { inp.disabled = isCpuTurn; });
-
-    if(isCpuTurn){
-      document.getElementById('statusText').textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'が考え中…';
-    } else {
-      document.getElementById('statusText').textContent = vsCPU
-        ? '相手の3桁を予想してください'
-        : '相手の3桁を予想してください（相手：' + (turn === 'sente' ? '黒' : '白') + '）';
-      clearDials('guessDialRow');
-      document.getElementById('guessError').textContent = '';
-      focusFirstDial('guessDialRow');
-    }
-  }
-
-  function cpuChooseGuess(){
-    if(cpuCandidates.length === 0) cpuCandidates = allPossibleCodes();
-    if(cpuDifficulty !== 'master'){
-      return cpuCandidates[Math.floor(Math.random() * cpuCandidates.length)];
-    }
-    let bestGuess = cpuCandidates[0];
-    let bestWorst = Infinity;
-    for(const guess of cpuCandidates){
-      const buckets = new Map();
-      for(const cand of cpuCandidates){
-        const r = computeHitBlow(guess, cand);
-        const key = r.hit + '-' + r.blow;
-        buckets.set(key, (buckets.get(key) || 0) + 1);
+        const cx = x + CELL/2, cy = y + CELL/2;
+        const g = el('g', {class:'box-symbol'});
+        const circle = el('circle', {cx: cx, cy: cy, r: 15});
+        const xSize = 13;
+        const tri = el('path', {d: `M ${cx-xSize} ${cy-xSize} L ${cx+xSize} ${cy+xSize} M ${cx+xSize} ${cy-xSize} L ${cx-xSize} ${cy+xSize}`});
+        g.appendChild(circle);
+        g.appendChild(tri);
+        circle.style.display = 'none';
+        tri.style.display = 'none';
+        symbolLayer.appendChild(g);
+        boxSymbolEls[`${r}_${c}`] = {g, circle, tri};
       }
-      const worst = Math.max(...buckets.values());
-      if(worst < bestWorst){ bestWorst = worst; bestGuess = guess; }
     }
-    return bestGuess;
+
+    for(let r=0;r<=ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const [x1,y1] = dotXY(r,c);
+        const [x2,y2] = dotXY(r,c+1);
+        addEdge('h', r, c, x1,y1,x2,y2);
+      }
+    }
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<=COLS;c++){
+        const [x1,y1] = dotXY(r,c);
+        const [x2,y2] = dotXY(r+1,c);
+        addEdge('v', r, c, x1,y1,x2,y2);
+      }
+    }
+
+    for(let r=0;r<=ROWS;r++){
+      for(let c=0;c<=COLS;c++){
+        const [x,y] = dotXY(r,c);
+        dotLayer.appendChild(el('circle', {cx:x, cy:y, r:3.5, class:'dot'}));
+      }
+    }
   }
 
-  function triggerCpuTurn(){
-    updateTurnUI(false);
-    setTimeout(cpuTakeTurn, cpuMovesMade === 0 ? 1500 : 700);
+  function addEdge(type, r, c, x1,y1,x2,y2){
+    const preview = el('line', {x1,y1,x2,y2, class:'edge-line hover-preview'});
+    lineLayer.appendChild(preview);
+    const outline = el('line', {x1,y1,x2,y2, class:'edge-outline'});
+    lineLayer.appendChild(outline);
+    const line = el('line', {x1,y1,x2,y2, class:'edge-line'});
+    lineLayer.appendChild(line);
+    const hit = el('line', {x1,y1,x2,y2, class:'edge-hit'});
+    hit.addEventListener('click', () => onEdgeClick(type, r, c));
+    hitLayer.appendChild(hit);
+
+    const key = type==='h' ? keyH(r,c) : keyV(r,c);
+    lineEls[key] = line;
+    outlineEls[key] = outline;
+    hitEls[key] = hit;
   }
 
-  function cpuTakeTurn(){
-    if(phase !== 'playing' || !vsCPU || turn !== cpuSide()) return;
-    const guess = cpuChooseGuess();
-    const humanSecret = secrets[humanSide];
-    const result = computeHitBlow(guess, humanSecret);
-    guesses[turn].push({ guess, result });
-    renderHistory(turn);
+  function edgeVal(type,r,c){ return type==='h' ? horiz[r][c] : vert[r][c]; }
+  function setEdge(type,r,c,owner){ if(type==='h') horiz[r][c]=owner; else vert[r][c]=owner; }
 
-    cpuCandidates = cpuCandidates.filter(c => {
-      const r = computeHitBlow(guess, c);
-      return r.hit === result.hit && r.blow === result.blow;
+  function boxEdges(r,c){
+    return [
+      {type:'h', r:r,   c:c},
+      {type:'h', r:r+1, c:c},
+      {type:'v', r:r,   c:c},
+      {type:'v', r:r,   c:c+1},
+    ];
+  }
+  function boxSidesFilled(r,c){
+    return boxEdges(r,c).filter(e => edgeVal(e.type,e.r,e.c) !== null).length;
+  }
+  function getAvailableEdges(){
+    const list = [];
+    for(let r=0;r<=ROWS;r++) for(let c=0;c<COLS;c++) if(horiz[r][c]===null) list.push({type:'h',r,c});
+    for(let r=0;r<ROWS;r++) for(let c=0;c<=COLS;c++) if(vert[r][c]===null) list.push({type:'v',r,c});
+    return list;
+  }
+  function boxesTouchingEdge(type,r,c){
+    const boxes = [];
+    if(type==='h'){
+      if(r>0) boxes.push([r-1,c]);
+      if(r<ROWS) boxes.push([r,c]);
+    } else {
+      if(c>0) boxes.push([r,c-1]);
+      if(c<COLS) boxes.push([r,c]);
+    }
+    return boxes;
+  }
+  function wouldCompleteCount(edge){
+    const boxes = boxesTouchingEdge(edge.type, edge.r, edge.c);
+    return boxes.filter(([br,bc]) => boxSidesFilled(br,bc) === 3).length;
+  }
+
+  function onEdgeClick(type,r,c){
+    if(gameOver) return;
+    if(edgeVal(type,r,c) !== null) return;
+    if(isCpuMode() && currentTurn !== 'player') return; // block clicks during CPU's (黒) turn
+    placeEdge(type,r,c,currentTurn);
+  }
+
+  function placeEdge(type,r,c,owner){
+    setEdge(type,r,c,owner);
+    const key = type==='h'?keyH(r,c):keyV(r,c);
+    const line = lineEls[key];
+    line.classList.add(owner==='player' ? 'filled-player' : 'filled-cpu');
+    if(owner==='cpu'){ outlineEls[key].classList.add('filled-cpu'); }
+    hitEls[key].classList.add('disabled');
+
+    const boxes = boxesTouchingEdge(type,r,c);
+    let completed = 0;
+    boxes.forEach(([br,bc]) => {
+      if(boxOwner[br][bc]===null && boxSidesFilled(br,bc)===4){
+        boxOwner[br][bc] = owner;
+        revealBox(br,bc,owner);
+        completed++;
+        if(owner==='player'){ scoreYou++; scoreYouEl.textContent = scoreYou; }
+        else { scoreCpu++; scoreCpuEl.textContent = scoreCpu; }
+      }
     });
-    cpuMovesMade++;
 
-    if(result.hit === 3){
-      phase = 'over';
-      showWinner(turn, humanSecret);
+    if(scoreYou + scoreCpu >= totalBoxes){
+      endGame();
       return;
     }
 
-    turn = humanSide;
-    updateTurnUI(true);
-  }
-
-  function computeHitBlow(guess, secret){
-    let hit = 0;
-    const gLeft = [], sLeft = [];
-    for(let i=0;i<3;i++){
-      if(guess[i] === secret[i]) hit++;
-      else { gLeft.push(guess[i]); sLeft.push(secret[i]); }
-    }
-    let blow = 0;
-    const used = Array(sLeft.length).fill(false);
-    gLeft.forEach(g => {
-      const idx = sLeft.findIndex((s, i) => !used[i] && s === g);
-      if(idx !== -1){ used[idx] = true; blow++; }
-    });
-    return { hit, blow };
-  }
-
-  document.getElementById('guessSubmitBtn').addEventListener('click', () => {
-    if(phase !== 'playing') return;
-    if(vsCPU && turn === cpuSide()) return;
-    const values = readDials('guessDialRow');
-    const check = validateDigits(values);
-    if(!check.ok){
-      document.getElementById('guessError').textContent = check.msg;
-      shakeRow('guessDialRow');
-      return;
-    }
-    const guess = values.map(Number);
-    const opponent = turn === 'sente' ? 'gote' : 'sente';
-    const result = computeHitBlow(guess, secrets[opponent]);
-    guesses[turn].push({ guess, result });
-    renderHistory(turn);
-
-    if(result.hit === 3){
-      phase = 'over';
-      showWinner(turn, secrets[opponent]);
-      return;
+    if(completed === 0){
+      currentTurn = owner==='player' ? 'cpu' : 'player';
+      updateTurnIndicator();
     }
 
-    turn = opponent;
-    updateTurnUI(true);
-
-    if(vsCPU && turn === cpuSide()){
-      triggerCpuTurn();
-    }
-  });
-
-  let historyRowHeight = null;
-
-  function renderHistory(who){
-    const el = document.getElementById(who === 'sente' ? 'senteHistory' : 'goteHistory');
-    const toggleEl = document.getElementById(who === 'sente' ? 'senteHistoryToggle' : 'goteHistoryToggle');
-    const list = guesses[who];
-    el.innerHTML = '';
-    el.classList.remove('expanded');
-    el.style.maxHeight = '';
-    el.style.overflowY = '';
-    toggleEl.innerHTML = '';
-
-    const style = getComputedStyle(el);
-    const gap = parseFloat(style.rowGap || style.gap) || 0;
-    const rowH = historyRowHeight || 24;
-    el.style.minHeight = (rowH * 3 + gap * 2) + 'px';
-
-    if(list.length === 0){
-      el.innerHTML = '<div class="empty-hint">まだありません</div>';
-      return;
-    }
-    const showCount = historyExpanded[who] ? list.length : Math.min(3, list.length);
-    for(let n = 0; n < showCount; n++){
-      const i = list.length - 1 - n;
-      const item = list[i];
-      const row = document.createElement('div');
-      row.className = 'history-item';
-
-      const num = document.createElement('span');
-      num.className = 'history-num';
-      num.textContent = String(i + 1).padStart(2, '0');
-
-      const digits = document.createElement('span');
-      digits.className = 'history-digits';
-      item.guess.forEach(d => {
-        const box = document.createElement('span');
-        box.className = 'hdigit';
-        box.textContent = d;
-        digits.appendChild(box);
-      });
-
-      const hitVal = document.createElement('span');
-      hitVal.className = 'history-result hit-val';
-      hitVal.textContent = item.result.hit + 'H';
-
-      const blowVal = document.createElement('span');
-      blowVal.className = 'history-result';
-      blowVal.textContent = item.result.blow + 'B';
-
-      row.appendChild(num);
-      row.appendChild(digits);
-      row.appendChild(hitVal);
-      row.appendChild(blowVal);
-      el.appendChild(row);
-    }
-
-    const rows = el.querySelectorAll('.history-item');
-    if(rows.length){
-      historyRowHeight = rows[0].getBoundingClientRect().height;
-      el.style.minHeight = (historyRowHeight * 3 + gap * 2) + 'px';
-    }
-
-    if(list.length > 3){
-      const toggle = document.createElement('div');
-      toggle.className = 'history-toggle-btn';
-      toggle.textContent = historyExpanded[who] ? '▲ 折りたたむ' : '▼ すべて表示（' + list.length + '件）';
-      toggle.addEventListener('click', () => {
-        historyExpanded[who] = !historyExpanded[who];
-        renderHistory(who);
-      });
-      toggleEl.appendChild(toggle);
-    }
-
-    if(historyExpanded[who] && list.length > 4 && historyRowHeight){
-      const maxH = historyRowHeight * 4 + gap * 3;
-      el.style.maxHeight = maxH + 'px';
-      el.style.overflowY = 'auto';
-      el.classList.add('expanded');
+    if(isCpuMode() && currentTurn === 'cpu'){
+      setTimeout(runAiMove, 550);
     }
   }
 
-  function showWinner(winner, revealedCode){
-    const overlay = document.getElementById('winnerOverlay');
-    document.getElementById('winnerText').textContent = (winner === 'sente' ? '白' : '黒') + 'の勝ち！';
-    document.getElementById('codeReveal').textContent = revealedCode.join('  ');
-    document.getElementById('winnerSub').textContent = '相手の暗証番号を解読しました';
-    overlay.classList.add('show');
+  function revealBox(r,c,owner){
+    const rect = boxFillEls[`${r}_${c}`];
+    rect.classList.add(owner, 'shown');
+
+    const sym = boxSymbolEls[`${r}_${c}`];
+    sym.g.classList.add(owner, 'shown');
+    if(owner==='player'){ sym.circle.style.display=''; }
+    else { sym.tri.style.display=''; }
+
+    const [x,y] = dotXY(r,c);
+    const cx = x + CELL/2, cy = y + CELL/2;
+    const txt = el('text', {x:cx, y:cy, class:'float-score'});
+    txt.textContent = '+1';
+    floatLayer.appendChild(txt);
+    setTimeout(() => txt.remove(), 950);
+  }
+
+  function updateTurnIndicator(){
+    const p1Active = currentTurn === 'player';
+    p1ScoreLabelEl.classList.toggle('active-turn', p1Active);
+    p2ScoreLabelEl.classList.toggle('active-turn', !p1Active);
+  }
+
+  function endGame(){
+    gameOver = true;
+    const win = scoreYou > scoreCpu;
+    const tie = scoreYou === scoreCpu;
+    if(tie){
+      endTitle.textContent = 'ひきわけ';
+    } else {
+      endTitle.textContent = win ? `${LABEL_P1}の勝ち` : `${LABEL_P2}の勝ち`;
+    }
+    endTitle.classList.toggle('win', win);
+    endTitle.classList.toggle('lose', !win && !tie);
+    endScore.textContent = `${scoreYou} – ${scoreCpu}`;
+    setTimeout(() => endOverlay.classList.add('shown'), 250);
 
     // ホーム画面の「記録」タブ用に対局結果を記録しておく
     if(window.hitotokiStats){
-      window.hitotokiStats.recordGameEnd('hit_and_blow', 'ヒット＆ブロー', {
-        vsCPU: vsCPU,
-        won: vsCPU ? (winner === humanSide) : undefined,
+      window.hitotokiStats.recordGameEnd('dots_and_boxes', 'ドット＆ボックス', {
+        vsCPU: isCpuMode(),
+        won: isCpuMode() && !tie ? win : undefined,
         durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
       });
     }
   }
 
-  document.getElementById('homeBtn').addEventListener('click', () => {
-    const onModeScreen = !document.getElementById('modeScreen').classList.contains('hidden');
-    if(onModeScreen){
-      window.location.href = 'index.html';
+  function cpuMove(){
+    if(gameOver) return;
+    const available = getAvailableEdges();
+    if(available.length===0) return;
+
+    let capturing = available
+      .map(e => ({e, n: wouldCompleteCount(e)}))
+      .filter(x => x.n > 0)
+      .sort((a,b) => b.n - a.n);
+    if(capturing.length){
+      const pick = capturing[0].e;
+      placeEdge(pick.type, pick.r, pick.c, 'cpu');
       return;
     }
-    if(phase === 'setup' || phase === 'playing'){
-      document.getElementById('homeConfirmOverlay').classList.add('show');
-      return;
-    }
-    goToModeSelect();
-  });
 
-  document.getElementById('homeConfirmOkBtn').addEventListener('click', () => {
-    document.getElementById('homeConfirmOverlay').classList.remove('show');
-    goToModeSelect();
-  });
-  document.getElementById('homeConfirmCancelBtn').addEventListener('click', () => {
-    document.getElementById('homeConfirmOverlay').classList.remove('show');
-  });
-  document.getElementById('homeConfirmOverlay').addEventListener('click', (e) => {
-    if(e.target === document.getElementById('homeConfirmOverlay')){
-      document.getElementById('homeConfirmOverlay').classList.remove('show');
-    }
-  });
-
-  document.getElementById('againBtn').addEventListener('click', goToModeSelect);
-  document.getElementById('modeRulesBtn').addEventListener('click', () => {
-    document.getElementById('rules').classList.toggle('open');
-  });
-
-
-  function setMode(newVsCPU, newDifficulty){
-    vsCPU = newVsCPU;
-    cpuDifficulty = newDifficulty;
-    document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !vsCPU);
-    document.getElementById('modeCPUBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'normal');
-    document.getElementById('modeCPUMasterBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'master');
-    document.getElementById('sideToggleRow').classList.remove('hidden');
+    const safe = available.filter(e => {
+      const boxes = boxesTouchingEdge(e.type, e.r, e.c);
+      return boxes.every(([br,bc]) => boxSidesFilled(br,bc) < 2);
+    });
+    const pool = safe.length ? safe : available;
+    const pick = pool[Math.floor(Math.random()*pool.length)];
+    placeEdge(pick.type, pick.r, pick.c, 'cpu');
   }
-  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => setMode(false, 'normal'));
-  document.getElementById('modeCPUBtn').addEventListener('click', () => setMode(true, 'normal'));
-  document.getElementById('modeCPUMasterBtn').addEventListener('click', () => setMode(true, 'master'));
 
-  document.getElementById('sideSenteBtn').addEventListener('click', () => {
-    if(humanSide === 'sente') return;
-    humanSide = 'sente';
-    document.getElementById('sideSenteBtn').classList.add('active');
-    document.getElementById('sideGoteBtn').classList.remove('active');
+  // ---------- 達人CPU(チェイン読み + ダブルクロス戦略) ----------
+  // 盤面のコピー上でシミュレーションするためのヘルパー
+  function simMissingEdges(h, v, r, c){
+    return boxEdges(r, c).filter(e => (e.type==='h' ? h[e.r][e.c] : v[e.r][e.c]) === null);
+  }
+
+  // startBox(3辺埋まっている箱)から連鎖的に確定する取り筋を辿る。
+  // 戻り値: { boxes: [{r,c,edge}], isLoop: bool }
+  function traceChain(h, v, startR, startC){
+    const lh = h.map(row => row.slice());
+    const lv = v.map(row => row.slice());
+    const seq = [];
+    const visited = new Set();
+    let cur = {r:startR, c:startC};
+
+    while(true){
+      const key = `${cur.r}_${cur.c}`;
+      if(visited.has(key)) return { boxes: seq, isLoop: true };
+      visited.add(key);
+
+      const missing = simMissingEdges(lh, lv, cur.r, cur.c);
+      if(missing.length !== 1) break; // 想定外(安全策として打ち切り)
+      const edge = missing[0];
+      seq.push({ r: cur.r, c: cur.c, edge });
+
+      if(edge.type==='h') lh[edge.r][edge.c] = 'sim'; else lv[edge.r][edge.c] = 'sim';
+
+      const neighbors = boxesTouchingEdge(edge.type, edge.r, edge.c)
+        .filter(([br,bc]) => !(br===cur.r && bc===cur.c));
+      if(neighbors.length === 0) break; // 外周に抜けた(チェインの端)
+
+      const [nr, nc] = neighbors[0];
+      if(visited.has(`${nr}_${nc}`)) return { boxes: seq, isLoop: true };
+
+      const nMissing = simMissingEdges(lh, lv, nr, nc).length;
+      if(nMissing === 1){ cur = {r:nr, c:nc}; continue; }
+      break; // 隣の箱がまだ確定しない(通常のチェイン終端)
+    }
+    return { boxes: seq, isLoop: false };
+  }
+
+  // 全ての未確定の箱の中から、今すぐ取れる(3辺埋まっている)箱を1つ探す
+  function findCapturableBox(){
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        if(boxOwner[r][c]===null && boxSidesFilled(r,c)===3) return {r,c};
+      }
+    }
+    return null;
+  }
+
+  // 安全な手が無いとき、開けるチェインが最短になる一手を選ぶ
+  function findShortestOpeningEdge(available){
+    let bestEdges = [];
+    let bestLen = Infinity;
+    for(const e of available){
+      const lh = horiz.map(row => row.slice());
+      const lv = vert.map(row => row.slice());
+      if(e.type==='h') lh[e.r][e.c] = 'sim'; else lv[e.r][e.c] = 'sim';
+
+      let exposedLen = null;
+      for(const [br,bc] of boxesTouchingEdge(e.type, e.r, e.c)){
+        if(simMissingEdges(lh, lv, br, bc).length === 1){
+          const len = traceChain(lh, lv, br, bc).boxes.length;
+          if(exposedLen === null || len > exposedLen) exposedLen = len;
+        }
+      }
+      if(exposedLen === null) continue;
+
+      if(exposedLen < bestLen){ bestLen = exposedLen; bestEdges = [e]; }
+      else if(exposedLen === bestLen){ bestEdges.push(e); }
+    }
+    const pool = bestEdges.length ? bestEdges : available;
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+
+  function expertMove(){
+    if(gameOver) return;
+    const available = getAvailableEdges();
+    if(available.length===0) return;
+
+    const startBox = findCapturableBox();
+
+    if(startBox){
+      const chain = traceChain(horiz, vert, startBox.r, startBox.c);
+      const n = chain.boxes.length;
+      const otherContentExists = (scoreYou + scoreCpu + n) < totalBoxes;
+
+      let chosen;
+      if(chain.isLoop || n === 1 || !otherContentExists){
+        // ループ/単箱/最後のチェインはそのまま取り切る
+        chosen = chain.boxes[0].edge;
+      } else if(n === 2){
+        // ダブルクロス: 2箱とも取らずに相手へ差し出し、主導権を握る
+        chosen = chain.boxes[1].edge;
+      } else {
+        // 3箱以上残っているうちは先頭を通常通り確保していく
+        chosen = chain.boxes[0].edge;
+      }
+      placeEdge(chosen.type, chosen.r, chosen.c, 'cpu');
+      return;
+    }
+
+    // 今すぐ取れる箱が無い場合:安全な手を探す
+    const safe = available.filter(e => {
+      const boxes = boxesTouchingEdge(e.type, e.r, e.c);
+      return boxes.every(([br,bc]) => boxSidesFilled(br,bc) < 2);
+    });
+
+    if(safe.length){
+      const pick = safe[Math.floor(Math.random()*safe.length)];
+      placeEdge(pick.type, pick.r, pick.c, 'cpu');
+      return;
+    }
+
+    // 安全な手が無い場合:最も短いチェインを開ける
+    const pick = findShortestOpeningEdge(available);
+    placeEdge(pick.type, pick.r, pick.c, 'cpu');
+  }
+
+  // ---------- Controls ----------
+  const resultFab = document.getElementById('resultFab');
+
+  document.getElementById('playAgainBtn').addEventListener('click', () => {
+    endOverlay.classList.remove('shown');
+    resultFab.classList.remove('shown');
+    initState();
+    buildBoard();
   });
-  document.getElementById('sideGoteBtn').addEventListener('click', () => {
-    if(humanSide === 'gote') return;
-    humanSide = 'gote';
-    document.getElementById('sideGoteBtn').classList.add('active');
-    document.getElementById('sideSenteBtn').classList.remove('active');
+  document.getElementById('changeStageBtn').addEventListener('click', showMenu);
+  document.getElementById('viewBoardBtn').addEventListener('click', () => {
+    endOverlay.classList.remove('shown');
+    resultFab.classList.add('shown');
+  });
+  resultFab.addEventListener('click', () => {
+    endOverlay.classList.add('shown');
+    resultFab.classList.remove('shown');
+  });
+  document.getElementById('backBtn').addEventListener('click', showMenu);
+
+  const howToPlayModal = document.getElementById('howToPlayModal');
+  document.getElementById('howToPlayBtn').addEventListener('click', () => {
+    howToPlayModal.classList.remove('hidden');
+  });
+  document.getElementById('howToPlayCloseBtn').addEventListener('click', () => {
+    howToPlayModal.classList.add('hidden');
+  });
+  howToPlayModal.addEventListener('click', (e) => {
+    if(e.target === howToPlayModal){ howToPlayModal.classList.add('hidden'); }
   });
 
-  document.getElementById('modeStartBtn').addEventListener('click', () => {
-    resetAll();
-  });
-
-  setupDialNav('setupDialRow');
-  setupDialNav('guessDialRow');
-  buildKeypad('setupKeypad', 'setupDialRow');
-  buildKeypad('guessKeypad', 'guessDialRow');
-
-  show('modeScreen');
-
-  // --- user-selectable background color switch ---
-  // 他のゲームやホーム画面と同じ localStorage キーを共有し、
-  // どこで選んでもアプリ全体でテーマが揃うようにしている
+  // --- user-selectable background color switch (menu screen only) ---
+  // 他のゲームと同じ localStorage キーを共有し、どちらで選んでも
+  // アプリ全体でテーマが揃うようにしている
   (function(){
     const BG_STORAGE_KEY = 'pref_bg_gradient';
     const btn = document.getElementById('bgSwitchBtn');
