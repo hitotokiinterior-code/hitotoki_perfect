@@ -3259,6 +3259,12 @@ const bgThemeArrow = document.getElementById('bgThemeArrow');
 const bgThemeSwatches = document.getElementById('bgThemeSwatches');
 
 function applyBgTheme(grad){
+  // 他のゲーム画面の背景スイッチャーが「フォト」を選んだ時に保存する特別な値。
+  // 通常のグラデーション色ではないため、ホーム画面では「未選択（デフォルト）」と同じ扱いにする
+  if(!grad || grad === 'IMAGE'){
+    applyHomeDefaultImage();
+    return;
+  }
   document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + grad + ')';
 }
 
@@ -3294,7 +3300,8 @@ bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(sw => {
 (function initBgTheme(){
   let saved = null;
   try{ saved = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
-  if(saved){
+  const isRecognizedGradient = saved && saved !== 'IMAGE';
+  if(isRecognizedGradient){
     applyBgTheme(saved);
     bgThemeSwatches.querySelectorAll('.theme-swatch').forEach(s => {
       s.classList.toggle('active', s.getAttribute('data-grad') === saved);
