@@ -604,28 +604,68 @@
     gap:12px;
   }
 
-  .rules{
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background: rgba(0,0,0,0.62);
+    backdrop-filter: blur(4px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-box{
+    position:relative;
     width:100%;
-    max-width: 420px;
-    background: rgba(255,255,255,0.04);
+    max-width: 380px;
+    background: linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
     border: 1px solid var(--hairline);
-    border-radius: 4px;
-    padding: 14px 18px;
-    font-size:0.76rem;
-    line-height:1.8;
-    color:var(--gold);
-    display:none;
+    border-radius: 8px;
+    padding: 26px 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    animation: modalPop .22s cubic-bezier(.2,.8,.3,1);
   }
-  .rules.open{ display:block; }
-  .rules h2{
+  @keyframes modalPop{
+    0%{ transform: scale(0.9); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
+  }
+  .howto-title{
     font-family:'Kaisei Decol', serif;
-    font-weight:500;
-    font-size:0.9rem;
-    margin: 0 0 8px;
-    color:var(--cream);
-    letter-spacing: 0.05em;
+    font-weight:700;
+    font-size: 1.05rem;
+    letter-spacing:0.06em;
+    color: var(--cream);
+    margin: 0 0 16px;
+    text-align:center;
   }
-  .rules ul{ margin:4px 0; padding-left:1.1em; }
+  .howto-list{
+    margin:0 0 20px;
+    padding:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .howto-list li{
+    font-size:0.78rem;
+    line-height:1.7;
+    color: var(--gold);
+    letter-spacing:0.02em;
+    padding-left:1.1em;
+    position:relative;
+  }
+  .howto-list li::before{
+    content:'・';
+    position:absolute;
+    left:0;
+    color: var(--cream);
+  }
+  .howto-close-btn{
+    width:100%;
+    padding: 11px 10px;
+  }
 
   .winner-overlay{
     position:fixed; inset:0;
@@ -819,16 +859,6 @@
     <button class="main-btn" id="guessSubmitBtn" style="margin-top:-5px;">予想する</button>
   </div>
 
-  <div id="rules" class="rules">
-    <h2>遊び方</h2>
-    <ul>
-      <li>2人がそれぞれ0〜9から重複しない3桁の暗証番号を設定します</li>
-      <li>交互に相手の番号を予想し、3桁の数字を入力します</li>
-      <li><b>HIT</b>：数字も桁も合っている数（例：正解と同じ位置の一致数）</li>
-      <li><b>BLOW</b>：数字は合っているが桁が違う数</li>
-      <li>先に3 HIT（完全一致）を出した方の勝ちです</li>
-    </ul>
-  </div>
 
 </div>
 
@@ -848,6 +878,20 @@
       <button id="homeConfirmCancelBtn" class="main-btn">キャンセル</button>
       <button id="homeConfirmOkBtn" class="main-btn confirm-ok">終了する</button>
     </div>
+  </div>
+</div>
+
+<div id="howToPlayModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="howto-title">遊び方</div>
+    <ul class="howto-list">
+      <li>2人がそれぞれ0〜9から重複しない3桁の暗証番号を設定します。</li>
+      <li>交互に相手の番号を予想し、3桁の数字を入力します。</li>
+      <li><b>HIT</b>：数字も桁も合っている数(正解と同じ位置の一致数)です。</li>
+      <li><b>BLOW</b>：数字は合っているが桁が違う数です。</li>
+      <li>先に3 HIT(完全一致)を出した方の勝ちです。</li>
+    </ul>
+    <button id="howToPlayCloseBtn" class="main-btn howto-close-btn">閉じる</button>
   </div>
 </div>
 
@@ -920,9 +964,9 @@
     bgBtn.classList.toggle('hidden', id === 'gameScreen');
     if(id === 'gameScreen') bgPanel.classList.add('hidden');
 
-    // モード選択画面以外に移動したら「遊び方」パネルは自動で閉じる
+    // モード選択画面以外に移動したら「遊び方」モーダルは自動で閉じる
     if(id !== 'modeScreen'){
-      document.getElementById('rules').classList.remove('open');
+      document.getElementById('howToPlayModal').classList.add('hidden');
     }
   }
 
@@ -1341,8 +1385,16 @@
   });
 
   document.getElementById('againBtn').addEventListener('click', goToModeSelect);
+
+  const howToPlayModal = document.getElementById('howToPlayModal');
   document.getElementById('modeRulesBtn').addEventListener('click', () => {
-    document.getElementById('rules').classList.toggle('open');
+    howToPlayModal.classList.remove('hidden');
+  });
+  document.getElementById('howToPlayCloseBtn').addEventListener('click', () => {
+    howToPlayModal.classList.add('hidden');
+  });
+  howToPlayModal.addEventListener('click', (e) => {
+    if(e.target === howToPlayModal){ howToPlayModal.classList.add('hidden'); }
   });
 
 
