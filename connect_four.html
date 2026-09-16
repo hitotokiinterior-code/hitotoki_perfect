@@ -951,9 +951,9 @@
         </button>
         <div class="mode-grid-empty" aria-hidden="true"></div>
       </div>
-      <div class="mode-toggle-row hidden" id="sideToggleRow">
-        <button class="mode-toggle-btn active" id="sideWhiteBtn">先行で対戦</button>
-        <button class="mode-toggle-btn" id="sideBlackBtn">後攻で対戦</button>
+      <div class="mode-toggle-row" id="sideToggleRow">
+        <button class="mode-toggle-btn active" id="sideWhiteBtn">先手で対戦</button>
+        <button class="mode-toggle-btn" id="sideBlackBtn">後手で対戦</button>
       </div>
       <button id="startGameBtn" class="main-btn start-btn">はじめる</button>
       <button id="setupRulesBtn" class="main-btn start-btn setup-rules-btn">遊び方</button>
@@ -1469,7 +1469,6 @@
     document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !vsCPU);
     document.getElementById('modeCPUBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'normal');
     document.getElementById('modeCPUMasterBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'master');
-    document.getElementById('sideToggleRow').classList.toggle('hidden', !vsCPU);
     resetBoard();
   }
 
