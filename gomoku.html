@@ -23,6 +23,10 @@
     --silver: #cfcfcf;
     --silver-dim: #6f6f6f;
     --hairline: rgba(255,255,255,0.14);
+    --ivory-btn: #e6e4dc;
+    --ivory-btn-hover: #d4d2c8;
+    --accent-gold: #c9a54a;
+    --accent-gold-dim: rgba(201,165,74,0.16);
   }
 
   *{ box-sizing:border-box; }
@@ -107,7 +111,8 @@
     -webkit-user-select: none;
     user-select: none;
     background:
-      radial-gradient(ellipse at 50% -10%, #1c1c1c 0%, #0a0a0a 55%, #000000 100%);
+      radial-gradient(ellipse at 50% -10%, rgba(20,20,20,0.35) 0%, rgba(10,10,10,0.5) 55%, rgba(0,0,0,0.65) 100%),
+      url('assets/backgrounds/game-home-default.jpg') center/cover no-repeat fixed;
     font-family:'Zen Kaku Gothic New', sans-serif;
     color: var(--silver);
     display:flex;
@@ -168,23 +173,133 @@
     letter-spacing:0.12em;
     color:#fff;
   }
+  .setup-divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    max-width: 260px;
+    margin: -4px 0 -4px;
+  }
+  .setup-divider .divider-line{
+    flex:1;
+    height:1px;
+    background: #fff;
+    opacity:0.7;
+  }
+  .setup-divider .divider-diamond{
+    width:9px;
+    height:9px;
+    border: 1.5px solid #fff;
+    transform: rotate(45deg);
+    flex-shrink:0;
+  }
   .setup-section-label{
     font-family:'Zen Kaku Gothic New', sans-serif;
     font-size:0.66rem;
     letter-spacing:0.2em;
     color:var(--silver-dim);
-    align-self:flex-start;
+    align-self:center;
+    text-align:center;
     margin-top:-6px;
   }
+
+  /* --- mode-select: 2x2 grid of blocks (2人対戦 / CPU対戦 / 達人CPU / 空欄) --- */
+  .mode-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width:100%;
+  }
+  .mode-grid-btn{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height: 113px;
+    padding: 18px 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--silver-dim);
+    border-radius: 6px;
+    cursor:pointer;
+    text-align:center;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .mode-grid-btn:hover{ background: rgba(255,255,255,0.07); border-color:#fff; }
+  .mode-grid-empty{
+    min-height: 113px;
+    visibility:hidden;
+  }
+  .mode-grid-icon{
+    position:relative;
+    width: 32px;
+    height: 32px;
+  }
+  .mode-grid-icon img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    transition: opacity .15s ease;
+  }
+  .mode-grid-icon .icon-active{ opacity:0; }
+  .mode-grid-btn.active .mode-grid-icon .icon-default{ opacity:0; }
+  .mode-grid-btn.active .mode-grid-icon .icon-active{ opacity:1; }
+  .mode-grid-title{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.82rem;
+    letter-spacing:0.06em;
+    color:#fff;
+  }
+  .mode-grid-desc{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.6rem;
+    letter-spacing:0.03em;
+    color: rgba(255,255,255,0.78);
+  }
+  .mode-grid-btn.active{
+    border-color: var(--accent-gold);
+    background: var(--accent-gold-dim);
+  }
+  .mode-grid-btn.active::after{
+    content:'✓';
+    position:absolute;
+    bottom:8px; right:8px;
+    width:18px; height:18px;
+    border-radius:50%;
+    background: var(--accent-gold);
+    color:#141414;
+    font-size:0.6rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
   .start-btn{
     width:100%;
-    padding: 12px 16px;
+    padding: 8px 16px;
     font-size:0.8rem;
-    background:#fff;
-    color:#141414;
-    border-color:#fff;
+    background: rgba(255,255,255,0.03);
+    color: var(--ivory-btn);
+    border-color: var(--ivory-btn);
   }
-  .start-btn:hover{ background:#eee; border-color:#eee; }
+  .start-btn:hover{ background: rgba(255,255,255,0.08); border-color: var(--ivory-btn-hover); color: var(--ivory-btn-hover); }
+  .setup-rules-btn{
+    width: auto;
+    align-self: center;
+    background: transparent;
+    color: var(--silver);
+    border-color: var(--silver-dim);
+    margin-top: -6px;
+    padding: 8px 20px;
+    font-size:0.72rem;
+  }
+  .setup-rules-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
 
   .game-screen{
     display:flex;
@@ -219,14 +334,14 @@
     font-size:0.66rem;
     letter-spacing:0.06em;
     color: var(--silver);
-    background: rgba(255,255,255,0.03);
+    background: rgba(0,0,0,0.35);
     border: 1px solid var(--silver-dim);
-    border-radius:3px;
+    border-radius:6px;
     padding: 6px 12px;
     cursor:pointer;
     transition: all .15s ease;
   }
-  .mode-toggle-btn.active{ background:#fff; color:#141414; border-color:#fff; }
+  .mode-toggle-btn.active{ background:rgba(255,255,255,0.03); color:var(--ivory-btn); border-color:var(--ivory-btn); }
 
   .turn-wrap{
     display:flex;
@@ -373,28 +488,41 @@
   button.main-btn:active{ transform: translateY(1px); }
   button:focus-visible{ outline: 1px solid #fff; outline-offset: 3px; }
 
-  .rules{
-    width:100%;
-    max-width: 460px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--hairline);
-    border-radius: 4px;
-    padding: 14px 18px;
-    font-size:0.76rem;
-    line-height:1.8;
-    color:#cfcfcf;
-    display:none;
-  }
-  .rules.open{ display:block; }
-  .rules h2{
+  .howto-title{
     font-family:'Kaisei Decol', serif;
-    font-weight:500;
-    font-size:0.9rem;
-    margin: 0 0 8px;
-    color:#fff;
-    letter-spacing: 0.05em;
+    font-weight:700;
+    font-size: 1.05rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    margin: 0 0 16px;
+    text-align:center;
   }
-  .rules ul{ margin:4px 0; padding-left:1.1em; }
+  .howto-list{
+    margin:0 0 20px;
+    padding:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .howto-list li{
+    font-size:0.78rem;
+    line-height:1.7;
+    color: #cfcfcf;
+    letter-spacing:0.02em;
+    padding-left:1.1em;
+    position:relative;
+  }
+  .howto-list li::before{
+    content:'・';
+    position:absolute;
+    left:0;
+    color:#fff;
+  }
+  .howto-close-btn{
+    width:100%;
+    padding: 11px 10px;
+  }
 
   .winner-overlay{
     position:fixed; inset:0;
@@ -472,7 +600,8 @@
 <button type="button" class="home-btn" id="homeBtn" aria-label="ホームへ戻る">← ホーム</button>
 <button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
 <div id="bgSwitchPanel" class="bg-switch-panel hidden">
-  <button class="bg-swatch active" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+  <button class="bg-swatch active" data-grad="IMAGE" style="--sw:#1a130d; background-image:url('assets/backgrounds/game-home-default.jpg'); background-size:cover; background-position:center;" aria-label="フォト"></button>
+  <button class="bg-swatch" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
   <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
   <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
   <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
@@ -487,32 +616,46 @@
 
   <div id="setupScreen" class="setup-screen">
     <div class="setup-card">
-      <div class="setup-mode-title">対戦モード</div>
-      <div class="setup-section-label">対戦相手を選ぶ</div>
-      <div class="mode-toggle-row" id="modeToggleRow">
-        <button class="mode-toggle-btn active" id="modeTwoPlayerBtn">2人対戦</button>
-        <div class="mode-toggle-subrow">
-          <button class="mode-toggle-btn" id="modeCPUBtn">CPU対戦</button>
-          <button class="mode-toggle-btn" id="modeCPUMasterBtn">達人CPU</button>
-        </div>
+      <div class="setup-divider">
+        <span class="divider-line"></span>
+        <span class="divider-diamond"></span>
+        <span class="divider-line"></span>
       </div>
-      <div class="mode-toggle-row hidden" id="sideToggleRow">
-        <button class="mode-toggle-btn active" id="sideWhiteBtn">先行で対戦</button>
-        <button class="mode-toggle-btn" id="sideBlackBtn">後攻で対戦</button>
+      <div class="setup-mode-title">対戦モード</div>
+      <div class="setup-section-label">どの相手と対局しますか？</div>
+      <div class="mode-grid" id="modeToggleRow">
+        <button class="mode-grid-btn active" id="modeTwoPlayerBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-2p-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-2p-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">2人対戦</span>
+          <span class="mode-grid-desc">友達と対局する</span>
+        </button>
+        <button class="mode-grid-btn" id="modeCPUBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-cpu-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-cpu-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">CPU対戦</span>
+          <span class="mode-grid-desc">標準のAIと対局する</span>
+        </button>
+        <button class="mode-grid-btn" id="modeCPUMasterBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-master-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-master-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">達人CPU</span>
+          <span class="mode-grid-desc">強いAIと対局する</span>
+        </button>
+        <div class="mode-grid-empty" aria-hidden="true"></div>
+      </div>
+      <div class="mode-toggle-row" id="sideToggleRow">
+        <button class="mode-toggle-btn active" id="sideWhiteBtn">先手で対戦</button>
+        <button class="mode-toggle-btn" id="sideBlackBtn">後手で対戦</button>
       </div>
       <button id="startGameBtn" class="main-btn start-btn">はじめる</button>
-      <button id="rulesBtn" class="main-btn">遊び方</button>
-    </div>
-
-    <div id="rules" class="rules">
-      <h2>遊び方</h2>
-      <ul>
-        <li>10×10の盤に、白と黒が交互に石を置いていきます</li>
-        <li>縦・横・斜め、いずれかの向きで5つ以上石を並べたら勝利です</li>
-        <li>一度置いた石は動かせません</li>
-        <li>全マスが埋まって誰も揃わなければ引き分けです</li>
-        <li>「CPU対戦」を選ぶと黒をCPUが担当します。1人でも遊べます</li>
-      </ul>
+      <button id="rulesBtn" class="main-btn setup-rules-btn">遊び方</button>
     </div>
   </div>
 
@@ -539,6 +682,20 @@
     <div id="winnerText" class="big">白の勝ち！</div>
     <p id="winnerSub">5つ並びました</p>
     <button id="againBtn" class="main-btn">次の対局へ</button>
+  </div>
+</div>
+
+<div id="howToPlayModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="howto-title">遊び方</div>
+    <ul class="howto-list">
+      <li>10×10の盤に、白と黒が交互に石を置いていきます。</li>
+      <li>縦・横・斜め、いずれかの向きで5つ以上石を並べたら勝利です。</li>
+      <li>一度置いた石は動かせません。</li>
+      <li>全マスが埋まって誰も揃わなければ引き分けです。</li>
+      <li>「CPU対戦」を選ぶと黒をCPUが担当します。1人でも遊べます。</li>
+    </ul>
+    <button id="howToPlayCloseBtn" class="main-btn howto-close-btn">閉じる</button>
   </div>
 </div>
 
@@ -877,7 +1034,6 @@
     document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !setupVsCPU);
     document.getElementById('modeCPUBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'normal');
     document.getElementById('modeCPUMasterBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'master');
-    document.getElementById('sideToggleRow').classList.toggle('hidden', !setupVsCPU);
     document.getElementById('sideWhiteBtn').classList.toggle('active', setupHumanSide === 'white');
     document.getElementById('sideBlackBtn').classList.toggle('active', setupHumanSide === 'black');
   }
@@ -924,6 +1080,7 @@
     document.getElementById('gameScreen').classList.remove('hidden');
     document.getElementById('bgSwitchBtn').classList.add('hidden');
     document.getElementById('bgSwitchPanel').classList.add('hidden');
+    document.getElementById('howToPlayModal').classList.add('hidden');
     resetAll();
   });
 
@@ -959,8 +1116,15 @@
   });
 
   document.getElementById('againBtn').addEventListener('click', resetAll);
+  const howToPlayModal = document.getElementById('howToPlayModal');
   document.getElementById('rulesBtn').addEventListener('click', () => {
-    document.getElementById('rules').classList.toggle('open');
+    howToPlayModal.classList.remove('hidden');
+  });
+  document.getElementById('howToPlayCloseBtn').addEventListener('click', () => {
+    howToPlayModal.classList.add('hidden');
+  });
+  howToPlayModal.addEventListener('click', (e) => {
+    if(e.target === howToPlayModal){ howToPlayModal.classList.add('hidden'); }
   });
 
   document.getElementById('homeBtn').addEventListener('click', () => {
@@ -982,7 +1146,12 @@
     const swatches = document.querySelectorAll('.bg-swatch[data-grad]');
 
     function applyBg(gradStops){
-      document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+      if(gradStops === 'IMAGE'){
+        document.body.style.background =
+          "radial-gradient(ellipse at 50% -10%, rgba(20,20,20,0.35) 0%, rgba(10,10,10,0.5) 55%, rgba(0,0,0,0.65) 100%), url('assets/backgrounds/game-home-default.jpg') center/cover no-repeat fixed";
+      } else {
+        document.body.style.background = 'radial-gradient(ellipse at 50% -10%, ' + gradStops + ')';
+      }
     }
 
     function setActiveSwatch(gradStops){
