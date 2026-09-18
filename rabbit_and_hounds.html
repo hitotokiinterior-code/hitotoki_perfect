@@ -16,6 +16,8 @@
     --glow:0 0 10px rgba(255,255,255,.85), 0 0 22px rgba(255,255,255,.35);
     --accent-gold: #c9a54a;
     --accent-gold-dim: rgba(201,165,74,0.16);
+    --ivory-btn: #e6e4dc;
+    --ivory-btn-hover: #d4d2c8;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
   html,body{
@@ -50,6 +52,23 @@
   }
   .btn.solid{ background:var(--white); color:#000; border-color:var(--white); font-weight:700; }
   .btn:active{ opacity:.6; }
+  .setup-outline-btn{
+    background: rgba(255,255,255,0.05) !important;
+    color: var(--ivory-btn) !important;
+    border-color: var(--ivory-btn) !important;
+    font-weight:700;
+  }
+  .setup-outline-btn:hover{ background: rgba(255,255,255,0.1) !important; border-color: var(--ivory-btn-hover) !important; color: var(--ivory-btn-hover) !important; }
+  .setup-rules-btn{
+    background: transparent;
+    color: var(--ink-dim);
+    border-color: rgba(255,255,255,0.3);
+    font-size: 12px;
+    letter-spacing: .1em;
+    padding: 8px 22px;
+    margin-top: 14px;
+  }
+  .setup-rules-btn:hover{ border-color: rgba(255,255,255,0.6); color: var(--ink); }
 
   /* ---------- HOME BUTTON (icon) ---------- */
   .home-btn{
@@ -137,7 +156,7 @@
   .sennichite-badge.show{ display:block; }
 
   /* ---------- MODE SELECT ---------- */
-  #screen-mode{padding:78px 22px 0; justify-content:flex-start;}
+  #screen-mode{padding:50px 22px 0; justify-content:flex-start;}
   .game-title{
     font-size:22px; letter-spacing:.14em; font-weight:700; color:var(--ink);
     text-align:center; margin:0 0 22px;
@@ -175,7 +194,7 @@
     font-size:13px; letter-spacing:.12em; cursor:pointer; color:var(--ink-dim);
     border-radius:8px;
   }
-  .opt-card.selected{ background:var(--white); color:#000; border-color:var(--white); font-weight:700; }
+  .opt-card.selected{ background: rgba(255,255,255,0.05); color: var(--ivory-btn); border-color: var(--ivory-btn); font-weight:700; }
   .mode-wrap{display:flex; flex-direction:column; align-items:center; width:100%; max-width:320px;}
   #role-block{width:100%;}
 
@@ -195,8 +214,8 @@
     align-items:center;
     justify-content:center;
     gap:8px;
-    min-height: 100px;
-    padding: 16px 8px 12px;
+    min-height: 113px;
+    padding: 18px 10px 14px;
     background: rgba(255,255,255,0.05);
     border: 0.5px solid rgba(255,255,255,0.5);
     border-radius: 8px;
@@ -206,13 +225,13 @@
   }
   .mode-grid-btn:hover{ border-color:#fff; }
   .mode-grid-empty{
-    min-height: 100px;
+    min-height: 113px;
     visibility:hidden;
   }
   .mode-grid-icon{
     position:relative;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
   }
   .mode-grid-icon img{
     position:absolute;
@@ -232,7 +251,7 @@
     font-weight:700;
   }
   .mode-grid-desc{
-    font-size:9.5px;
+    font-size:10px;
     letter-spacing:.05em;
     color: var(--ink-dim);
   }
@@ -307,6 +326,71 @@
   #screen-result.active{display:flex;}
   .result-text{ font-size:22px; letter-spacing:.16em; font-weight:700; margin-bottom:26px; text-align:center;}
   .result-btns{ display:flex; flex-direction:column; gap:10px; align-items:center;}
+
+  /* ---------- HOW TO PLAY MODAL ---------- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(4px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-box{
+    position:relative;
+    width:100%;
+    max-width: 340px;
+    background: linear-gradient(160deg, #1c1c1c, #0a0a0a 55%, #000000);
+    border: 0.5px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 26px 24px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    animation: modalPop .22s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes modalPop{
+    0%{ transform: scale(0.9); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
+  }
+  .howto-title{
+    font-size: 17px;
+    font-weight:700;
+    letter-spacing:.1em;
+    color: var(--ink);
+    margin: 0 0 16px;
+    text-align:center;
+  }
+  .howto-list{
+    margin:0 0 20px;
+    padding:0;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .howto-list li{
+    font-size: 12.5px;
+    line-height:1.7;
+    color: var(--ink-dim);
+    letter-spacing:.02em;
+    padding-left: 1.1em;
+    position:relative;
+  }
+  .howto-list li::before{
+    content:'・';
+    position:absolute;
+    left:0;
+    color: var(--ink);
+  }
+  .howto-close-btn{
+    display:block;
+    width:100%;
+    padding: 10px 0;
+    font-size:13px;
+  }
 </style>
 </head>
 <body>
@@ -362,7 +446,7 @@
       </div>
 
       <div id="role-block">
-        <div class="section-label">白の役割</div>
+        <div class="section-label">先手の役割</div>
         <div class="pair-row" id="role-pair">
           <div class="opt-card selected" data-role="hare">ウサギ</div>
           <div class="opt-card" data-role="hound">猟犬</div>
@@ -370,9 +454,10 @@
       </div>
 
       <div style="display:flex; gap:10px; margin-top:8px; width:100%;">
-        <button class="btn solid" id="btn-start-game" style="flex:1; padding:6px 34px; line-height:1.3;">はじめる</button>
-        <button class="btn" id="btn-random-hare" style="flex:1; padding:6px 12px; line-height:1.25; font-size:11px;">ウサギ<br>ランダム</button>
+        <button class="btn setup-outline-btn" id="btn-start-game" style="flex:1; padding:6px 34px; line-height:1.3;">はじめる</button>
+        <button class="btn setup-outline-btn" id="btn-random-hare" style="flex:1; padding:6px 12px; line-height:1.25; font-size:11px;">ウサギ<br>ランダム</button>
       </div>
+      <button class="btn setup-rules-btn" id="btn-how-to-play">遊び方</button>
     </div>
   </div>
 
@@ -411,6 +496,21 @@
     </div>
   </div>
 
+</div>
+
+<div id="howToPlayModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="howto-title">遊び方</div>
+    <ul class="howto-list">
+      <li>猟犬(黒)3匹とウサギ(白)1匹で盤上を動かします。</li>
+      <li>猟犬は列を戻ることができず、同じ列か前方の列にしか進めません。</li>
+      <li>ウサギは前後左右、どの方向にも自由に動けます。</li>
+      <li>ウサギが盤の一番左の列にたどり着けば、ウサギの勝ちです。</li>
+      <li>猟犬がウサギの動ける場所を無くせば、猟犬の勝ちです。</li>
+      <li>30手経っても決着がつかない場合、ウサギの特殊勝利となります。</li>
+    </ul>
+    <button id="howToPlayCloseBtn" class="btn howto-close-btn">閉じる</button>
+  </div>
 </div>
 
 <script>
@@ -881,6 +981,17 @@
     startGame();
   });
 
+  const howToPlayModal = document.getElementById('howToPlayModal');
+  document.getElementById('btn-how-to-play').addEventListener('click', ()=>{
+    howToPlayModal.classList.remove('hidden');
+  });
+  document.getElementById('howToPlayCloseBtn').addEventListener('click', ()=>{
+    howToPlayModal.classList.add('hidden');
+  });
+  howToPlayModal.addEventListener('click', (e)=>{
+    if(e.target === howToPlayModal){ howToPlayModal.classList.add('hidden'); }
+  });
+
   let chosenMode='pvp', chosenRole='hare';
   document.getElementById('mode-pair').addEventListener('click', e=>{
     const card = e.target.closest('.mode-grid-btn'); if(!card) return;
@@ -905,6 +1016,7 @@
   });
 
   function startGame(){
+    document.getElementById('howToPlayModal').classList.add('hidden');
     initState();
     gameStartedAt = Date.now();
     showScreen('screen-game');
