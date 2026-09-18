@@ -47,8 +47,8 @@
   .btn{
     font-family:inherit; font-size:15px; letter-spacing:.18em;
     background:transparent; color:var(--ink);
-    border:0.5px solid rgba(255,255,255,0.6); padding:9px 34px;
-    cursor:pointer; border-radius:8px;
+    border:1px solid rgba(255,255,255,0.35); padding:9px 34px;
+    cursor:pointer; border-radius:6px;
   }
   .btn.solid{ background:var(--white); color:#000; border-color:var(--white); font-weight:700; }
   .btn:active{ opacity:.6; }
@@ -158,11 +158,11 @@
   /* ---------- MODE SELECT ---------- */
   #screen-mode{padding:50px 22px 0; justify-content:flex-start;}
   .game-title{
-    font-size:22px; letter-spacing:.14em; font-weight:700; color:var(--ink);
+    font-size:19px; letter-spacing:.08em; font-weight:700; color:var(--ink);
     text-align:center; margin:0 0 22px;
   }
   .game-title .small{
-    display:block; font-size:10px; letter-spacing:.32em; font-weight:500;
+    display:block; font-size:9px; letter-spacing:.34em; font-weight:500;
     color:var(--ink-dim); margin-top:6px; text-transform:uppercase;
   }
   .setup-divider{
@@ -186,16 +186,16 @@
     transform: rotate(45deg);
     flex-shrink:0;
   }
-  .mode-title{font-size:18px; letter-spacing:.2em; margin-bottom:26px; font-weight:700; text-align:center;}
-  .section-label{font-size:11px; letter-spacing:.25em; color:var(--ink-dim); margin-bottom:8px; align-self:center; text-align:center;}
-  .pair-row{display:flex; gap:10px; width:100%; max-width:320px; margin-bottom:22px;}
+  .mode-title{font-size:18px; letter-spacing:.2em; margin-bottom:14px; font-weight:700; text-align:center;}
+  .section-label{font-size:11px; letter-spacing:.25em; color:var(--ink-dim); margin-bottom:14px; align-self:center; text-align:center;}
+  .pair-row{display:flex; gap:10px; width:100%; max-width:380px; margin-bottom:22px;}
   .opt-card{
-    flex:1; text-align:center; padding:10px 4px; border:0.5px solid rgba(255,255,255,0.6);
+    flex:1; text-align:center; padding:8.5px 4px; border:1px solid rgba(255,255,255,0.35);
     font-size:13px; letter-spacing:.12em; cursor:pointer; color:var(--ink-dim);
-    border-radius:8px;
+    border-radius:6px;
   }
   .opt-card.selected{ background: rgba(255,255,255,0.05); color: var(--ivory-btn); border-color: var(--ivory-btn); font-weight:700; }
-  .mode-wrap{display:flex; flex-direction:column; align-items:center; width:100%; max-width:320px;}
+  .mode-wrap{display:flex; flex-direction:column; align-items:center; width:100%; max-width:380px;}
   #role-block{width:100%;}
 
   /* --- mode-select: 2x2 grid of icon blocks (2人対戦 / CPU対戦 / 達人CPU / 空欄) --- */
@@ -204,7 +204,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     width:100%;
-    max-width:320px;
+    max-width:380px;
     margin-bottom: 22px;
   }
   .mode-grid-btn{
@@ -217,8 +217,8 @@
     min-height: 113px;
     padding: 18px 10px 14px;
     background: rgba(255,255,255,0.05);
-    border: 0.5px solid rgba(255,255,255,0.5);
-    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
     cursor:pointer;
     text-align:center;
     transition: background .15s ease, border-color .15s ease;
@@ -391,6 +391,17 @@
     padding: 10px 0;
     font-size:13px;
   }
+
+  .confirm-box{ text-align:center; }
+  .confirm-text{
+    font-size:15px;
+    color: var(--ink);
+    letter-spacing:.04em;
+    line-height:1.7;
+    margin-bottom:20px;
+  }
+  .confirm-actions{ display:flex; gap:10px; }
+  .confirm-actions .btn{ flex:1; padding:11px 10px; font-size:13px; letter-spacing:.08em; }
 </style>
 </head>
 <body>
@@ -510,6 +521,16 @@
       <li>30手経っても決着がつかない場合、ウサギの特殊勝利となります。</li>
     </ul>
     <button id="howToPlayCloseBtn" class="btn howto-close-btn">閉じる</button>
+  </div>
+</div>
+
+<div id="homeConfirmOverlay" class="modal-overlay hidden">
+  <div class="modal-box confirm-box">
+    <div class="confirm-text">このゲームは終了しますか？</div>
+    <div class="confirm-actions">
+      <button id="homeConfirmCancelBtn" class="btn">キャンセル</button>
+      <button id="homeConfirmOkBtn" class="btn setup-outline-btn">終了する</button>
+    </div>
   </div>
 </div>
 
@@ -968,7 +989,27 @@
     if(!isGameScreen && hintTimer){ clearTimeout(hintTimer); hintTimer=null; hintActive=false; }
   }
 
-  document.getElementById('home-btn-game').addEventListener('click', ()=> showScreen('screen-mode'));
+  const homeConfirmOverlay = document.getElementById('homeConfirmOverlay');
+  function hasProgress(){
+    return !!state && state.moveCount > 0;
+  }
+  document.getElementById('home-btn-game').addEventListener('click', ()=>{
+    if(hasProgress()){
+      homeConfirmOverlay.classList.remove('hidden');
+    } else {
+      showScreen('screen-mode');
+    }
+  });
+  document.getElementById('homeConfirmOkBtn').addEventListener('click', ()=>{
+    homeConfirmOverlay.classList.add('hidden');
+    showScreen('screen-mode');
+  });
+  document.getElementById('homeConfirmCancelBtn').addEventListener('click', ()=>{
+    homeConfirmOverlay.classList.add('hidden');
+  });
+  homeConfirmOverlay.addEventListener('click', (e)=>{
+    if(e.target === homeConfirmOverlay){ homeConfirmOverlay.classList.add('hidden'); }
+  });
   document.getElementById('btn-result-home').addEventListener('click', ()=>{
     document.getElementById('screen-result').classList.remove('active');
     showScreen('screen-mode');
