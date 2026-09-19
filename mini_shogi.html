@@ -1158,6 +1158,7 @@
   </div>
 </div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
   const ROWS = 5, COLS = 5;
@@ -1535,6 +1536,7 @@
     el.classList.toggle('flipped', !isTurnAtBottom(owner));
     void el.offsetWidth;
     el.classList.add('show');
+    if(window.sePlayer) window.sePlayer.play('check');
   }
 
   function evaluatePosition(board, hands){
@@ -1654,19 +1656,33 @@
       return;
     }
     pushHistorySnapshot();
+    const isCapture = move.kind === 'move' && !!board[move.nr][move.nc];
+    const willPromote = move.kind === 'move' && isPromotionEligible(board[move.r][move.c], move.r, move.nr);
     // The CPU always promotes when eligible — correct in the overwhelming
     // majority of real minishogi positions.
     if(move.kind === 'move') applyMove(board, hands, move, turn, true);
     else applyDrop(board, hands, move, turn);
+    if(window.sePlayer){
+      if(move.kind === 'drop') window.sePlayer.play('drop');
+      else window.sePlayer.play(isCapture ? 'capture' : 'move');
+      if(willPromote) setTimeout(() => window.sePlayer.play('promote'), 130);
+    }
     cpuMovesMade++;
     endTurn();
   }
 
   function commitMove(move, promote){
     pushHistorySnapshot();
+    const isCapture = move.kind === 'move' && !!board[move.nr][move.nc];
+    const willPromote = move.kind === 'move' && promote && isPromotionEligible(board[move.r][move.c], move.r, move.nr);
     let kingCaptured;
     if(move.kind === 'move') kingCaptured = applyMove(board, hands, move, turn, promote);
     else { applyDrop(board, hands, move, turn); kingCaptured = false; }
+    if(window.sePlayer){
+      if(move.kind === 'drop') window.sePlayer.play('drop');
+      else window.sePlayer.play(isCapture ? 'capture' : 'move');
+      if(willPromote) setTimeout(() => window.sePlayer.play('promote'), 130);
+    }
     if(kingCaptured){
       // Shouldn't happen under fully-legal (self-check-illegal) play, but guard anyway.
       gameOver = true;
@@ -1753,6 +1769,10 @@
     document.getElementById('winnerPerspectiveTop').classList.toggle('rotated', !vsCPU);
     document.getElementById('winnerReason').textContent = reason || '相手玉を詰ませました';
     overlay.classList.add('show');
+    if(window.sePlayer){
+      const humanLost = vsCPU && winner !== humanSide;
+      window.sePlayer.play(humanLost ? 'lose' : 'win');
+    }
 
     // ホーム画面の「記録」タブ用に対局結果を記録しておく
     if(window.hitotokiStats){
@@ -2015,6 +2035,7 @@
 
   function handleTurnTimeout(){
     if(gameOver) return;
+    if(window.sePlayer) window.sePlayer.play('timeout');
     gameOver = true;
     const winner = turn === 'sente' ? 'gote' : 'sente';
     showWinner(winner, '持ち時間切れ（20秒）');
@@ -2080,30 +2101,36 @@
   }
 
   document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     setupVsCPU = false;
     setupCpuDifficulty = 'normal';
     updateSetupUI();
   });
   document.getElementById('modeCPUBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     setupVsCPU = true;
     setupCpuDifficulty = 'normal';
     updateSetupUI();
   });
   document.getElementById('modeCPUMasterBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     setupVsCPU = true;
     setupCpuDifficulty = 'master';
     updateSetupUI();
   });
   document.getElementById('modeCPUOniBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     setupVsCPU = true;
     setupCpuDifficulty = 'oni';
     updateSetupUI();
   });
   document.getElementById('sideSenteBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     setupHumanSide = 'sente';
     updateSetupUI();
   });
   document.getElementById('sideGoteBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     setupHumanSide = 'gote';
     updateSetupUI();
   });
@@ -2125,6 +2152,7 @@
   }
 
   document.getElementById('startGameBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     vsCPU = setupVsCPU;
     cpuDifficulty = setupCpuDifficulty;
     humanSide = setupHumanSide;
@@ -2152,12 +2180,14 @@
   }
 
   document.getElementById('confirmYesBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     document.getElementById('confirmOverlay').classList.remove('show');
     const action = pendingConfirmAction;
     pendingConfirmAction = null;
     if(action) action();
   });
   document.getElementById('confirmNoBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     document.getElementById('confirmOverlay').classList.remove('show');
     pendingConfirmAction = null;
   });
@@ -2167,13 +2197,14 @@
   function openRules(){ document.getElementById('rules').classList.add('open'); }
   function closeRules(){ document.getElementById('rules').classList.remove('open'); }
 
-  document.getElementById('setupRulesBtn').addEventListener('click', openRules);
-  document.getElementById('rulesCloseBtn').addEventListener('click', closeRules);
+  document.getElementById('setupRulesBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); openRules(); });
+  document.getElementById('rulesCloseBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); closeRules(); });
   document.getElementById('rules').addEventListener('click', (e) => {
     if(e.target.id === 'rules') closeRules();
   });
 
   document.getElementById('homeBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     const onGameScreen = !document.getElementById('gameScreen').classList.contains('hidden');
     if(onGameScreen){
       runOrConfirm(openSetupScreen, 'ホームへ戻る', '現在の対局を中断してモード選択に戻ります。よろしいですか？');
@@ -2184,10 +2215,12 @@
 
   function openUndoConfirm(requestedBy){
     if(moveHistory.length === 0 || undoBlocked || undoUseCount >= 5) return;
+    if(window.sePlayer) window.sePlayer.play('click');
     if(totalUndoUsedThisGame >= totalUndoLimitForMode()){
       const modeLabel = cpuDifficulty === 'oni' ? '鬼' : '達人';
       const message = cpuDifficulty === 'oni' ? '「待ったは一切禁止だ！」' : '「待ったを使いすぎた！」';
       showModeStampPopup(modeLabel + message, requestedBy);
+      if(window.sePlayer) window.sePlayer.play('deny');
       return;
     }
     if(vsCPU){
@@ -2218,12 +2251,14 @@
 
   document.getElementById('undoAllowBtn').addEventListener('click', () => {
     document.getElementById('undoConfirmOverlay').classList.remove('show');
+    if(window.sePlayer) window.sePlayer.play('click');
     undoUseCount++;
     totalUndoUsedThisGame++;
     undoLastMove();
   });
   document.getElementById('undoDenyBtn').addEventListener('click', () => {
     document.getElementById('undoConfirmOverlay').classList.remove('show');
+    if(window.sePlayer) window.sePlayer.play('deny');
     rejectionCount++;
     if(rejectionCount >= 2){
       undoBlocked = true;
@@ -2280,6 +2315,7 @@
 
     swatches.forEach(sw => {
       sw.addEventListener('click', () => {
+        if(window.sePlayer) window.sePlayer.play('click');
         const grad = sw.getAttribute('data-grad');
         applyBg(grad);
         setActiveSwatch(grad);
