@@ -3,38 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>ヒット＆ブロー — 3桁の暗証番号解読</title>
+<title>ミニ将棋 — 5五将棋</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Jost:wght@500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
 
   :root{
-    --frame-hi: #2a2a2a;
-    --frame-mid: #141414;
+    --frame-hi: #3a3a3a;
+    --frame-mid: #202020;
     --frame-low: #030303;
-    --void: #060606;
-    --void-rim: #2a2a2a;
-    --gold: #cfcfcf;
-    --gold-bright: #f2efe6;
-    --gold-dim: #6f6f6f;
-    --cream: #f2efe6;
-    --cream-box: #ece7db;
+    --cell-a: #2c2c2c;
+    --cell-b: #232323;
+    --grid-line: #4d4d4d;
+    --piece-face: #f2efe6;
+    --piece-face-2: #d9d4c4;
+    --piece-face-dark: #262626;
+    --piece-face-dark-2: #050505;
     --ink: #17130c;
+    --ink-light: #f0ece0;
+    --silver: #cfcfcf;
+    --silver-dim: #6f6f6f;
+    --sente: #f2efe6;
+    --gote: #1c1c1c;
+    --paper: #161616;
+    --paper-deep: #050505;
     --hairline: rgba(255,255,255,0.14);
-    --hit: #f2efe6;
-    --blow: #6f6f6f;
-    --ivory-btn: #e6e4dc;
-    --ivory-btn-hover: #d4d2c8;
+    --shadow: rgba(0,0,0,0.7);
     --accent-gold: #c9a54a;
     --accent-gold-dim: rgba(201,165,74,0.16);
+    --ivory-btn: #e6e4dc;
+    --ivory-btn-hover: #d4d2c8;
   }
 
-  *{ box-sizing:border-box; }
-
-  html{
-    height: 100%;
-    overflow: hidden;
-    touch-action: manipulation;
-  }
+  *{ box-sizing: border-box; }
 
   .home-btn{
     position: fixed;
@@ -45,16 +45,16 @@
     font-weight:700;
     font-size:0.7rem;
     letter-spacing:0.06em;
-    color: var(--cream);
+    color: #fff;
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.4);
     border-radius: 3px;
     padding: 7px 12px;
-    cursor:pointer;
+    text-decoration:none;
     backdrop-filter: blur(4px);
     transition: background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .home-btn:hover{ background: rgba(255,255,255,0.24); color:var(--gold-bright); }
+  .home-btn:hover{ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
 
   .bg-switch-btn{
     position: fixed;
@@ -65,7 +65,7 @@
     font-weight:700;
     font-size:0.7rem;
     letter-spacing:0.06em;
-    color: var(--cream);
+    color: #fff;
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.4);
     border-radius: 3px;
@@ -103,6 +103,75 @@
   .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
   .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
 
+  .undo-btn{
+    position: fixed;
+    z-index: 100;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 10px;
+    padding: 7px 14px;
+    cursor:pointer;
+    backdrop-filter: blur(4px);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .undo-btn:hover:not(:disabled){ background: rgba(255,255,255,0.24); color:#fff; border-color:#fff; }
+  .undo-btn:disabled{ opacity:0.62; cursor:default; }
+  /* Each player's own 待った button sits at their near-left corner. Whichever
+     side is currently seated at the bottom of the screen gets the bottom-left
+     spot; the other side (seated at the top, viewing everything upside down)
+     gets its near-left, which on screen is the top-right corner. */
+  .undo-btn-seat-bottom-left{ top:auto; right:auto; bottom: clamp(20px, 8vh, 90px); left: 14px; transform:none; }
+  .undo-btn-seat-top-right{ bottom:auto; left:auto; top: clamp(20px, 8vh, 90px); right: 14px; transform: rotate(180deg); }
+  .undo-btn-seat-top-right:hover:not(:disabled){ transform: rotate(180deg); }
+
+  .confirm-overlay{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,0.85);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:200;
+    padding: 20px;
+  }
+  .confirm-overlay.show{ display:flex; }
+  .confirm-card{
+    background: linear-gradient(180deg, #161616, #050505);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 30px 30px;
+    text-align:center;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    max-width: 300px;
+    transition: transform .2s ease;
+  }
+  .confirm-card.rotated{ transform: rotate(180deg); }
+  .confirm-card .big{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.1rem;
+    color:#fff;
+    margin-bottom:10px;
+    letter-spacing: 0.04em;
+  }
+  .confirm-card p{ color:var(--silver-dim); font-size:0.8rem; margin: 0 0 20px; letter-spacing:0.04em; line-height:1.7; }
+  .confirm-row{ display:flex; gap:10px; justify-content:center; }
+
+  .cpu-thinking{
+    font-size:0.7rem;
+    color: var(--silver-dim);
+    letter-spacing:0.05em;
+    text-align:center;
+  }
+
+  html{
+    height: 100%;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
   body{
     margin:0;
     height: 100dvh;
@@ -115,11 +184,12 @@
     background:
       radial-gradient(ellipse at 50% -10%, rgba(20,20,20,0.35) 0%, rgba(10,10,10,0.5) 55%, rgba(0,0,0,0.65) 100%),
       url('assets/backgrounds/game-home-default.jpg') center/cover no-repeat fixed;
+    transition: background-color 0.4s ease;
     font-family:'Zen Kaku Gothic New', sans-serif;
-    color: var(--gold);
+    color: var(--silver);
     display:flex;
     justify-content:center;
-    align-items:flex-start;
+    align-items:stretch;
     padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   }
 
@@ -129,154 +199,503 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:10px;
+    gap:8px;
   }
+  header{ order: -1; }
+  #turnWrap{ order: 0; }
+  #boardRow{ order: 1; }
+  #controlsWrap{ order: 2; }
 
   header{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-top: 50px;
-    padding: 0 0 10px;
+    text-align:center;
+    margin-top:50px;
   }
   h1{
     font-family:'Kaisei Decol', serif;
     font-weight:700;
-    font-size: clamp(1.15rem, 5vw, 1.45rem);
+    font-size: 1.35rem;
     letter-spacing: 0.08em;
     margin:0;
-    color:var(--cream);
-    text-shadow: 0 2px 10px rgba(255,255,255,0.16);
-    text-align:center;
+    color:#fff;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.12);
   }
   h1 .small{
     display:block;
-    font-size:0.55rem;
-    letter-spacing:0.36em;
+    font-size:0.58rem;
+    letter-spacing:0.4em;
     font-weight:500;
-    color:var(--gold-dim);
-    margin-top:4px;
+    color:var(--silver-dim);
+    margin-top:3px;
     text-transform: uppercase;
   }
 
-  .status-bar{
+  /* --- turn indicator: an edge glow now carries whose turn it is; this bar only shows contextual messages --- */
+  .turn-wrap{
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
-    padding: 10px 4px;
-    width: 100%;
+    justify-content:center;
+    min-height: 22px;
+    padding: 4px 18px;
   }
-  .mode-badge{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.68rem;
-    letter-spacing:0.04em;
-    color: var(--gold);
-    border: 1px solid var(--gold-dim);
-    border-radius: 3px;
-    padding: 6px 10px;
-    white-space:nowrap;
+  .status-text{
+    font-size:0.72rem;
+    color:var(--silver-dim);
+    letter-spacing:0.05em;
+    text-align:center;
+    min-height: 1em;
   }
 
-  .mode-toggle-row{ display:flex; gap:8px; }
-  .mode-toggle-btn{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.66rem;
-    letter-spacing:0.06em;
-    color: var(--gold);
-    background: rgba(0,0,0,0.35);
-    border: 1px solid var(--gold-dim);
-    border-radius:6px;
-    padding: 6px 12px;
-    cursor:pointer;
-    transition: all .15s ease;
+  /* --- edge glow: top edge glows for the player whose zone is at the top of the screen,
+       bottom edge glows for whoever's zone is at the bottom --- */
+  .turn-edge-glow{
+    position:fixed;
+    left:0; right:0;
+    height: 9vh;
+    max-height: 90px;
+    min-height: 42px;
+    pointer-events:none;
+    z-index: 40;
+    opacity:0;
+    transition: opacity .35s ease;
   }
-  .mode-toggle-btn.active{ background:rgba(255,255,255,0.03); color:var(--ivory-btn); border-color:var(--ivory-btn); }
-  .full-width-btn{
+  .turn-edge-glow.top{
+    top:0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0));
+  }
+  .turn-edge-glow.bottom{
+    bottom:0;
+    background: linear-gradient(to top, rgba(255,255,255,0.55), rgba(255,255,255,0));
+  }
+  .turn-edge-glow.active{
+    opacity: 0.85;
+  }
+  .turn-edge-glow.flash{
+    animation: edgeGlowFlash .5s ease forwards;
+  }
+  @keyframes edgeGlowFlash{
+    0%{ opacity:0.3; }
+    45%{ opacity:1; }
+    100%{ opacity:0.85; }
+  }
+
+  /* --- board row: opponent's tray above, your tray below the board --- */
+  .board-row{
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    justify-content:center;
+    gap: 6px;
     width:100%;
-    padding: 8px 16px;
-    font-size:0.8rem;
+  }
+  #goteKomadai{ order: 1; }
+  #boardFrame{ order: 2; }
+  #senteKomadai{ order: 3; }
+  .board-row.swap-trays #goteKomadai{ order: 3; }
+  .board-row.swap-trays #senteKomadai{ order: 1; }
+
+  /* --- komadai (captured pieces trays) --- */
+  .komadai{
+    width:100%;
+    max-width: 340px;
+    min-height: 44px;
     background: rgba(255,255,255,0.03);
-    color: var(--ivory-btn);
-    border-color: var(--ivory-btn);
-  }
-  #modeStartBtn:hover{ background: rgba(255,255,255,0.08); border-color: var(--ivory-btn-hover); color: var(--ivory-btn-hover); }
-  #modeRulesBtn{
-    width: auto;
-    align-self: center;
-    background: transparent;
-    color: var(--gold);
-    border-color: var(--gold-dim);
-    margin-top: -6px;
-    padding: 8px 20px;
-    font-size:0.72rem;
-  }
-  #modeRulesBtn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
-  .seal{
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.4);
     display:flex;
     align-items:center;
     gap:6px;
+    padding: 5px 10px;
+    flex-wrap: wrap;
+  }
+  .komadai .label{
+    font-family:'Kaisei Decol', serif;
+    font-size:0.66rem;
+    color:var(--silver-dim);
+    letter-spacing:0.1em;
+    min-width: 44px;
+  }
+  .hand-piece{
+    position:relative;
+    width:34px; height:38px;
+    cursor:pointer;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+    transition: transform .12s ease;
+  }
+  .hand-piece:hover{ transform: translateY(-3px); }
+  .hand-piece.selected{ transform: translateY(-5px) scale(1.05); }
+  .hand-piece .count{
+    position:absolute; bottom:-6px; right:-6px;
+    background: #fff; color:#111;
+    font-size: 0.62rem; font-weight:700;
+    border-radius: 50%;
+    width:16px; height:16px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  }
+  .komadai .empty-hint{ color:var(--silver-dim); font-size:0.7rem; padding-left:14px; }
+
+  .komadai-flipped{ transform: rotate(180deg); }
+  .board-frame.flipped{ transform: rotate(180deg); }
+
+  /* --- board --- */
+  .board-frame{
+    position:relative;
+    padding: 10px;
+    background:
+      linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
+    border-radius: 4px;
+    box-shadow:
+      0 16px 32px rgba(0,0,0,0.65),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  .hidden{ display:none !important; }
+  .board{
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    width: min(340px, 82vw);
+    height: min(340px, 82vw);
+    border: 1px solid var(--grid-line);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.5);
+  }
+  .cell{
+    position:relative;
+    border: 1px solid var(--grid-line);
+    background: var(--cell-a);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .cell::before{
+    content:'';
+    position:absolute; inset:0;
+    background: linear-gradient(120deg, rgba(255,255,255,0.05), rgba(0,0,0,0.08));
+    pointer-events:none;
+  }
+  .cell.highlight{
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7);
+  }
+  .cell.highlight::after{
+    content:'';
+    position:absolute;
+    width:20%; height:20%;
+    border-radius:50%;
+    background: rgba(255,255,255,0.35);
+  }
+  /* Squares a piece could physically reach but can't legally move to,
+     because it would leave (or fail to resolve) check on its own king. */
+  .cell.illegal-highlight{
+    box-shadow: inset 0 0 0 2px rgba(214,64,64,0.8);
+  }
+  .cell.illegal-highlight::after{
+    content:'';
+    position:absolute;
+    width:60%; height:60%;
+    border-radius:4px;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px rgba(214,64,64,0.35);
+  }
+  .cell.selected{
+    box-shadow: inset 0 0 0 2px var(--silver-dim);
+  }
+  .cell.king-fallen{
+    animation: shake .5s ease;
+  }
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    25%{ transform: translateX(-3px); }
+    75%{ transform: translateX(3px); }
+  }
+  .cell.king-in-check{
+    animation: check-glow 1s ease-in-out infinite;
+  }
+  @keyframes check-glow{
+    0%, 100%{ box-shadow: inset 0 0 0 2px rgba(178,42,42,0.55), 0 0 6px 1px rgba(178,42,42,0.35); }
+    50%{ box-shadow: inset 0 0 0 2px rgba(214,64,64,0.95), 0 0 14px 4px rgba(214,64,64,0.55); }
+  }
+
+  /* --- check (王手) popup --- */
+  .check-popup{
+    position:fixed;
+    top: 40%;
+    left: 50%;
+    --check-rot: -6deg;
+    transform: translate(-50%, -50%) scale(0.7) rotate(var(--check-rot));
+    z-index: 60;
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size: 2.1rem;
+    letter-spacing: 0.2em;
+    color: #e8caca;
+    background: radial-gradient(ellipse at center, rgba(120,20,20,0.92), rgba(60,8,8,0.92));
+    border: 2px solid rgba(214,64,64,0.85);
+    border-radius: 6px;
+    padding: 10px 26px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08);
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* Whichever seat is at the top of the screen reads everything upside down,
+     so their 王手 stamp gets an extra 180° on top of the usual tilt. */
+  .check-popup.flipped{ --check-rot: 174deg; }
+  .check-popup.show{
+    animation: check-stamp 1.1s cubic-bezier(.2,.9,.3,1) forwards;
+  }
+  @keyframes check-stamp{
+    0%{ opacity:0; transform: translate(-50%, -50%) scale(1.6) rotate(var(--check-rot)); }
+    18%{ opacity:1; transform: translate(-50%, -50%) scale(0.94) rotate(var(--check-rot)); }
+    30%{ transform: translate(-50%, -50%) scale(1) rotate(var(--check-rot)); }
+    78%{ opacity:1; transform: translate(-50%, -50%) scale(1) rotate(var(--check-rot)); }
+    100%{ opacity:0; transform: translate(-50%, -50%) scale(1) rotate(var(--check-rot)); }
+  }
+  .check-popup.mode-stamp{
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    background: radial-gradient(ellipse at center, rgba(90,68,10,0.94), rgba(46,34,4,0.94));
+    border-color: rgba(212,175,55,0.85);
+    color: #f1e3b0;
+  }
+
+  /* --- 鬼 mode: 20-second turn clock --- */
+  .turn-timer-badge{
+    display:none;
+    position:fixed;
+    top: max(14px, env(safe-area-inset-top));
+    left:50%;
+    transform: translateX(-50%);
+    z-index: 55;
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.1rem;
+    color:#fff;
+    background: rgba(90,15,15,0.75);
+    border: 2px solid rgba(214,64,64,0.85);
+    border-radius: 50%;
+    width: 54px;
+    height: 54px;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    letter-spacing: 0;
+  }
+  .turn-timer-badge.show{ display:flex; }
+  .turn-timer-badge.urgent{
+    animation: timerUrgent .6s ease-in-out infinite;
+    border-color: #ff4444;
+    color: #ffdede;
+    background: rgba(140,15,15,0.85);
+  }
+  @keyframes timerUrgent{
+    0%,100%{ transform: translateX(-50%) scale(1); }
+    50%{ transform: translateX(-50%) scale(1.12); }
+  }
+
+  /* --- shogi koma piece (pentagon) --- */
+  .koma{
+    position:relative;
+    width: 78%; height: 82%;
+    clip-path: polygon(50% 0%, 100% 28%, 88% 100%, 12% 100%, 0% 28%);
+    background: linear-gradient(180deg, var(--piece-face), var(--piece-face-2));
+    box-shadow:
+      0 3px 4px rgba(0,0,0,0.5),
+      inset 0 1px 1px rgba(255,255,255,0.7),
+      inset 0 -2px 3px rgba(0,0,0,0.15);
+    display:flex; align-items:center; justify-content:center;
+    user-select:none;
+    transition: transform .15s ease;
+    transform-style: preserve-3d;
+  }
+  .koma-depth{
+    position:absolute; inset:0;
+    clip-path: polygon(50% 0%, 100% 28%, 88% 100%, 12% 100%, 0% 28%);
+    pointer-events:none;
+    z-index: 1;
+  }
+  .koma-depth.d1{ background:#bdb49a; transform: translateZ(-1.5px); }
+  .koma-depth.d2{ background:#948a70; transform: translateZ(-3px); }
+  .koma.gote-side .koma-depth.d1{ background:#141414; }
+  .koma.gote-side .koma-depth.d2{ background:#000000; }
+  .koma.gote-side{
+    transform: rotate(180deg);
+    background: linear-gradient(180deg, var(--piece-face-dark), var(--piece-face-dark-2));
+    box-shadow:
+      0 3px 4px rgba(0,0,0,0.6),
+      inset 0 1px 1px rgba(255,255,255,0.12),
+      inset 0 -2px 3px rgba(0,0,0,0.4),
+      0 0 0 1px var(--silver-dim);
+  }
+  .koma.gote-side.no-flip{ transform: none; }
+  .koma .kanji{
+    position:relative;
+    z-index: 2;
+    font-family:'Shippori Mincho', serif;
+    font-weight: 700;
+    color: var(--ink);
+    line-height:1;
+  }
+  .koma.gote-side .kanji{ color: var(--ink-light); }
+  .koma.promoted{ box-shadow: 0 3px 4px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.7), inset 0 -2px 3px rgba(0,0,0,0.15), 0 0 0 2px var(--silver); }
+  .koma.gote-side.promoted{ box-shadow: 0 3px 4px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.12), inset 0 -2px 3px rgba(0,0,0,0.4), 0 0 0 2px var(--silver); }
+  .koma.king .kanji{ font-weight:800; }
+  .cell .koma{ font-size: clamp(0.85rem, 4.6vw, 1.15rem); }
+
+  /* --- controls --- */
+  .controls{
+    display:flex;
+    gap:10px;
+    margin-top:0;
+  }
+  button{
     font-family:'Zen Kaku Gothic New', sans-serif;
     font-weight:700;
-    font-size: 0.78rem;
-    color: var(--cream);
-    letter-spacing: 0.04em;
-    white-space:nowrap;
-    transition: color .2s ease;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    color:#fff;
+    background: transparent;
+    border: 1px solid var(--silver-dim);
+    border-radius:2px;
+    padding: 8px 16px;
+    cursor:pointer;
+    transition: background .15s ease, border-color .15s ease;
   }
-  .seal::before{
-    content:'◆';
-    color: var(--gold-bright);
-    font-size:0.7rem;
-    transition: color .2s ease;
+  button:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+  button:active{ transform: translateY(1px); }
+  button:focus-visible, .cell:focus-visible, .hand-piece:focus-visible{
+    outline: 1px solid #fff;
+    outline-offset: 2px;
   }
-  .seal.gote{ color: var(--cream); }
-  .seal.gote::before{ color:#8f8f8f; }
-  .seal.pulse{ animation: sealPulse .3s ease; }
-  @keyframes sealPulse{
-    0%{ opacity:0.2; transform: translateX(-3px); }
-    100%{ opacity:1; transform: translateX(0); }
+  button.ghost{
+    background: transparent;
+    color:var(--silver);
+    border-color:var(--silver-dim);
   }
-  .status-text{ display:none; }
-  .status-text .bolt{ color:var(--gold-bright); }
 
-  /* --- card panel (shared by setup / handoff / game) --- */
-  .panel{
-    position:relative;
+  .rules{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,0.75);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index: 210;
+    padding: 20px;
+  }
+  .rules.open{ display:flex; }
+  .rules-card{
     width:100%;
+    max-width: 400px;
+    max-height: 53vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
     background: linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
+    border: 1px solid var(--hairline);
     border-radius: 6px;
     padding: 18px 20px;
-    box-shadow:
-      0 16px 32px rgba(0,0,0,0.6),
-      inset 0 1px 0 rgba(255,255,255,0.12),
-      inset 0 0 0 1px rgba(255,255,255,0.08);
+    font-size:0.76rem;
+    line-height:1.8;
+    color:#cfcfcf;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.65);
+  }
+  .rules h2{
+    font-family:'Kaisei Decol', serif;
+    font-weight:500;
+    font-size:0.9rem;
+    margin: 0 0 8px;
+    color:#fff;
+    letter-spacing:0.05em;
+  }
+  .rules ul{ margin:4px 0; padding-left:1.1em; }
+  .rules-close-btn{
+    display:block;
+    width:100%;
+    margin-top: 16px;
+    padding: 11px 10px;
+    font-size:0.76rem;
+  }
+
+  .winner-overlay{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,0.28);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:20;
+    padding: 20px;
+    cursor: pointer;
+  }
+  .winner-overlay.show{ display:flex; }
+  .winner-card{
+    background: rgba(10,10,10,0.5);
+    backdrop-filter: blur(2px);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 26px 34px;
+    text-align:center;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    max-width: 300px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    cursor: default;
+  }
+  .winner-perspective.rotated{ transform: rotate(180deg); }
+  .winner-card .big{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.3rem;
+    color:#fff;
+    letter-spacing:0.04em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+  }
+  .winner-tap-hint{
+    font-size:0.66rem;
+    color: var(--silver);
+    letter-spacing:0.08em;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    animation: tapHintPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tapHintPulse{
+    0%,100%{ opacity:0.55; }
+    50%{ opacity:1; }
+  }
+  #winnerReason{
+    color:var(--silver);
+    font-size:0.78rem;
+    letter-spacing:0.04em;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 10px 0;
+    margin:0;
+  }
+
+  /* --- setup screen (mode selection), styled after ウサギと猟犬's mode-select:
+     no boxed frame — a plain title + a small section label above the buttons --- */
+  .setup-screen{
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:12px;
+    width:100%;
   }
-
-  /* --- mode select screen: no boxed frame, matching ウサギと猟犬 etc ---
-     a plain title + a small section label above the mode buttons --- */
-  #modeScreen{
-    background: none;
-    border-radius: 0;
-    padding: 8px 4px 0;
-    box-shadow: none;
+  .setup-card{
+    width:100%;
+    max-width: 380px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    margin-top: 20px;
   }
   .setup-mode-title{
     font-family:'Kaisei Decol', serif;
     font-weight:700;
-    font-size: 1.1rem;
-    letter-spacing:0.1em;
-    color: var(--cream);
-    text-align:center;
+    font-size:1.1rem;
+    letter-spacing:0.12em;
+    color:#fff;
   }
   .setup-divider{
     display:flex;
@@ -284,7 +703,7 @@
     gap:12px;
     width:100%;
     max-width: 260px;
-    margin: 0 auto -4px;
+    margin: -4px 0 -4px;
   }
   .setup-divider .divider-line{
     flex:1;
@@ -303,13 +722,60 @@
     font-family:'Zen Kaku Gothic New', sans-serif;
     font-size:0.66rem;
     letter-spacing:0.2em;
-    color: var(--gold-dim);
+    color:var(--silver-dim);
     align-self:center;
     text-align:center;
     margin-top:-6px;
   }
+  .mode-toggle-row{ display:flex; gap:8px; }
+  #modeToggleRow{
+    flex-direction: column;
+    width:100%;
+  }
+  #modeToggleRow .mode-toggle-btn{
+    width:100%;
+    padding: 12px 16px;
+    font-size:0.78rem;
+  }
+  .mode-toggle-subrow{
+    display:flex;
+    gap:8px;
+    width:100%;
+  }
+  .mode-toggle-subrow .mode-toggle-btn{
+    width:auto;
+    flex:1;
+  }
+  .mode-toggle-btn{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.68rem;
+    letter-spacing:0.06em;
+    color: var(--silver);
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--silver-dim);
+    border-radius:6px;
+    padding: 6px 12px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .mode-toggle-btn.active{ background:rgba(255,255,255,0.03); color:var(--ivory-btn); border-color:var(--ivory-btn); }
+  .mode-toggle-btn-oni.active{
+    background: #7a1f1f;
+    color: #ffe9e9;
+    border-color: #b23a3a;
+  }
+  .oni-hint{
+    display: none;
+    font-size:0.62rem;
+    color: #d99a9a;
+    letter-spacing:0.04em;
+    text-align:center;
+  }
+  .oni-hint.show{ display: block; }
 
-  /* --- mode-select: 2x2 grid of blocks (2人対戦 / CPU対戦 / 達人CPU / 空欄) --- */
+  /* --- mode-select: 2x2 grid of blocks (2人対戦 / CPU対戦 / 達人CPU / 鬼CPU) ---
+     アイコンは .mode-grid-icon の中に後から差し込む想定（今は空スロット） */
   .mode-grid{
     display:grid;
     grid-template-columns: 1fr 1fr;
@@ -326,17 +792,13 @@
     min-height: 113px;
     padding: 18px 10px 14px;
     background: rgba(255,255,255,0.03);
-    border: 1px solid var(--gold-dim);
+    border: 1px solid var(--silver-dim);
     border-radius: 6px;
     cursor:pointer;
     text-align:center;
     transition: background .15s ease, border-color .15s ease;
   }
   .mode-grid-btn:hover{ background: rgba(255,255,255,0.07); border-color:#fff; }
-  .mode-grid-empty{
-    min-height: 113px;
-    visibility:hidden;
-  }
   .mode-grid-icon{
     position:relative;
     width: 32px;
@@ -358,7 +820,7 @@
     font-weight:700;
     font-size:0.82rem;
     letter-spacing:0.06em;
-    color:var(--cream);
+    color:#fff;
   }
   .mode-grid-desc{
     font-family:'Zen Kaku Gothic New', sans-serif;
@@ -384,973 +846,937 @@
     align-items:center;
     justify-content:center;
   }
-
-  .panel-title{
-    font-family:'Kaisei Decol', serif;
-    font-size: 1.05rem;
-    color:var(--cream);
-    letter-spacing:0.06em;
-    text-align:center;
+  .mode-grid-btn-oni.active{
+    border-color:#b23a3a;
+    background: rgba(122,31,31,0.14);
   }
-  .panel-sub{
-    font-size:0.75rem;
-    color:var(--gold-dim);
-    text-align:center;
-    line-height:1.7;
-    max-width: 320px;
+  .mode-grid-btn-oni.active::after{
+    background:#b23a3a;
+    color:#ffe9e9;
   }
+  .mode-grid .oni-hint{ grid-column: 1 / -1; margin-top:-2px; }
 
-  /* --- digit dial inputs --- */
-  .dial-row{
-    display:flex;
-    gap:10px;
+  .start-btn{
     width:100%;
-    max-width: 380px;
+    padding: 8px 16px;
+    font-size:0.8rem;
+    background: rgba(255,255,255,0.03);
+    color: var(--ivory-btn);
+    border-color: var(--ivory-btn);
   }
-  .dial{
-    flex:1;
-    height: 76px;
-    background: var(--cream-box);
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 -3px 0 rgba(0,0,0,0.12), inset 0 0 0 2px var(--gold-dim);
-    display:flex; align-items:center; justify-content:center;
-    transition: box-shadow .15s ease;
-  }
-  .keypad{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    width: 100%;
-    max-width: 340px;
-  }
-  .keypad-btn{
-    height: 47px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--gold-dim);
-    color: var(--cream);
-    font-family:'Jost', sans-serif;
-    font-weight:600;
-    font-size: 1.1rem;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background .1s ease, transform .1s ease, border-color .1s ease;
-  }
-  .keypad-btn:active{ background: rgba(255,255,255,0.2); border-color: var(--gold-bright); transform: scale(0.95); }
-  .keypad-btn.blank{ visibility:hidden; pointer-events:none; }
-  .keypad-btn.backspace{ font-size: 1.1rem; color: var(--gold-dim); }
-  .dial input{
-    width:100%; height:100%;
+  .start-btn:hover{ background: rgba(255,255,255,0.08); border-color: var(--ivory-btn-hover); color: var(--ivory-btn-hover); }
+  .setup-rules-btn{
+    width: auto;
+    align-self: center;
     background: transparent;
-    border: none;
-    text-align:center;
-    font-family:'Jost', sans-serif;
-    font-size: 2.1rem;
-    font-weight:700;
-    color: var(--ink);
-    caret-color: var(--gold-dim);
+    color: var(--silver);
+    border-color: var(--silver-dim);
+    margin-top: -6px;
+    padding: 8px 20px;
   }
-  .dial input:focus{ outline: none; }
-  .dial.filled{ box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 -3px 0 rgba(0,0,0,0.12), inset 0 0 0 2px var(--gold-bright); }
-  .dial-row.shake{ animation: shake .4s ease; }
-  @keyframes shake{
-    0%,100%{ transform: translateX(0); }
-    20%{ transform: translateX(-6px); }
-    40%{ transform: translateX(6px); }
-    60%{ transform: translateX(-4px); }
-    80%{ transform: translateX(4px); }
-  }
-
-  .inline-error{
-    font-size:0.7rem;
-    color:#e8b4b4;
-    letter-spacing:0.04em;
-    min-height: 0;
-    text-align:center;
-  }
-
-  .lock-icon{
-    width:40px; height:40px;
-    opacity:0.8;
-  }
-
-  button.main-btn{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.78rem;
-    letter-spacing:0.1em;
-    color:var(--cream);
-    background: transparent;
-    border: 1px solid var(--gold-dim);
-    border-radius:2px;
-    padding: 11px 24px;
-    cursor:pointer;
-    transition: background .15s ease, border-color .15s ease;
-  }
-  button.main-btn:hover{ background: rgba(255,255,255,0.08); border-color:var(--gold-bright); }
-  button.main-btn:active{ transform: translateY(1px); }
-  button.main-btn:disabled{ opacity:0.3; cursor:default; }
-  button:focus-visible{ outline: 1px solid var(--gold-bright); outline-offset: 3px; }
-
-  .controls{ display:flex; gap:10px; margin-top:2px; flex-wrap:wrap; justify-content:center; }
-  .controls .main-btn{ padding: 10px 16px; font-size:0.72rem; }
-
-  /* --- guess history --- */
-  .history-wrap{
-    width:100%;
+  .setup-rules-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+  .game-screen{
     display:flex;
     flex-direction:column;
-    gap:6px;
-    overflow-y:auto;
-    flex:1;
-    min-height:0;
-  }
-  .history-cols{
-    width:100%;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .history-col{
-    padding: 4px 2px;
-  }
-  .history-col h3{
-    font-family:'Zen Kaku Gothic New', sans-serif;
-    font-weight:700;
-    font-size:0.72rem;
-    margin:0 0 4px;
-    color:var(--cream);
-    letter-spacing:0.04em;
-    display:flex;
-    align-items:center;
-    gap:5px;
-  }
-  .history-col h3::before{ content:'◆'; font-size:0.62rem; color:var(--gold-bright); }
-  .history-col.gote h3::before{ color:#8f8f8f; }
-  .history-col-head{
-    display:grid;
-    grid-template-columns: 18px 1fr 30px 30px;
-    gap:4px;
-    font-size:0.6rem;
-    color:var(--gold-dim);
-    letter-spacing:0.04em;
-    padding: 0 2px 3px;
-    border-bottom: 1px solid var(--hairline);
-    margin-bottom:4px;
-  }
-  .history-col-head span:nth-child(3), .history-col-head span:nth-child(4){ text-align:center; }
-  .history-list{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-  }
-  .history-list.expanded{
-    max-height: 280px;
-    overflow-y:auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
-  .history-toggle-btn{
-    text-align:center;
-    font-size:0.64rem;
-    letter-spacing:0.05em;
-    color: var(--gold-dim);
-    padding: 4px 0 0;
-    cursor:pointer;
-  }
-  .history-toggle-btn:hover{ color: var(--gold-bright); }
-  .history-toggle{ min-height: 21px; }
-  .history-item{
-    display:grid;
-    grid-template-columns: 18px 1fr 30px 30px;
-    gap:4px;
-    align-items:center;
-  }
-  .history-num{
-    font-family:'Jost', sans-serif;
-    font-size:0.64rem;
-    color: var(--gold-dim);
-  }
-  .history-digits{ display:flex; gap:4px; }
-  .hdigit{
-    flex:1;
-    min-width:0;
-    aspect-ratio: 5 / 3;
-    display:flex; align-items:center; justify-content:center;
-    background: var(--void);
-    border: 1px solid var(--gold-dim);
-    border-radius: 3px;
-    font-family:'Jost', sans-serif;
-    font-weight:600;
-    font-size:0.76rem;
-    color: var(--cream);
-  }
-  .history-result{
-    font-family:'Jost', sans-serif;
-    font-size:0.7rem;
-    color: var(--gold-dim);
-    text-align:center;
-  }
-  .history-result.hit-val{ color: var(--cream); }
-  .empty-hint{ color:var(--gold-dim); font-size:0.7rem; text-align:center; padding: 8px 0; grid-column: 1/-1; }
-
-
-  .guess-area{
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-  }
-
-  .modal-overlay{
-    position:fixed;
-    inset:0;
-    z-index:300;
-    background: rgba(0,0,0,0.62);
-    backdrop-filter: blur(4px);
-    display:flex;
     align-items:center;
     justify-content:center;
-    padding:20px;
-  }
-  .modal-overlay.hidden{ display:none; }
-  .modal-box{
-    position:relative;
+    gap:8px;
     width:100%;
-    max-width: 380px;
-    background: linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
-    border: 1px solid var(--hairline);
-    border-radius: 8px;
-    padding: 26px 24px;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
-    animation: modalPop .22s cubic-bezier(.2,.8,.3,1);
-  }
-  @keyframes modalPop{
-    0%{ transform: scale(0.9); opacity:0; }
-    100%{ transform: scale(1); opacity:1; }
-  }
-  .howto-title{
-    font-family:'Kaisei Decol', serif;
-    font-weight:700;
-    font-size: 1.05rem;
-    letter-spacing:0.06em;
-    color: var(--cream);
-    margin: 0 0 16px;
-    text-align:center;
-  }
-  .howto-list{
-    margin:0 0 20px;
-    padding:0;
-    list-style:none;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-  }
-  .howto-list li{
-    font-size:0.78rem;
-    line-height:1.7;
-    color: var(--gold);
-    letter-spacing:0.02em;
-    padding-left:1.1em;
-    position:relative;
-  }
-  .howto-list li::before{
-    content:'・';
-    position:absolute;
-    left:0;
-    color: var(--cream);
-  }
-  .howto-close-btn{
-    width:100%;
-    padding: 11px 10px;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: 4vh;
   }
 
-  .winner-overlay{
-    position:fixed; inset:0;
-    background: rgba(0,0,0,0.85);
-    display:none;
-    align-items:center; justify-content:center;
-    z-index:20;
-    padding: 20px;
-  }
-  .winner-overlay.show{ display:flex; }
-  .winner-card{
-    background: linear-gradient(180deg, #161616, #050505);
-    border: 1px solid var(--hairline);
-    border-radius: 4px;
-    padding: 32px 34px;
-    text-align:center;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-    max-width: 320px;
-  }
-  .winner-card .big{
-    font-family:'Kaisei Decol', serif;
-    font-weight:700;
-    font-size:1.3rem;
-    color:var(--cream);
-    margin-bottom:10px;
-    letter-spacing: 0.04em;
-  }
-  .winner-card .code-reveal{
-    font-family:'Jost', sans-serif;
-    font-size:1.3rem;
-    letter-spacing:0.3em;
-    color:var(--cream);
-    margin-bottom: 14px;
-  }
-  .winner-card p{ color:var(--gold-dim); font-size:0.8rem; margin: 0 0 20px; letter-spacing:0.04em; }
+  /* ============================================================
+     横画面（スマホを横向きに持った時）向けレイアウト。
+     縦のスペースが少ないので、状態表示帯を隠し、持ち駒トレイを盤の
+     上下から左右へ移動、操作ボタンは右下にまとめて小さく表示する。
+     後ろに書くルールが同じ詳細度なら勝つ性質を使い、通常時のルールを
+     上書きするため、必ずスタイルシートの最後に置くこと。
+     ============================================================ */
+  @media (orientation: landscape) and (max-height: 600px){
+    body{ padding: 6px; }
+    .app{ gap:4px; }
 
-  .hidden{ display:none !important; }
-  .invisible{ visibility:hidden; pointer-events:none; }
+    .turn-wrap{ display:none; }
 
-  /* --- home confirm popup: gray, lightly transparent overlay --- */
-  .confirm-overlay{
-    position:fixed; inset:0;
-    background: rgba(140,140,140,0.32);
-    backdrop-filter: blur(2px);
-    display:none;
-    align-items:center; justify-content:center;
-    z-index: 200;
-    padding: 20px;
+    .board-row{
+      flex-direction: row;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .board{
+      width: min(70vh, 56vw);
+      height: min(70vh, 56vw);
+    }
+    .komadai{
+      width: 54px;
+      max-width: none;
+      min-height: 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      padding: 8px 4px;
+    }
+    .komadai .label{
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      min-width: 0;
+      line-height: 1;
+      letter-spacing: 0.15em;
+      white-space: nowrap;
+    }
+    .komadai .empty-hint{
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      line-height: 1;
+    }
+    /* The far-seat tray's whole card is rotated 180° so its pieces face the
+       right way for whoever's "up top" — but that same rotation makes
+       vertical text read backwards and look garbled. Counter-rotate just the
+       label (and empty-hint) so both trays' text stays upright, while the
+       piece icons keep their intentional flip. The 180° rotation also
+       reverses which end of the stack appears "first" visually, so we
+       reverse the child order too — the two reversals cancel out, landing
+       the label at the top of both trays, matching the near-seat tray. */
+    .komadai-flipped{
+      flex-direction: column-reverse;
+    }
+    .komadai-flipped .label,
+    .komadai-flipped .empty-hint{
+      transform: rotate(180deg);
+    }
+
+    /* Turn edge-glow: full-width like normal, just dimmer than default. */
+    .turn-edge-glow{
+      left: 0;
+      right: 0;
+      transform: none;
+      width: auto;
+      height: 12vh;
+      max-height: 60px;
+      min-height: 26px;
+    }
+    .turn-edge-glow.top{
+      background: linear-gradient(to bottom, rgba(255,255,255,0.26), rgba(255,255,255,0));
+    }
+    .turn-edge-glow.bottom{
+      background: linear-gradient(to top, rgba(255,255,255,0.26), rgba(255,255,255,0));
+    }
+    .turn-edge-glow.active{
+      opacity: 0.4;
+    }
+    .turn-edge-glow.flash{
+      animation: edgeGlowFlashSoft .5s ease forwards;
+    }
+    @keyframes edgeGlowFlashSoft{
+      0%{ opacity:0.12; }
+      45%{ opacity:0.55; }
+      100%{ opacity:0.4; }
+    }
+
+    #controlsWrap{
+      position: fixed;
+      bottom: 22px;
+      right: 14px;
+      gap: 6px;
+      z-index: 45;
+    }
+    #controlsWrap button{
+      padding: 6px 10px;
+      font-size: 0.58rem;
+    }
+
+    .setup-card{ margin-top:4px; padding:16px 18px; gap:10px; }
   }
-  .confirm-overlay.show{ display:flex; }
-  .confirm-card{
-    background: linear-gradient(160deg, var(--frame-hi), var(--frame-mid) 45%, var(--frame-low));
-    border: 1px solid var(--hairline);
-    border-radius: 6px;
-    padding: 26px 24px;
-    text-align:center;
-    box-shadow: 0 24px 50px rgba(0,0,0,0.55);
-    max-width: 320px;
-    width:100%;
-  }
-  .confirm-card .confirm-text{
-    font-family:'Kaisei Decol', serif;
-    font-size:0.95rem;
-    color:var(--cream);
-    letter-spacing:0.04em;
-    line-height:1.7;
-    margin-bottom:20px;
-  }
-  .confirm-actions{ display:flex; gap:10px; }
-  .confirm-actions .main-btn{ flex:1; padding:11px 10px; }
-  .confirm-ok{ background:var(--cream); color:var(--ink); border-color:var(--cream); }
-  .confirm-ok:hover{ background:#eee; border-color:#eee; }
 </style>
 </head>
 <body>
+<button type="button" id="homeBtn" class="home-btn" aria-label="ホームへ戻る">← ホーム</button>
+<button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
+<div id="bgSwitchPanel" class="bg-switch-panel hidden">
+  <button class="bg-swatch active" data-grad="IMAGE" style="--sw:#1a130d; background-image:url('assets/backgrounds/game-home-default.jpg'); background-size:cover; background-position:center;" aria-label="フォト"></button>
+  <button class="bg-swatch" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
+  <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
+  <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
+  <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
+  <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
+</div>
+<button class="undo-btn hidden" id="undoBtn" disabled>待った</button>
+<button class="undo-btn hidden" id="undoBtnGote" disabled>待った</button>
+<div id="turnGlowTop" class="turn-edge-glow top"></div>
+<div id="turnGlowBottom" class="turn-edge-glow bottom"></div>
 <div class="app">
 
-  <button type="button" class="home-btn" id="homeBtn" aria-label="ホームへ戻る">← ホーム</button>
-  <button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
-  <div id="bgSwitchPanel" class="bg-switch-panel hidden">
-    <button class="bg-swatch active" data-grad="IMAGE" style="--sw:#1a130d; background-image:url('assets/backgrounds/game-home-default.jpg'); background-size:cover; background-position:center;" aria-label="フォト"></button>
-    <button class="bg-swatch" data-grad="#1c1c1c 0%, #0a0a0a 55%, #000000 100%" style="--sw:#0a0a0a" aria-label="クラシック"></button>
-    <button class="bg-swatch" data-grad="#4a4a4a 0%, #3a3a3a 55%, #262626 100%" style="--sw:#3c3c3c" aria-label="ホワイトグレー"></button>
-    <button class="bg-swatch" data-grad="#3a4238 0%, #2c332c 55%, #1c211c 100%" style="--sw:#2c332c" aria-label="グリーングレー"></button>
-    <button class="bg-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
-    <button class="bg-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
-  </div>
-
   <header>
-    <h1>ヒット＆ブロー<span class="small">HIT &amp; BLOW</span></h1>
+    <h1>ミニ将棋<span class="small">MINISHOGI · 5 × 5</span></h1>
   </header>
 
-  <!-- MODE SELECT SCREEN -->
-  <div id="modeScreen" class="panel">
-    <div class="setup-divider">
-      <span class="divider-line"></span>
-      <span class="divider-diamond"></span>
-      <span class="divider-line"></span>
-    </div>
-    <div class="setup-mode-title">対戦モード</div>
-    <div class="setup-section-label">どの相手と対局しますか？</div>
-    <div class="mode-grid" id="modeToggleRow">
-      <button class="mode-grid-btn active" id="modeTwoPlayerBtn">
-        <span class="mode-grid-icon">
-          <img class="icon-default" src="assets/icons/mode-icon-2p-white.png" alt="">
-          <img class="icon-active" src="assets/icons/mode-icon-2p-active.png" alt="">
-        </span>
-        <span class="mode-grid-title">2人対戦</span>
-        <span class="mode-grid-desc">友達と対局する</span>
-      </button>
-      <button class="mode-grid-btn" id="modeCPUBtn">
-        <span class="mode-grid-icon">
-          <img class="icon-default" src="assets/icons/mode-icon-cpu-white.png" alt="">
-          <img class="icon-active" src="assets/icons/mode-icon-cpu-active.png" alt="">
-        </span>
-        <span class="mode-grid-title">CPU対戦</span>
-        <span class="mode-grid-desc">標準のAIと対局する</span>
-      </button>
-      <button class="mode-grid-btn" id="modeCPUMasterBtn">
-        <span class="mode-grid-icon">
-          <img class="icon-default" src="assets/icons/mode-icon-master-white.png" alt="">
-          <img class="icon-active" src="assets/icons/mode-icon-master-active.png" alt="">
-        </span>
-        <span class="mode-grid-title">達人CPU</span>
-        <span class="mode-grid-desc">強いAIと対局する</span>
-      </button>
-      <div class="mode-grid-empty" aria-hidden="true"></div>
-    </div>
-    <div class="mode-toggle-row" id="sideToggleRow">
-      <button class="mode-toggle-btn active" id="sideSenteBtn">先手で対戦</button>
-      <button class="mode-toggle-btn" id="sideGoteBtn">後手で対戦</button>
-    </div>
-    <button class="main-btn full-width-btn" id="modeStartBtn">ゲーム開始</button>
-    <button class="main-btn full-width-btn" id="modeRulesBtn">遊び方</button>
-  </div>
-
-  <!-- SETUP SCREEN -->
-  <div id="setupScreen" class="panel hidden">
-    <div class="panel-title" id="setupTitle">白の暗証番号を設定してください</div>
-    <div class="panel-sub">0〜9の中から重複しない3桁を決めてください。相手には見えません。</div>
-    <div class="dial-row" id="setupDialRow">
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="0"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="1"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="2"></div>
-    </div>
-    <div class="keypad" id="setupKeypad"></div>
-    <div class="inline-error" id="setupError"></div>
-    <button class="main-btn" id="setupConfirmBtn">決定</button>
-  </div>
-
-  <!-- HANDOFF SCREEN -->
-  <div id="handoffScreen" class="panel hidden">
-    <div class="panel-title" id="handoffTitle">設定が完了しました</div>
-    <div class="panel-sub" id="handoffSub">端末を後手（黒）に渡してください。準備ができたら進めます。</div>
-    <button class="main-btn" id="handoffBtn">次へ進む</button>
-  </div>
-
-  <!-- GAME SCREEN -->
-  <div id="gameScreen" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; min-height:0; flex:1;">
-    <div class="status-bar">
-      <div class="mode-badge" id="modeBadge">2人対戦</div>
-      <div id="seal" class="seal">白の番</div>
-    </div>
-
-    <div class="dial-row" id="guessDialRow">
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="0"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="1"></div>
-      <div class="dial"><input type="text" inputmode="none" readonly maxlength="1" data-idx="2"></div>
-    </div>
-    <div class="status-text" id="statusText">相手の3桁を予想してください</div>
-
-    <div class="history-wrap">
-      <div class="history-cols">
-        <div class="history-col">
-          <h3 id="senteHistoryLabel">白の予想</h3>
-          <div class="history-col-head"><span></span><span>数字</span><span>HIT</span><span>BLOW</span></div>
-          <div class="history-list" id="senteHistory"><div class="empty-hint">まだありません</div></div>
-          <div class="history-toggle" id="senteHistoryToggle"></div>
-        </div>
-        <div class="history-col gote">
-          <h3 id="goteHistoryLabel">黒の予想</h3>
-          <div class="history-col-head"><span></span><span>数字</span><span>HIT</span><span>BLOW</span></div>
-          <div class="history-list" id="goteHistory"><div class="empty-hint">まだありません</div></div>
-          <div class="history-toggle" id="goteHistoryToggle"></div>
-        </div>
+  <div id="setupScreen" class="setup-screen">
+    <div class="setup-card">
+      <div class="setup-divider">
+        <span class="divider-line"></span>
+        <span class="divider-diamond"></span>
+        <span class="divider-line"></span>
       </div>
+      <div class="setup-mode-title">対戦モード</div>
+      <div class="setup-section-label">どの相手と対局しますか？</div>
+      <div class="mode-grid" id="modeToggleRow">
+        <button class="mode-grid-btn active" id="modeTwoPlayerBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-2p-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-2p-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">2人対戦</span>
+          <span class="mode-grid-desc">友達と対局する</span>
+        </button>
+        <button class="mode-grid-btn" id="modeCPUBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-cpu-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-cpu-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">CPU対戦</span>
+          <span class="mode-grid-desc">標準のAIと対局する</span>
+        </button>
+        <button class="mode-grid-btn" id="modeCPUMasterBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-master-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-master-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">達人CPU</span>
+          <span class="mode-grid-desc">強いAIと対局する</span>
+        </button>
+        <button class="mode-grid-btn mode-grid-btn-oni" id="modeCPUOniBtn">
+          <span class="mode-grid-icon">
+            <img class="icon-default" src="assets/icons/mode-icon-oni-white.png" alt="">
+            <img class="icon-active" src="assets/icons/mode-icon-oni-active.png" alt="">
+          </span>
+          <span class="mode-grid-title">鬼CPU</span>
+          <span class="mode-grid-desc">最強のAIと対局する</span>
+        </button>
+        <div class="oni-hint" id="oniHint">待った禁止・持ち時間20秒</div>
+      </div>
+      <div class="mode-toggle-row" id="sideToggleRow">
+        <button class="mode-toggle-btn active" id="sideSenteBtn">先手で対戦</button>
+        <button class="mode-toggle-btn" id="sideGoteBtn">後手で対戦</button>
+      </div>
+      <button id="startGameBtn" class="start-btn">はじめる</button>
+      <button id="setupRulesBtn" class="start-btn setup-rules-btn ghost">遊び方</button>
     </div>
-
-    <div class="keypad" id="guessKeypad"></div>
-    <div class="inline-error" id="guessError"></div>
-    <button class="main-btn" id="guessSubmitBtn" style="margin-top:-5px;">予想する</button>
   </div>
 
+  <div id="gameScreen" class="game-screen hidden">
+
+    <div class="turn-wrap" id="turnWrap">
+      <div id="statusText" class="status-text"></div>
+    </div>
+
+    <div class="board-row" id="boardRow">
+      <div id="goteKomadai" class="komadai"></div>
+
+      <div class="board-frame" id="boardFrame">
+        <div id="board" class="board" role="grid" aria-label="将棋盤"></div>
+      </div>
+
+      <div id="senteKomadai" class="komadai"></div>
+    </div>
+
+  </div>
 
 </div>
 
 <div id="winnerOverlay" class="winner-overlay">
   <div class="winner-card">
-    <div id="winnerText" class="big">白の勝ち！</div>
-    <div class="code-reveal" id="codeReveal">0 1 2</div>
-    <p id="winnerSub">相手の暗証番号を解読しました</p>
-    <button id="againBtn" class="main-btn">もう一度</button>
+    <div class="winner-perspective" id="winnerPerspectiveTop">
+      <div id="winnerTextTop" class="big">あなたの勝ち！</div>
+    </div>
+    <p id="winnerReason">王を討ち取りました</p>
+    <div class="winner-perspective">
+      <div id="winnerTextBottom" class="big">あなたの負け…</div>
+    </div>
+    <div class="winner-tap-hint">タップして次の対局へ</div>
   </div>
 </div>
 
-<div id="homeConfirmOverlay" class="confirm-overlay">
+<div id="checkPopup" class="check-popup">王手！</div>
+
+<div id="rules" class="rules">
+  <div class="rules-card">
+    <h2>遊び方</h2>
+    <ul>
+      <li><b>王</b>：全方向に1マス</li>
+      <li><b>金</b>：前後左右と斜め前に1マス（斜め後ろは進めない）</li>
+      <li><b>銀</b>：前と斜め4方向に1マス（左右・真後ろは進めない）</li>
+      <li><b>角</b>：斜め4方向にどこまでも（成ると「馬」になり、上下左右にも1マス動ける）</li>
+      <li><b>飛</b>：上下左右にどこまでも（成ると「龍」になり、斜め4方向にも1マス動ける）</li>
+      <li><b>歩</b>：前に1マスのみ</li>
+      <li>敵陣（一番奥の列）に入る・出るときに成るかどうかを選べる（歩が最終列に進む時のみ、成りが必須）</li>
+      <li>相手の駒を取ると持ち駒になり、自分の番に空きマスへ打てる（1手消費）</li>
+      <li>歩は同じ列に自分の歩がある時は打てない（二歩）、敵陣の最終列にも打てない</li>
+      <li>自分の王が王手されたままになる手は指せない（王手放置反則）</li>
+      <li>打った歩で相手を詰ませることはできない（打ち歩詰め）</li>
+      <li>同一局面が4回現れたら千日手となり、先手の負け（連続王手による場合はその手を選べない）</li>
+      <li><b>相手の「王」を詰ませたら勝利</b></li>
+    </ul>
+    <button id="rulesCloseBtn" class="rules-close-btn">閉じる</button>
+  </div>
+</div>
+
+<div id="promotionOverlay" class="confirm-overlay">
+  <div class="confirm-card" id="promotionCard">
+    <div class="big">成りますか？</div>
+    <p>敵陣に入りました。成ると駒の動きが変わります。</p>
+    <div class="confirm-row">
+      <button id="promoteYesBtn">成る</button>
+      <button id="promoteNoBtn">成らない</button>
+    </div>
+  </div>
+</div>
+<div id="modeStampPopup" class="check-popup mode-stamp"></div>
+<div id="turnTimerBadge" class="turn-timer-badge"></div>
+
+<div id="confirmOverlay" class="confirm-overlay">
   <div class="confirm-card">
-    <div class="confirm-text">ゲームを終了してモード選択に戻ります。よろしいですか？</div>
-    <div class="confirm-actions">
-      <button id="homeConfirmCancelBtn" class="main-btn">キャンセル</button>
-      <button id="homeConfirmOkBtn" class="main-btn confirm-ok">終了する</button>
+    <div class="big" id="confirmTitle">はじめから</div>
+    <p id="confirmText">現在の対局を中断してやり直します。よろしいですか？</p>
+    <div class="confirm-row">
+      <button id="confirmYesBtn">はい</button>
+      <button id="confirmNoBtn">いいえ</button>
     </div>
   </div>
 </div>
 
-<div id="howToPlayModal" class="modal-overlay hidden">
-  <div class="modal-box">
-    <div class="howto-title">遊び方</div>
-    <ul class="howto-list">
-      <li>2人がそれぞれ0〜9から重複しない3桁の暗証番号を設定します。</li>
-      <li>交互に相手の番号を予想し、3桁の数字を入力します。</li>
-      <li><b>HIT</b>：数字も桁も合っている数(正解と同じ位置の一致数)です。</li>
-      <li><b>BLOW</b>：数字は合っているが桁が違う数です。</li>
-      <li>先に3 HIT(完全一致)を出した方の勝ちです。</li>
-    </ul>
-    <button id="howToPlayCloseBtn" class="main-btn howto-close-btn">閉じる</button>
+<div id="undoConfirmOverlay" class="confirm-overlay">
+  <div class="confirm-card" id="undoConfirmCard">
+    <div class="big">待った</div>
+    <p id="undoConfirmText">直前の一手を取り消します。相手の許可が必要です。よろしいですか？</p>
+    <div class="confirm-row">
+      <button id="undoAllowBtn">許可する</button>
+      <button id="undoDenyBtn">却下する</button>
+    </div>
   </div>
 </div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
-  let secrets, guesses, turn, phase, settingFor;
+  const ROWS = 5, COLS = 5;
+  const KANJI = { king:'王', gold:'金', silver:'銀', bishop:'角', rook:'飛', pawn:'歩', tokin:'と', narigin:'全', uma:'馬', ryu:'龍' };
+  const PROMOTED = { pawn:'tokin', silver:'narigin', bishop:'uma', rook:'ryu' };
+  const DEMOTED = { tokin:'pawn', narigin:'silver', uma:'bishop', ryu:'rook' };
+
+  let board, hands, turn, selected, selectedDrop, gameOver;
   let gameStartedAt = null;
-  let historyExpanded = { sente: false, gote: false };
+  let moveHistory = [];
+  let positionHistory = new Map(); // 千日手 (repetition) tracking
+  let pendingPromotionMove = null;
+  let rejectionCount = 0;
+  let undoBlocked = false;
+  let undoUseCount = 0;
+  let totalUndoUsedThisGame = 0;
+  let pendingUndoRequestedBy = null;
   let vsCPU = false;
-  let cpuDifficulty = 'normal';
+  let cpuDifficulty = 'normal'; // 'normal' | 'master' | 'oni'
   let humanSide = 'sente';
-  let cpuCandidates = [];
+  let cpuThinking = false;
   let cpuMovesMade = 0;
+  let turnTimerInterval = null;
+  let turnTimerDeadline = 0;
+
+  function cpuLabel(){
+    if(cpuDifficulty === 'oni') return '鬼CPU';
+    if(cpuDifficulty === 'master') return '達人CPU';
+    return 'CPU';
+  }
+
+  // Only 鬼 mode runs a per-turn clock, and only against the human's own turns
+  // (the CPU already operates inside its own short time budget).
+  function turnTimeLimitSeconds(){
+    return cpuDifficulty === 'oni' ? 20 : null;
+  }
+
+  function totalUndoLimitForMode(){
+    if(cpuDifficulty === 'oni') return 0;
+    if(cpuDifficulty === 'master') return 7;
+    return Infinity;
+  }
+
+  // Standard 5五将棋 (minishogi) starting position — 180°-rotationally symmetric:
+  //   gote:  飛 角 銀 金 王  (row 0)         .  .  .  .  歩  (row 1)
+  //   sente: 王 金 銀 角 飛  (row ROWS-1)    歩  .  .  .  .  (row ROWS-2)
+  function initialBoard(){
+    const b = Array.from({length:ROWS}, () => Array(COLS).fill(null));
+    b[0][0] = {owner:'gote', type:'rook'};
+    b[0][1] = {owner:'gote', type:'bishop'};
+    b[0][2] = {owner:'gote', type:'silver'};
+    b[0][3] = {owner:'gote', type:'gold'};
+    b[0][4] = {owner:'gote', type:'king'};
+    b[1][4] = {owner:'gote', type:'pawn'};
+    b[ROWS-1][0] = {owner:'sente', type:'king'};
+    b[ROWS-1][1] = {owner:'sente', type:'gold'};
+    b[ROWS-1][2] = {owner:'sente', type:'silver'};
+    b[ROWS-1][3] = {owner:'sente', type:'bishop'};
+    b[ROWS-1][4] = {owner:'sente', type:'rook'};
+    b[ROWS-2][0] = {owner:'sente', type:'pawn'};
+    return b;
+  }
 
   function cpuSide(){
     if(!vsCPU) return null;
     return humanSide === 'sente' ? 'gote' : 'sente';
   }
 
-  function allPossibleCodes(){
-    const codes = [];
-    for(let a=0;a<10;a++){
-      for(let b=0;b<10;b++){
-        for(let c=0;c<10;c++){
-          if(a!==b && b!==c && a!==c) codes.push([a,b,c]);
-        }
-      }
-    }
-    return codes;
-  }
-
-  function randomCode(){
-    const codes = allPossibleCodes();
-    return codes[Math.floor(Math.random()*codes.length)];
-  }
-
-  function resetAll(){
-    secrets = { sente: null, gote: null };
-    guesses = { sente: [], gote: [] };
-    historyExpanded = { sente: false, gote: false };
+  function resetGame(){
+    board = initialBoard();
+    hands = { sente: {}, gote: {} };
     turn = 'sente';
-    phase = 'setup';
-    cpuCandidates = allPossibleCodes();
+    selected = null;
+    selectedDrop = null;
+    gameOver = false;
+    moveHistory = [];
+    positionHistory = new Map();
+    pendingPromotionMove = null;
+    rejectionCount = 0;
+    undoBlocked = false;
+    undoUseCount = 0;
+    totalUndoUsedThisGame = 0;
     cpuMovesMade = 0;
-    document.getElementById('winnerOverlay').classList.remove('show');
-    document.getElementById('senteHistory').innerHTML = '<div class="empty-hint">まだありません</div>';
-    document.getElementById('goteHistory').innerHTML = '<div class="empty-hint">まだありません</div>';
-    document.getElementById('senteHistoryToggle').innerHTML = '';
-    document.getElementById('goteHistoryToggle').innerHTML = '';
-
-    if(vsCPU){
-      secrets[cpuSide()] = randomCode();
-      showSetupFor(humanSide);
-    } else {
-      showSetupFor('sente');
-    }
-    show('setupScreen');
-  }
-
-  function show(id){
-    ['modeScreen','setupScreen','handoffScreen','gameScreen'].forEach(s => {
-      document.getElementById(s).classList.toggle('hidden', s !== id);
-    });
-    const onModeScreen = id === 'modeScreen';
-    document.getElementById('homeBtn').setAttribute('aria-label', onModeScreen ? 'ホームへ戻る' : 'モード選択に戻る');
-
-    // ゲーム画面では背景切り替えボタンを表示しない
-    const bgBtn = document.getElementById('bgSwitchBtn');
-    const bgPanel = document.getElementById('bgSwitchPanel');
-    bgBtn.classList.toggle('hidden', id === 'gameScreen');
-    if(id === 'gameScreen') bgPanel.classList.add('hidden');
-
-    // モード選択画面以外に移動したら「遊び方」モーダルは自動で閉じる
-    if(id !== 'modeScreen'){
-      document.getElementById('howToPlayModal').classList.add('hidden');
-    }
-  }
-
-  function goToModeSelect(){
-    document.getElementById('winnerOverlay').classList.remove('show');
-    show('modeScreen');
-  }
-
-  function showSetupFor(who){
-    settingFor = who;
-    document.getElementById('setupTitle').textContent = (who === 'sente' ? '白' : '黒') + 'の暗証番号を設定してください';
-    clearDials('setupDialRow');
-    document.getElementById('setupError').textContent = '';
-    show('setupScreen');
-    focusFirstDial('setupDialRow');
-  }
-
-  function clearDials(rowId){
-    document.querySelectorAll('#' + rowId + ' input').forEach(inp => { inp.value = ''; inp.closest('.dial').classList.remove('filled'); });
-  }
-
-  function focusFirstDial(rowId){
-    const first = document.querySelector('#' + rowId + ' input[data-idx="0"]');
-    if(first) setTimeout(() => first.focus(), 50);
-  }
-
-  function setupDialNav(rowId){
-    const inputs = Array.from(document.querySelectorAll('#' + rowId + ' input'));
-    inputs.forEach((inp, i) => {
-      inp.addEventListener('input', () => {
-        inp.value = inp.value.replace(/[^0-9]/g, '').slice(0,1);
-        inp.closest('.dial').classList.toggle('filled', inp.value !== '');
-        if(inp.value && i < inputs.length - 1) inputs[i+1].focus();
-      });
-      inp.addEventListener('keydown', (e) => {
-        if(e.key === 'Backspace' && !inp.value && i > 0){
-          inputs[i-1].focus();
-        }
-        if(e.key === 'Enter'){
-          e.preventDefault();
-          if(rowId === 'setupDialRow') document.getElementById('setupConfirmBtn').click();
-          else document.getElementById('guessSubmitBtn').click();
-        }
-      });
-    });
-  }
-
-  function buildKeypad(containerId, rowId){
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    const keys = ['1','2','3','4','5','6','7','8','9','','0','back'];
-    keys.forEach(key => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      if(key === ''){
-        btn.className = 'keypad-btn blank';
-      } else if(key === 'back'){
-        btn.className = 'keypad-btn backspace';
-        btn.textContent = '⌫';
-        btn.setAttribute('aria-label', '1文字消す');
-        btn.addEventListener('click', () => keypadBackspace(rowId));
-      } else {
-        btn.className = 'keypad-btn';
-        btn.textContent = key;
-        btn.addEventListener('click', () => keypadDigit(rowId, key));
-      }
-      container.appendChild(btn);
-    });
-  }
-
-  function keypadDigit(rowId, digit){
-    const inputs = Array.from(document.querySelectorAll('#' + rowId + ' input'));
-    const idx = inputs.findIndex(inp => inp.value === '');
-    if(idx === -1) return;
-    inputs[idx].value = digit;
-    inputs[idx].dispatchEvent(new Event('input'));
-  }
-
-  function keypadBackspace(rowId){
-    const inputs = Array.from(document.querySelectorAll('#' + rowId + ' input'));
-    let idx = -1;
-    for(let i = inputs.length - 1; i >= 0; i--){
-      if(inputs[i].value !== ''){ idx = i; break; }
-    }
-    if(idx === -1) return;
-    inputs[idx].value = '';
-    inputs[idx].dispatchEvent(new Event('input'));
-  }
-
-  function readDials(rowId){
-    return Array.from(document.querySelectorAll('#' + rowId + ' input')).map(inp => inp.value);
-  }
-
-  function validateDigits(values){
-    if(values.some(v => v === '')) return { ok:false, msg:'3桁すべて入力してください' };
-    if(new Set(values).size !== values.length) return { ok:false, msg:'重複しない数字を入力してください' };
-    return { ok:true };
-  }
-
-  function shakeRow(rowId){
-    const row = document.getElementById(rowId);
-    row.classList.remove('shake');
-    void row.offsetWidth;
-    row.classList.add('shake');
-  }
-
-  document.getElementById('setupConfirmBtn').addEventListener('click', () => {
-    const values = readDials('setupDialRow');
-    const check = validateDigits(values);
-    if(!check.ok){
-      document.getElementById('setupError').textContent = check.msg;
-      shakeRow('setupDialRow');
-      return;
-    }
-    secrets[settingFor] = values.map(Number);
-
-    if(vsCPU){
-      document.getElementById('handoffTitle').textContent = '設定が完了しました';
-      document.getElementById('handoffSub').textContent = 'CPUとの対局を開始します。';
-      show('handoffScreen');
-      document.getElementById('handoffBtn').onclick = startGame;
-      return;
-    }
-
-    if(settingFor === 'sente'){
-      document.getElementById('handoffTitle').textContent = '白の設定が完了しました';
-      document.getElementById('handoffSub').textContent = '端末を後手（黒）に渡してください。準備ができたら進めます。';
-      show('handoffScreen');
-      document.getElementById('handoffBtn').onclick = () => showSetupFor('gote');
-    } else {
-      document.getElementById('handoffTitle').textContent = '両者の設定が完了しました';
-      document.getElementById('handoffSub').textContent = '端末を先手（白）に渡してください。準備ができたら対局を開始します。';
-      show('handoffScreen');
-      document.getElementById('handoffBtn').onclick = startGame;
-    }
-  });
-
-  function startGame(){
-    phase = 'playing';
-    turn = 'sente';
     gameStartedAt = Date.now();
-    updateModeLabels();
-    show('gameScreen');
-    updateTurnUI(false);
-    if(vsCPU && turn === cpuSide()){
-      triggerCpuTurn();
+    document.getElementById('winnerOverlay').classList.remove('show');
+    document.getElementById('promotionOverlay').classList.remove('show');
+
+    document.getElementById('boardFrame').classList.toggle('flipped', humanSide === 'gote');
+    document.getElementById('boardRow').classList.toggle('swap-trays', humanSide === 'gote');
+    document.getElementById('undoBtn').classList.toggle('hidden', cpuSide() === 'sente');
+    document.getElementById('undoBtnGote').classList.toggle('hidden', cpuSide() === 'gote');
+    updateUndoButtonSeats();
+
+    updateUndoButton();
+    recordPosition();
+    render();
+
+    if(vsCPU && cpuSide() === 'sente' && !gameOver){
+      cpuThinking = true;
+      document.getElementById('statusText').textContent = cpuLabel() + '（先手）が考え中…';
+      setTimeout(cpuTakeTurn, 1500);
     }
+    startTurnTimerIfNeeded();
   }
 
-  function updateModeLabels(){
-    const badge = document.getElementById('modeBadge');
-    const senteLabel = document.getElementById('senteHistoryLabel');
-    const goteLabel = document.getElementById('goteHistoryLabel');
-    if(!vsCPU){
-      badge.textContent = '対戦：2人対戦';
-      senteLabel.textContent = '白の予想';
-      goteLabel.textContent = '黒の予想';
-      return;
-    }
-    badge.textContent = '対戦：' + (cpuDifficulty === 'master' ? '達人CPU' : 'CPU');
-    const youLabel = 'あなたの入力';
-    const cpuLabel = '相手（CPU）の入力';
-    if(humanSide === 'sente'){
-      senteLabel.textContent = youLabel;
-      goteLabel.textContent = cpuLabel;
-    } else {
-      senteLabel.textContent = cpuLabel;
-      goteLabel.textContent = youLabel;
-    }
+  function pushHistorySnapshot(){
+    moveHistory.push({
+      board: JSON.parse(JSON.stringify(board)),
+      hands: JSON.parse(JSON.stringify(hands)),
+      turn: turn,
+      positionHistory: new Map(positionHistory),
+    });
+    rejectionCount = 0;
+    undoBlocked = false;
+    undoUseCount = 0;
+    updateUndoButton();
   }
 
-  function updateTurnUI(pulse){
-    const seal = document.getElementById('seal');
-    seal.className = 'seal' + (turn === 'gote' ? ' gote' : '') + (pulse ? ' pulse' : '');
-    if(pulse){ void seal.offsetWidth; seal.classList.add('pulse'); }
-
-    const isCpuTurn = vsCPU && turn === cpuSide();
-    if(vsCPU){
-      seal.textContent = isCpuTurn ? (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'のターン' : 'あなたのターン';
-    } else {
-      seal.textContent = (turn === 'sente' ? '白' : '黒') + 'の番';
-    }
-
-    document.getElementById('guessSubmitBtn').disabled = isCpuTurn;
-    document.querySelectorAll('#guessDialRow input').forEach(inp => { inp.disabled = isCpuTurn; });
-
-    if(isCpuTurn){
-      document.getElementById('statusText').textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'が考え中…';
-    } else {
-      document.getElementById('statusText').textContent = vsCPU
-        ? '相手の3桁を予想してください'
-        : '相手の3桁を予想してください（相手：' + (turn === 'sente' ? '黒' : '白') + '）';
-      clearDials('guessDialRow');
-      document.getElementById('guessError').textContent = '';
-      focusFirstDial('guessDialRow');
-    }
+  function updateUndoButton(){
+    const disabled = moveHistory.length === 0 || undoBlocked || undoUseCount >= 5;
+    const btn = document.getElementById('undoBtn');
+    const btnGote = document.getElementById('undoBtnGote');
+    if(btn) btn.disabled = disabled;
+    if(btnGote) btnGote.disabled = disabled;
   }
 
-  function cpuChooseGuess(){
-    if(cpuCandidates.length === 0) cpuCandidates = allPossibleCodes();
-    if(cpuDifficulty !== 'master'){
-      return cpuCandidates[Math.floor(Math.random() * cpuCandidates.length)];
+  function undoLastMove(){
+    if(moveHistory.length === 0) return;
+    const snap = moveHistory.pop();
+    board = snap.board;
+    hands = snap.hands;
+    turn = snap.turn;
+    positionHistory = snap.positionHistory;
+    selected = null;
+    selectedDrop = null;
+    gameOver = false;
+    rejectionCount = 0;
+    undoBlocked = false;
+    document.getElementById('winnerOverlay').classList.remove('show');
+    updateUndoButton();
+    render();
+    startTurnTimerIfNeeded();
+  }
+
+  function inBounds(r,c){ return r>=0 && r<ROWS && c>=0 && c<COLS; }
+
+  // Single-step offsets. 王/金/成銀/と/歩/銀 keep their classic shogi moves;
+  // 馬(uma)/龍(ryu) add the one-square moves their promotion grants on top
+  // of the bishop/rook slide they already have.
+  function stepOffsets(type, owner){
+    const fwd = owner === 'sente' ? -1 : 1;
+    if(type === 'king'){
+      const out = [];
+      for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) if(dr||dc) out.push([dr,dc]);
+      return out;
     }
-    let bestGuess = cpuCandidates[0];
-    let bestWorst = Infinity;
-    for(const guess of cpuCandidates){
-      const buckets = new Map();
-      for(const cand of cpuCandidates){
-        const r = computeHitBlow(guess, cand);
-        const key = r.hit + '-' + r.blow;
-        buckets.set(key, (buckets.get(key) || 0) + 1);
+    if(type === 'gold' || type === 'tokin' || type === 'narigin'){
+      return [[fwd,-1],[fwd,0],[fwd,1],[0,-1],[0,1],[-fwd,0]];
+    }
+    if(type === 'silver'){
+      return [[fwd,-1],[fwd,0],[fwd,1],[-fwd,-1],[-fwd,1]];
+    }
+    if(type === 'pawn'){
+      return [[fwd,0]];
+    }
+    if(type === 'uma'){ return [[-1,0],[1,0],[0,-1],[0,1]]; }
+    if(type === 'ryu'){ return [[-1,-1],[-1,1],[1,-1],[1,1]]; }
+    return [];
+  }
+  // Sliding directions (any distance until blocked/capture) for 飛/角 and their promotions.
+  function slideDirs(type){
+    if(type === 'bishop' || type === 'uma') return [[-1,-1],[-1,1],[1,-1],[1,1]];
+    if(type === 'rook' || type === 'ryu') return [[-1,0],[1,0],[0,-1],[0,1]];
+    return [];
+  }
+
+  // Raw "physically possible" moves, ignoring whether they'd leave your own king in check.
+  function pseudoMovesFrom(board, r, c){
+    const piece = board[r][c];
+    if(!piece) return [];
+    const out = [];
+    for(const [dr,dc] of stepOffsets(piece.type, piece.owner)){
+      const nr=r+dr, nc=c+dc;
+      if(!inBounds(nr,nc)) continue;
+      const target = board[nr][nc];
+      if(target && target.owner === piece.owner) continue;
+      out.push([nr,nc]);
+    }
+    for(const [dr,dc] of slideDirs(piece.type)){
+      let nr=r+dr, nc=c+dc;
+      while(inBounds(nr,nc)){
+        const target = board[nr][nc];
+        if(target){
+          if(target.owner !== piece.owner) out.push([nr,nc]);
+          break;
+        }
+        out.push([nr,nc]);
+        nr += dr; nc += dc;
       }
-      const worst = Math.max(...buckets.values());
-      if(worst < bestWorst){ bestWorst = worst; bestGuess = guess; }
     }
-    return bestGuess;
+    return out;
   }
 
-  function triggerCpuTurn(){
-    updateTurnUI(false);
-    setTimeout(cpuTakeTurn, cpuMovesMade === 0 ? 1500 : 700);
+  function pseudoDropsFor(board, hands, owner, type){
+    const out = [];
+    const lastRow = owner === 'sente' ? 0 : ROWS-1;
+    let hasOwnPawnInCol = null;
+    if(type === 'pawn'){
+      hasOwnPawnInCol = Array(COLS).fill(false);
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+        const p = board[r][c];
+        if(p && p.owner===owner && p.type==='pawn') hasOwnPawnInCol[c] = true;
+      }
+    }
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        if(board[r][c]) continue;
+        if(type === 'pawn'){
+          if(r === lastRow) continue;          // 行きどころのない駒
+          if(hasOwnPawnInCol[c]) continue;      // 二歩
+        }
+        out.push([r,c]);
+      }
+    }
+    return out;
+  }
+
+  function cloneBoard(b){ return b.map(row => row.map(c => c ? { owner:c.owner, type:c.type } : null)); }
+  function cloneHands(h){ return { sente: {...h.sente}, gote: {...h.gote} }; }
+
+  function findKing(board, owner){
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const p = board[r][c];
+      if(p && p.owner === owner && p.type === 'king') return [r,c];
+    }
+    return null;
+  }
+  function isSquareAttacked(board, r, c, byOwner){
+    for(let rr=0;rr<ROWS;rr++){
+      for(let cc=0;cc<COLS;cc++){
+        const p = board[rr][cc];
+        if(!p || p.owner !== byOwner) continue;
+        if(pseudoMovesFrom(board, rr, cc).some(([mr,mc]) => mr===r && mc===c)) return true;
+      }
+    }
+    return false;
+  }
+  function isKingInCheck(board, owner){
+    const kpos = findKing(board, owner);
+    if(!kpos) return false;
+    const opponent = owner === 'sente' ? 'gote' : 'sente';
+    return isSquareAttacked(board, kpos[0], kpos[1], opponent);
+  }
+
+  function isInPromotionZone(row, owner){
+    return owner === 'sente' ? row === 0 : row === ROWS-1;
+  }
+  function isPromotionEligible(piece, fromRow, toRow){
+    return !!PROMOTED[piece.type] && (isInPromotionZone(fromRow, piece.owner) || isInPromotionZone(toRow, piece.owner));
+  }
+  // A pawn landing on the very last row has no legal forward move left unless it promotes.
+  function mustPromote(piece, toRow){
+    if(piece.type !== 'pawn') return false;
+    const lastRow = piece.owner === 'sente' ? 0 : ROWS-1;
+    return toRow === lastRow;
+  }
+
+  function applyMove(board, hands, move, player, promote){
+    const piece = board[move.r][move.c];
+    const captured = board[move.nr][move.nc];
+    let kingCaptured = false;
+    if(captured){
+      if(captured.type === 'king') kingCaptured = true;
+      else {
+        const baseType = DEMOTED[captured.type] || captured.type;
+        hands[player][baseType] = (hands[player][baseType] || 0) + 1;
+      }
+    }
+    const eligible = isPromotionEligible(piece, move.r, move.nr);
+    const newType = (promote && eligible) ? PROMOTED[piece.type] : piece.type;
+    board[move.nr][move.nc] = { owner: player, type: newType };
+    board[move.r][move.c] = null;
+    return kingCaptured;
+  }
+  function applyDrop(board, hands, move, player){
+    board[move.nr][move.nc] = { owner: player, type: move.type };
+    hands[player][move.type] -= 1;
+    if(hands[player][move.type] <= 0) delete hands[player][move.type];
+  }
+
+  function wouldLeaveSelfInCheck(board, hands, move, player){
+    const b2 = cloneBoard(board), h2 = cloneHands(hands);
+    if(move.kind === 'move') applyMove(b2, h2, move, player, false);
+    else applyDrop(b2, h2, move, player);
+    return isKingInCheck(b2, player);
+  }
+
+  // Self-check-legal move list (fast — no 打ち歩詰め / 千日手 filtering). Used
+  // both for checkmate/escape detection and as the base for full legality.
+  function generateMoves(board, hands, player){
+    const moves = [];
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const piece = board[r][c];
+        if(!piece || piece.owner !== player) continue;
+        pseudoMovesFrom(board, r, c).forEach(([nr,nc]) => {
+          const move = { kind:'move', r, c, nr, nc };
+          if(wouldLeaveSelfInCheck(board, hands, move, player)) return;
+          move.promotable = isPromotionEligible(piece, r, nr);
+          move.mustPromote = mustPromote(piece, nr);
+          moves.push(move);
+        });
+      }
+    }
+    Object.keys(hands[player] || {}).forEach(type => {
+      if((hands[player][type] || 0) <= 0) return;
+      pseudoDropsFor(board, hands, player, type).forEach(([nr,nc]) => {
+        const move = { kind:'drop', type, nr, nc };
+        if(wouldLeaveSelfInCheck(board, hands, move, player)) return;
+        moves.push(move);
+      });
+    });
+    return moves;
+  }
+
+  function hasAnyLegalMove(board, hands, owner){
+    return generateMoves(board, hands, owner).length > 0;
+  }
+  function isCheckmate(board, hands, owner){
+    return isKingInCheck(board, owner) && !hasAnyLegalMove(board, hands, owner);
+  }
+
+  function encodePosition(board, hands, turnToMove){
+    let s = turnToMove[0];
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const p = board[r][c];
+      s += p ? (p.owner[0] + p.type) : '.';
+    }
+    const h = side => Object.keys(hands[side]).sort().map(k => k + hands[side][k]).join(',');
+    return s + '|' + h('sente') + '|' + h('gote');
+  }
+  function recordPosition(){
+    const key = encodePosition(board, hands, turn);
+    positionHistory.set(key, (positionHistory.get(key) || 0) + 1);
+  }
+
+  // Fully legal moves: adds 打ち歩詰め (illegal mating pawn drop) and blocks a
+  // move that would create a 4th repeated position while giving check
+  // (連続王手の千日手 — the checking side must play something else). A
+  // non-check repetition is allowed through and ends the game via 千日手
+  // (先手の負け) once actually played, matching the reference rules.
+  function generateFullyLegalMoves(board, hands, player){
+    return generateMoves(board, hands, player).filter(move => {
+      const opponent = player === 'sente' ? 'gote' : 'sente';
+      if(move.kind === 'drop' && move.type === 'pawn'){
+        const b2 = cloneBoard(board), h2 = cloneHands(hands);
+        applyDrop(b2, h2, move, player);
+        if(isCheckmate(b2, h2, opponent)) return false; // 打ち歩詰め
+      }
+      const b2 = cloneBoard(board), h2 = cloneHands(hands);
+      if(move.kind === 'move') applyMove(b2, h2, move, player, move.mustPromote);
+      else applyDrop(b2, h2, move, player);
+      if(isKingInCheck(b2, opponent)){
+        const key = encodePosition(b2, h2, opponent);
+        if((positionHistory.get(key) || 0) >= 3) return false; // would be a 4th repeat via continuous check
+      }
+      return true;
+    });
+  }
+  const PIECE_VALUE = { pawn:1, silver:5, gold:6, tokin:7, narigin:7, bishop:8, rook:10, uma:11, ryu:13, king:0 };
+
+  function showCheckPopup(owner){
+    const el = document.getElementById('checkPopup');
+    el.classList.remove('show');
+    el.classList.toggle('flipped', !isTurnAtBottom(owner));
+    void el.offsetWidth;
+    el.classList.add('show');
+    if(window.sePlayer) window.sePlayer.play('check');
+  }
+
+  function evaluatePosition(board, hands){
+    let score = 0;
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const p = board[r][c];
+        if(!p) continue;
+        score += (p.owner === 'gote' ? 1 : -1) * (PIECE_VALUE[p.type] || 0);
+      }
+    }
+    Object.keys(hands.gote || {}).forEach(t => { score += (PIECE_VALUE[t] || 0) * hands.gote[t]; });
+    Object.keys(hands.sente || {}).forEach(t => { score -= (PIECE_VALUE[t] || 0) * hands.sente[t]; });
+    return score;
+  }
+
+  // Recursive search uses the cheaper self-check-only move list (generateMoves)
+  // for speed; 打ち歩詰め and 千日手 are rare edge cases that only matter for
+  // the move actually played, which is validated separately via
+  // generateFullyLegalMoves at the root.
+  function minimaxSearch(board, hands, player, depth, alpha, beta){
+    const moves = generateMoves(board, hands, player);
+    if(depth === 0 || moves.length === 0) return evaluatePosition(board, hands);
+
+    if(player === 'gote'){
+      let best = -Infinity;
+      for(const move of moves){
+        const b2 = cloneBoard(board), h2 = cloneHands(hands);
+        const kingCaptured = move.kind === 'move' ? applyMove(b2, h2, move, player, true) : (applyDrop(b2, h2, move, player), false);
+        const score = kingCaptured ? (1000 + depth) : minimaxSearch(b2, h2, 'sente', depth - 1, alpha, beta);
+        if(score > best) best = score;
+        alpha = Math.max(alpha, best);
+        if(alpha >= beta) break;
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for(const move of moves){
+        const b2 = cloneBoard(board), h2 = cloneHands(hands);
+        const kingCaptured = move.kind === 'move' ? applyMove(b2, h2, move, player, true) : (applyDrop(b2, h2, move, player), false);
+        const score = kingCaptured ? (-1000 - depth) : minimaxSearch(b2, h2, 'gote', depth - 1, alpha, beta);
+        if(score < best) best = score;
+        beta = Math.min(beta, best);
+        if(alpha >= beta) break;
+      }
+      return best;
+    }
+  }
+
+  // 難易度ごとの思考時間の上限。読みを深くする分、達人・鬼には少し多めに時間を渡す
+  // （反復深化なので、時間切れなら手前で完了した depth の最善手にフォールバックする＝UIは固まらない）
+  function cpuTimeBudgetMs(){
+    if(cpuDifficulty === 'oni') return 900;
+    if(cpuDifficulty === 'master') return 550;
+    return 300;
+  }
+
+  function cpuChooseMove(){
+    const side = cpuSide();
+    const opponent = side === 'sente' ? 'gote' : 'sente';
+    // 通常CPU=2手先、達人CPU=4手先、鬼CPU=6手先。
+    // 達人はこれまで3手先＋駒の損得計算だけだったため「見えている範囲が浅く、
+    // 数手先の罠にかかりやすい」＝ミスが多いように感じられていた。深さを1つ上げて
+    // 実力差をはっきりさせる。
+    const maxDepth = cpuDifficulty === 'oni' ? 6 : (cpuDifficulty === 'master' ? 4 : 2);
+    const CPU_TIME_BUDGET_MS = cpuTimeBudgetMs();
+    const moves = generateFullyLegalMoves(board, hands, side);
+    if(moves.length === 0) return null;
+
+    const startTime = performance.now();
+    let bestMove = moves[0];
+
+    // Iterative deepening: search depth 1, 2, 3... keeping the best result
+    // from the deepest COMPLETED depth, and bail out once the time budget
+    // is used up so the UI never freezes.
+    for(let depth = 1; depth <= maxDepth; depth++){
+      if(performance.now() - startTime > CPU_TIME_BUDGET_MS) break;
+
+      let depthBestMove = null;
+      let depthBestScore = side === 'gote' ? -Infinity : Infinity;
+      let timedOut = false;
+
+      for(const move of moves){
+        if(performance.now() - startTime > CPU_TIME_BUDGET_MS){ timedOut = true; break; }
+        const b2 = cloneBoard(board), h2 = cloneHands(hands);
+        const kingCaptured = move.kind === 'move' ? applyMove(b2, h2, move, side, true) : (applyDrop(b2, h2, move, side), false);
+        let score;
+        if(kingCaptured){
+          score = side === 'gote' ? 10000 : -10000;
+        } else {
+          score = minimaxSearch(b2, h2, opponent, depth - 1, -Infinity, Infinity);
+        }
+        const better = side === 'gote' ? (score > depthBestScore) : (score < depthBestScore);
+        if(better){ depthBestScore = score; depthBestMove = move; }
+      }
+
+      if(timedOut || !depthBestMove) break;
+      bestMove = depthBestMove;
+      if(Math.abs(depthBestScore) >= 9000) break;
+    }
+
+    return bestMove;
   }
 
   function cpuTakeTurn(){
-    if(phase !== 'playing' || !vsCPU || turn !== cpuSide()) return;
-    const guess = cpuChooseGuess();
-    const humanSecret = secrets[humanSide];
-    const result = computeHitBlow(guess, humanSecret);
-    guesses[turn].push({ guess, result });
-    renderHistory(turn);
-
-    cpuCandidates = cpuCandidates.filter(c => {
-      const r = computeHitBlow(guess, c);
-      return r.hit === result.hit && r.blow === result.blow;
-    });
+    cpuThinking = false;
+    if(gameOver || !vsCPU || turn !== cpuSide()) return;
+    const move = cpuChooseMove();
+    if(!move){
+      // Defensive fallback: the CPU has no legal move. endTurn()'s
+      // checkmate/no-move detection should already have ended the game
+      // before this point is ever reached, but handle it safely regardless.
+      gameOver = true;
+      const winner = turn === 'sente' ? 'gote' : 'sente';
+      showWinner(winner, '動かせる手がありません');
+      render();
+      return;
+    }
+    pushHistorySnapshot();
+    const isCapture = move.kind === 'move' && !!board[move.nr][move.nc];
+    const willPromote = move.kind === 'move' && isPromotionEligible(board[move.r][move.c], move.r, move.nr);
+    // The CPU always promotes when eligible — correct in the overwhelming
+    // majority of real minishogi positions.
+    if(move.kind === 'move') applyMove(board, hands, move, turn, true);
+    else applyDrop(board, hands, move, turn);
+    if(window.sePlayer){
+      if(move.kind === 'drop') window.sePlayer.play('drop');
+      else window.sePlayer.play(isCapture ? 'capture' : 'move');
+      if(willPromote) setTimeout(() => window.sePlayer.play('promote'), 130);
+    }
     cpuMovesMade++;
-
-    if(result.hit === 3){
-      phase = 'over';
-      showWinner(turn, humanSecret);
-      return;
-    }
-
-    turn = humanSide;
-    updateTurnUI(true);
+    endTurn();
   }
 
-  function computeHitBlow(guess, secret){
-    let hit = 0;
-    const gLeft = [], sLeft = [];
-    for(let i=0;i<3;i++){
-      if(guess[i] === secret[i]) hit++;
-      else { gLeft.push(guess[i]); sLeft.push(secret[i]); }
+  function commitMove(move, promote){
+    pushHistorySnapshot();
+    const isCapture = move.kind === 'move' && !!board[move.nr][move.nc];
+    const willPromote = move.kind === 'move' && promote && isPromotionEligible(board[move.r][move.c], move.r, move.nr);
+    let kingCaptured;
+    if(move.kind === 'move') kingCaptured = applyMove(board, hands, move, turn, promote);
+    else { applyDrop(board, hands, move, turn); kingCaptured = false; }
+    if(window.sePlayer){
+      if(move.kind === 'drop') window.sePlayer.play('drop');
+      else window.sePlayer.play(isCapture ? 'capture' : 'move');
+      if(willPromote) setTimeout(() => window.sePlayer.play('promote'), 130);
     }
-    let blow = 0;
-    const used = Array(sLeft.length).fill(false);
-    gLeft.forEach(g => {
-      const idx = sLeft.findIndex((s, i) => !used[i] && s === g);
-      if(idx !== -1){ used[idx] = true; blow++; }
-    });
-    return { hit, blow };
+    if(kingCaptured){
+      // Shouldn't happen under fully-legal (self-check-illegal) play, but guard anyway.
+      gameOver = true;
+      showWinner(turn, '玉を討ち取りました');
+      render();
+      return;
+    }
+    endTurn();
   }
 
-  document.getElementById('guessSubmitBtn').addEventListener('click', () => {
-    if(phase !== 'playing') return;
-    if(vsCPU && turn === cpuSide()) return;
-    const values = readDials('guessDialRow');
-    const check = validateDigits(values);
-    if(!check.ok){
-      document.getElementById('guessError').textContent = check.msg;
-      shakeRow('guessDialRow');
+  function requestMove(move){
+    if(move.mustPromote){
+      commitMove(move, true);
       return;
     }
-    const guess = values.map(Number);
-    const opponent = turn === 'sente' ? 'gote' : 'sente';
-    const result = computeHitBlow(guess, secrets[opponent]);
-    guesses[turn].push({ guess, result });
-    renderHistory(turn);
-
-    if(result.hit === 3){
-      phase = 'over';
-      showWinner(turn, secrets[opponent]);
+    if(move.promotable){
+      pendingPromotionMove = move;
+      showPromotionPrompt();
       return;
     }
-
-    turn = opponent;
-    updateTurnUI(true);
-
-    if(vsCPU && turn === cpuSide()){
-      triggerCpuTurn();
-    }
-  });
-
-  let historyRowHeight = null;
-
-  function renderHistory(who){
-    const el = document.getElementById(who === 'sente' ? 'senteHistory' : 'goteHistory');
-    const toggleEl = document.getElementById(who === 'sente' ? 'senteHistoryToggle' : 'goteHistoryToggle');
-    const list = guesses[who];
-    el.innerHTML = '';
-    el.classList.remove('expanded');
-    el.style.maxHeight = '';
-    el.style.overflowY = '';
-    toggleEl.innerHTML = '';
-
-    const style = getComputedStyle(el);
-    const gap = parseFloat(style.rowGap || style.gap) || 0;
-    const rowH = historyRowHeight || 24;
-    el.style.minHeight = (rowH * 3 + gap * 2) + 'px';
-
-    if(list.length === 0){
-      el.innerHTML = '<div class="empty-hint">まだありません</div>';
-      return;
-    }
-    const showCount = historyExpanded[who] ? list.length : Math.min(3, list.length);
-    for(let n = 0; n < showCount; n++){
-      const i = list.length - 1 - n;
-      const item = list[i];
-      const row = document.createElement('div');
-      row.className = 'history-item';
-
-      const num = document.createElement('span');
-      num.className = 'history-num';
-      num.textContent = String(i + 1).padStart(2, '0');
-
-      const digits = document.createElement('span');
-      digits.className = 'history-digits';
-      item.guess.forEach(d => {
-        const box = document.createElement('span');
-        box.className = 'hdigit';
-        box.textContent = d;
-        digits.appendChild(box);
-      });
-
-      const hitVal = document.createElement('span');
-      hitVal.className = 'history-result hit-val';
-      hitVal.textContent = item.result.hit + 'H';
-
-      const blowVal = document.createElement('span');
-      blowVal.className = 'history-result';
-      blowVal.textContent = item.result.blow + 'B';
-
-      row.appendChild(num);
-      row.appendChild(digits);
-      row.appendChild(hitVal);
-      row.appendChild(blowVal);
-      el.appendChild(row);
-    }
-
-    const rows = el.querySelectorAll('.history-item');
-    if(rows.length){
-      historyRowHeight = rows[0].getBoundingClientRect().height;
-      el.style.minHeight = (historyRowHeight * 3 + gap * 2) + 'px';
-    }
-
-    if(list.length > 3){
-      const toggle = document.createElement('div');
-      toggle.className = 'history-toggle-btn';
-      toggle.textContent = historyExpanded[who] ? '▲ 折りたたむ' : '▼ すべて表示（' + list.length + '件）';
-      toggle.addEventListener('click', () => {
-        historyExpanded[who] = !historyExpanded[who];
-        renderHistory(who);
-      });
-      toggleEl.appendChild(toggle);
-    }
-
-    if(historyExpanded[who] && list.length > 4 && historyRowHeight){
-      const maxH = historyRowHeight * 4 + gap * 3;
-      el.style.maxHeight = maxH + 'px';
-      el.style.overflowY = 'auto';
-      el.classList.add('expanded');
-    }
+    commitMove(move, false);
   }
 
-  function showWinner(winner, revealedCode){
+  function endTurn(){
+    clearTurnTimer();
+    turn = turn === 'sente' ? 'gote' : 'sente';
+    selected = null;
+    selectedDrop = null;
+    recordPosition();
+
+    if(isCheckmate(board, hands, turn)){
+      gameOver = true;
+      const winner = turn === 'sente' ? 'gote' : 'sente';
+      showWinner(winner, '相手玉を詰ませました');
+      render();
+      return;
+    }
+    if(!hasAnyLegalMove(board, hands, turn)){
+      gameOver = true;
+      const winner = turn === 'sente' ? 'gote' : 'sente';
+      showWinner(winner, '動かせる手がありません');
+      render();
+      return;
+    }
+    const key = encodePosition(board, hands, turn);
+    if((positionHistory.get(key) || 0) >= 4){
+      gameOver = true;
+      showWinner('gote', '千日手（同一局面が4回現れました）');
+      render();
+      return;
+    }
+
+    render(true);
+
+    if(isKingInCheck(board, turn)) showCheckPopup(turn);
+
+    if(vsCPU && turn === cpuSide() && !gameOver){
+      cpuThinking = true;
+      const sideLabel = cpuSide() === 'sente' ? '先手' : '後手';
+      document.getElementById('statusText').textContent = cpuLabel() + '（' + sideLabel + '）が考え中…';
+      setTimeout(cpuTakeTurn, cpuMovesMade === 0 ? 1500 : 550);
+    }
+    startTurnTimerIfNeeded();
+  }
+
+  // Each seat reads its own outcome the right way up: whichever seat is a
+  // human gets "あなたの勝ち／負け", a CPU-controlled seat gets "CPUの勝ち／負け".
+  function seatLabel(owner){
+    return (vsCPU && owner === cpuSide()) ? 'CPU' : 'あなた';
+  }
+
+  function showWinner(winner, reason){
+    clearTurnTimer();
     const overlay = document.getElementById('winnerOverlay');
-    document.getElementById('winnerText').textContent = (winner === 'sente' ? '白' : '黒') + 'の勝ち！';
-    document.getElementById('codeReveal').textContent = revealedCode.join('  ');
-    document.getElementById('winnerSub').textContent = '相手の暗証番号を解読しました';
+    ['sente', 'gote'].forEach(owner => {
+      const atBottom = isTurnAtBottom(owner);
+      const el = document.getElementById(atBottom ? 'winnerTextBottom' : 'winnerTextTop');
+      el.textContent = seatLabel(owner) + (owner === winner ? 'の勝ち！' : 'の負け…');
+    });
+    // In 2P local play, the top slot belongs to a second real person sitting
+    // "across the board", so it's rotated to read right-side up for them. In
+    // vsCPU mode the top slot is always the CPU's own status line, which
+    // nobody needs to read upside down, so it stays upright too.
+    document.getElementById('winnerPerspectiveTop').classList.toggle('rotated', !vsCPU);
+    document.getElementById('winnerReason').textContent = reason || '相手玉を詰ませました';
     overlay.classList.add('show');
+    if(window.sePlayer){
+      const humanLost = vsCPU && winner !== humanSide;
+      window.sePlayer.play(humanLost ? 'lose' : 'win');
+    }
 
     // ホーム画面の「記録」タブ用に対局結果を記録しておく
     if(window.hitotokiStats){
-      window.hitotokiStats.recordGameEnd('hit_and_blow', 'ヒット＆ブロー', {
+      window.hitotokiStats.recordGameEnd('mini_shogi', 'ミニ将棋', {
         vsCPU: vsCPU,
         won: vsCPU ? (winner === humanSide) : undefined,
         durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
@@ -1358,85 +1784,504 @@
     }
   }
 
-  document.getElementById('homeBtn').addEventListener('click', () => {
-    const onModeScreen = !document.getElementById('modeScreen').classList.contains('hidden');
-    if(onModeScreen){
-      window.location.href = 'index.html';
-      return;
-    }
-    if(phase === 'setup' || phase === 'playing'){
-      document.getElementById('homeConfirmOverlay').classList.add('show');
-      return;
-    }
-    goToModeSelect();
-  });
-
-  document.getElementById('homeConfirmOkBtn').addEventListener('click', () => {
-    document.getElementById('homeConfirmOverlay').classList.remove('show');
-    goToModeSelect();
-  });
-  document.getElementById('homeConfirmCancelBtn').addEventListener('click', () => {
-    document.getElementById('homeConfirmOverlay').classList.remove('show');
-  });
-  document.getElementById('homeConfirmOverlay').addEventListener('click', (e) => {
-    if(e.target === document.getElementById('homeConfirmOverlay')){
-      document.getElementById('homeConfirmOverlay').classList.remove('show');
-    }
-  });
-
-  document.getElementById('againBtn').addEventListener('click', goToModeSelect);
-
-  const howToPlayModal = document.getElementById('howToPlayModal');
-  document.getElementById('modeRulesBtn').addEventListener('click', () => {
-    howToPlayModal.classList.remove('hidden');
-  });
-  document.getElementById('howToPlayCloseBtn').addEventListener('click', () => {
-    howToPlayModal.classList.add('hidden');
-  });
-  howToPlayModal.addEventListener('click', (e) => {
-    if(e.target === howToPlayModal){ howToPlayModal.classList.add('hidden'); }
-  });
-
-
-  function setMode(newVsCPU, newDifficulty){
-    vsCPU = newVsCPU;
-    cpuDifficulty = newDifficulty;
-    document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !vsCPU);
-    document.getElementById('modeCPUBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'normal');
-    document.getElementById('modeCPUMasterBtn').classList.toggle('active', vsCPU && cpuDifficulty === 'master');
-    document.getElementById('sideToggleRow').classList.remove('hidden');
+  function showPromotionPrompt(){
+    const overlay = document.getElementById('promotionOverlay');
+    document.getElementById('promotionCard').classList.toggle('rotated', !isTurnAtBottom(turn));
+    overlay.classList.add('show');
   }
-  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => setMode(false, 'normal'));
-  document.getElementById('modeCPUBtn').addEventListener('click', () => setMode(true, 'normal'));
-  document.getElementById('modeCPUMasterBtn').addEventListener('click', () => setMode(true, 'master'));
 
+  function movesFromSquare(r, c){
+    return generateFullyLegalMoves(board, hands, turn).filter(m => m.kind === 'move' && m.r === r && m.c === c);
+  }
+  function dropsForType(type){
+    return generateFullyLegalMoves(board, hands, turn).filter(m => m.kind === 'drop' && m.type === type);
+  }
+  // Squares a piece could physically reach but can't legally move to,
+  // because it would leave (or fail to resolve) check on its own king.
+  function illegalMovesFromSquare(r, c){
+    const legal = movesFromSquare(r, c).map(m => [m.nr, m.nc]);
+    return pseudoMovesFrom(board, r, c).filter(([pr,pc]) => !legal.some(([lr,lc]) => lr===pr && lc===pc));
+  }
+  function illegalDropsForType(type){
+    const legal = dropsForType(type).map(m => [m.nr, m.nc]);
+    return pseudoDropsFor(board, hands, turn, type).filter(([pr,pc]) => !legal.some(([lr,lc]) => lr===pr && lc===pc));
+  }
+
+  function selectPiece(r, c){
+    selected = [r,c];
+    render();
+    // A piece can look selectable but have zero legal destinations if moving
+    // it would leave (or fail to resolve) a check on its own king — most
+    // often because it's pinned. Explain that instead of silently doing
+    // nothing, since it's easy to mistake for a bug.
+    if(movesFromSquare(r, c).length === 0){
+      document.getElementById('statusText').textContent = 'その駒は動かすと王手放置になるため動かせません';
+    }
+  }
+
+  function onCellClick(r,c){
+    if(gameOver || pendingPromotionMove || (vsCPU && turn === cpuSide())) return;
+    const piece = board[r][c];
+
+    if(selectedDrop){
+      const match = dropsForType(selectedDrop).find(m => m.nr === r && m.nc === c);
+      const illegal = !match && illegalDropsForType(selectedDrop).some(([ir,ic]) => ir===r && ic===c);
+      selectedDrop = null;
+      if(match){
+        requestMove(match);
+      } else {
+        render();
+        if(illegal){
+          document.getElementById('statusText').textContent = 'そこに打つと王手放置になるため打てません';
+        }
+      }
+      return;
+    }
+
+    if(selected){
+      const [sr,sc] = selected;
+      const match = movesFromSquare(sr,sc).find(m => m.nr === r && m.nc === c);
+      if(match){
+        selected = null;
+        requestMove(match);
+        return;
+      }
+      const illegal = illegalMovesFromSquare(sr,sc).some(([ir,ic]) => ir===r && ic===c);
+      if(illegal){
+        render();
+        document.getElementById('statusText').textContent = 'そこへ動かすと王手放置になるため動かせません';
+        return;
+      }
+      if(piece && piece.owner === turn){
+        selectPiece(r, c);
+        return;
+      }
+      selected = null;
+      render();
+      return;
+    }
+
+    if(piece && piece.owner === turn){
+      selectPiece(r, c);
+    }
+  }
+
+  function onHandClick(owner, type){
+    if(gameOver || pendingPromotionMove || owner !== turn || (vsCPU && turn === cpuSide())) return;
+    selected = null;
+    selectedDrop = (selectedDrop === type) ? null : type;
+    render();
+    if(selectedDrop && dropsForType(selectedDrop).length === 0){
+      document.getElementById('statusText').textContent = 'その持ち駒は打てるマスがありません';
+    }
+  }
+
+  function komaEl(piece, opts){
+    opts = opts || {};
+    const div = document.createElement('div');
+    div.className = 'koma' + (piece.owner === 'gote' ? ' gote-side' : '') + (opts.noFlip ? ' no-flip' : '') + (piece.type === 'king' ? ' king' : '') + (['tokin','narigin','uma','ryu'].includes(piece.type) ? ' promoted' : '');
+    const depth2 = document.createElement('div');
+    depth2.className = 'koma-depth d2';
+    const depth1 = document.createElement('div');
+    depth1.className = 'koma-depth d1';
+    const span = document.createElement('span');
+    span.className = 'kanji';
+    span.textContent = (piece.type === 'king' && piece.owner === 'gote') ? '玉' : KANJI[piece.type];
+    div.appendChild(depth2);
+    div.appendChild(depth1);
+    div.appendChild(span);
+    return div;
+  }
+
+  function renderKomadai(owner){
+    const el = document.getElementById(owner === 'sente' ? 'senteKomadai' : 'goteKomadai');
+    el.innerHTML = '';
+    // Whichever tray sits at the top of the screen gets its whole card rotated
+    // (label included) to match how a piece placed in front of the "far" seat
+    // would look to an outside viewer. The piece icon itself is always
+    // rendered with no local rotation of its own, so the container rotation
+    // alone decides upright (bottom tray) vs upside-down (top tray) — this
+    // keeps captured-piece kanji consistent with how the same piece looks on
+    // the board itself.
+    const atTop = !isTurnAtBottom(owner);
+    el.classList.toggle('komadai-flipped', atTop);
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = (owner === 'sente' ? '先手 持駒' : '後手 持駒');
+    el.appendChild(label);
+
+    const hand = hands[owner];
+    const types = Object.keys(hand);
+    if(types.length === 0){
+      const hint = document.createElement('span');
+      hint.className = 'empty-hint';
+      hint.textContent = 'なし';
+      el.appendChild(hint);
+      return;
+    }
+    types.forEach(type => {
+      const wrap = document.createElement('div');
+      wrap.className = 'hand-piece' + (selectedDrop === type && turn === owner ? ' selected' : '');
+      wrap.tabIndex = 0;
+      wrap.setAttribute('role','button');
+      wrap.setAttribute('aria-label', KANJI[type] + ' を打つ');
+      const piece = { owner, type };
+      wrap.appendChild(komaEl(piece, { noFlip: true }));
+      const count = document.createElement('div');
+      count.className = 'count';
+      count.textContent = hand[type];
+      wrap.appendChild(count);
+      wrap.addEventListener('click', () => onHandClick(owner, type));
+      wrap.addEventListener('keydown', (e) => { if(e.key==='Enter' || e.key===' ') { e.preventDefault(); onHandClick(owner, type); } });
+      el.appendChild(wrap);
+    });
+  }
+
+  function render(pulse){
+    const boardEl = document.getElementById('board');
+    boardEl.innerHTML = '';
+
+    let highlightCells = [];
+    let illegalHighlightCells = [];
+    if(selected){
+      highlightCells = movesFromSquare(selected[0], selected[1]).map(m => [m.nr, m.nc]);
+      illegalHighlightCells = illegalMovesFromSquare(selected[0], selected[1]);
+    } else if(selectedDrop){
+      highlightCells = dropsForType(selectedDrop).map(m => [m.nr, m.nc]);
+      illegalHighlightCells = illegalDropsForType(selectedDrop);
+    }
+
+    const senteInCheck = !gameOver && isKingInCheck(board, 'sente');
+    const goteInCheck = !gameOver && isKingInCheck(board, 'gote');
+
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.background = ((r+c)%2===0) ? 'var(--cell-a)' : 'var(--cell-b)';
+        cell.tabIndex = 0;
+        cell.setAttribute('role','gridcell');
+        if(selected && selected[0]===r && selected[1]===c) cell.classList.add('selected');
+        if(highlightCells.some(([hr,hc]) => hr===r && hc===c)) cell.classList.add('highlight');
+        if(illegalHighlightCells.some(([hr,hc]) => hr===r && hc===c)) cell.classList.add('illegal-highlight');
+
+        const piece = board[r][c];
+        if(piece){
+          cell.appendChild(komaEl(piece));
+          if(piece.type === 'king' && ((piece.owner === 'sente' && senteInCheck) || (piece.owner === 'gote' && goteInCheck))){
+            cell.classList.add('king-in-check');
+          }
+        }
+
+        cell.addEventListener('click', () => onCellClick(r,c));
+        cell.addEventListener('keydown', (e) => { if(e.key==='Enter' || e.key===' '){ e.preventDefault(); onCellClick(r,c); } });
+        boardEl.appendChild(cell);
+      }
+    }
+
+    renderKomadai('sente');
+    renderKomadai('gote');
+
+    updateTurnEdgeGlow(pulse);
+
+    const status = document.getElementById('statusText');
+    const turnInCheck = (turn === 'sente' && senteInCheck) || (turn === 'gote' && goteInCheck);
+    status.textContent = (!gameOver && turnInCheck) ? '王手！' : '';
+  }
+
+  // Whichever player's zone currently sits at the bottom of the screen (the
+  // comfortable/near side) gets the bottom glow and the bottom-left 待った
+  // button; the other gets the top glow and the top-right button. Seating is
+  // driven by the 先手/後手 choice on the setup screen — in 2-player mode this
+  // just decides who sits at the near seat first; in CPU modes it decides
+  // which side the human plays.
+  function isTurnAtBottom(owner){
+    const swapped = humanSide === 'gote';
+    return swapped ? owner === 'gote' : owner === 'sente';
+  }
+
+  // --- 鬼 mode: 20-second turn clock, shown only for the human's own turns
+  // (the CPU already moves within its own short time budget). ---
+  function clearTurnTimer(){
+    if(turnTimerInterval){ clearInterval(turnTimerInterval); turnTimerInterval = null; }
+    const badge = document.getElementById('turnTimerBadge');
+    if(badge) badge.classList.remove('show', 'urgent');
+  }
+
+  function startTurnTimerIfNeeded(){
+    clearTurnTimer();
+    const limit = turnTimeLimitSeconds();
+    if(!limit || gameOver) return;
+    const isHumanTurn = !vsCPU || turn !== cpuSide();
+    if(!isHumanTurn) return;
+
+    turnTimerDeadline = Date.now() + limit * 1000;
+    const badge = document.getElementById('turnTimerBadge');
+    badge.classList.add('show');
+
+    function tick(){
+      const remaining = Math.ceil((turnTimerDeadline - Date.now()) / 1000);
+      if(remaining <= 0){
+        clearTurnTimer();
+        handleTurnTimeout();
+        return;
+      }
+      badge.textContent = remaining + '秒';
+      badge.classList.toggle('urgent', remaining <= 5);
+    }
+    tick();
+    turnTimerInterval = setInterval(tick, 250);
+  }
+
+  function handleTurnTimeout(){
+    if(gameOver) return;
+    if(window.sePlayer) window.sePlayer.play('timeout');
+    gameOver = true;
+    const winner = turn === 'sente' ? 'gote' : 'sente';
+    showWinner(winner, '持ち時間切れ（20秒）');
+    render();
+  }
+
+  // --- Generic "stamp" popup, reusing the 王手 popup's visual language for
+  // other mode-specific moments (e.g. hitting the 待った limit). ---
+  function showModeStampPopup(text, owner){
+    const el = document.getElementById('modeStampPopup');
+    el.textContent = text;
+    el.classList.remove('show');
+    el.classList.toggle('flipped', owner !== undefined && !isTurnAtBottom(owner));
+    void el.offsetWidth;
+    el.classList.add('show');
+  }
+
+  function updateUndoButtonSeats(){
+    const senteBtn = document.getElementById('undoBtn');
+    const goteBtn = document.getElementById('undoBtnGote');
+    const senteAtBottom = isTurnAtBottom('sente');
+    senteBtn.classList.toggle('undo-btn-seat-bottom-left', senteAtBottom);
+    senteBtn.classList.toggle('undo-btn-seat-top-right', !senteAtBottom);
+    goteBtn.classList.toggle('undo-btn-seat-bottom-left', !senteAtBottom);
+    goteBtn.classList.toggle('undo-btn-seat-top-right', senteAtBottom);
+  }
+
+  function updateTurnEdgeGlow(pulse){
+    const top = document.getElementById('turnGlowTop');
+    const bottom = document.getElementById('turnGlowBottom');
+    if(gameOver){
+      top.classList.remove('active', 'flash');
+      bottom.classList.remove('active', 'flash');
+      return;
+    }
+    const atBottom = isTurnAtBottom(turn);
+    const activeEl = atBottom ? bottom : top;
+    const inactiveEl = atBottom ? top : bottom;
+    inactiveEl.classList.remove('active', 'flash');
+    activeEl.classList.add('active');
+    if(pulse){
+      activeEl.classList.remove('flash');
+      void activeEl.offsetWidth;
+      activeEl.classList.add('flash');
+    }
+  }
+
+  // --- Setup screen: toggle the mode/side like the Connect Four picker, then commit with はじめる ---
+  let setupVsCPU = false;
+  let setupCpuDifficulty = 'normal';
+  let setupHumanSide = 'sente';
+
+  function updateSetupUI(){
+    document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !setupVsCPU);
+    document.getElementById('modeCPUBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'normal');
+    document.getElementById('modeCPUMasterBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'master');
+    const oniBtn = document.getElementById('modeCPUOniBtn');
+    const oniActive = setupVsCPU && setupCpuDifficulty === 'oni';
+    oniBtn.classList.toggle('active', oniActive);
+    document.getElementById('oniHint').classList.toggle('show', oniActive);
+    document.getElementById('sideSenteBtn').classList.toggle('active', setupHumanSide === 'sente');
+    document.getElementById('sideGoteBtn').classList.toggle('active', setupHumanSide === 'gote');
+  }
+
+  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    setupVsCPU = false;
+    setupCpuDifficulty = 'normal';
+    updateSetupUI();
+  });
+  document.getElementById('modeCPUBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    setupVsCPU = true;
+    setupCpuDifficulty = 'normal';
+    updateSetupUI();
+  });
+  document.getElementById('modeCPUMasterBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    setupVsCPU = true;
+    setupCpuDifficulty = 'master';
+    updateSetupUI();
+  });
+  document.getElementById('modeCPUOniBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    setupVsCPU = true;
+    setupCpuDifficulty = 'oni';
+    updateSetupUI();
+  });
   document.getElementById('sideSenteBtn').addEventListener('click', () => {
-    if(humanSide === 'sente') return;
-    humanSide = 'sente';
-    document.getElementById('sideSenteBtn').classList.add('active');
-    document.getElementById('sideGoteBtn').classList.remove('active');
+    if(window.sePlayer) window.sePlayer.play('click');
+    setupHumanSide = 'sente';
+    updateSetupUI();
   });
   document.getElementById('sideGoteBtn').addEventListener('click', () => {
-    if(humanSide === 'gote') return;
-    humanSide = 'gote';
-    document.getElementById('sideGoteBtn').classList.add('active');
-    document.getElementById('sideSenteBtn').classList.remove('active');
+    if(window.sePlayer) window.sePlayer.play('click');
+    setupHumanSide = 'gote';
+    updateSetupUI();
   });
 
-  document.getElementById('modeStartBtn').addEventListener('click', () => {
-    resetAll();
+  function openSetupScreen(){
+    // Reflect whatever mode/side is currently active so the toggle buttons
+    // pick up right where the last game left off.
+    setupVsCPU = vsCPU;
+    setupCpuDifficulty = cpuDifficulty;
+    setupHumanSide = humanSide;
+    updateSetupUI();
+    clearTurnTimer();
+    document.getElementById('undoBtn').classList.add('hidden');
+    document.getElementById('undoBtnGote').classList.add('hidden');
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    document.querySelector('header').classList.remove('hidden');
+    document.getElementById('bgSwitchBtn').classList.remove('hidden');
+  }
+
+  document.getElementById('startGameBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    vsCPU = setupVsCPU;
+    cpuDifficulty = setupCpuDifficulty;
+    humanSide = setupHumanSide;
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+    document.querySelector('header').classList.add('hidden');
+    document.getElementById('bgSwitchBtn').classList.add('hidden');
+    document.getElementById('bgSwitchPanel').classList.add('hidden');
+    resetGame();
   });
 
-  setupDialNav('setupDialRow');
-  setupDialNav('guessDialRow');
-  buildKeypad('setupKeypad', 'setupDialRow');
-  buildKeypad('guessKeypad', 'guessDialRow');
+  // --- Generic confirm-before-interrupting-the-game modal, used by ホーム ---
+  let pendingConfirmAction = null;
 
-  show('modeScreen');
+  function runOrConfirm(action, title, message){
+    if(moveHistory.length === 0){
+      // Nothing to lose yet, so just proceed without asking.
+      action();
+      return;
+    }
+    pendingConfirmAction = action;
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').textContent = message;
+    document.getElementById('confirmOverlay').classList.add('show');
+  }
 
-  // --- user-selectable background color switch ---
-  // 他のゲームやホーム画面と同じ localStorage キーを共有し、
-  // どこで選んでもアプリ全体でテーマが揃うようにしている
+  document.getElementById('confirmYesBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    document.getElementById('confirmOverlay').classList.remove('show');
+    const action = pendingConfirmAction;
+    pendingConfirmAction = null;
+    if(action) action();
+  });
+  document.getElementById('confirmNoBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    document.getElementById('confirmOverlay').classList.remove('show');
+    pendingConfirmAction = null;
+  });
+
+  document.getElementById('winnerOverlay').addEventListener('click', resetGame);
+
+  function openRules(){ document.getElementById('rules').classList.add('open'); }
+  function closeRules(){ document.getElementById('rules').classList.remove('open'); }
+
+  document.getElementById('setupRulesBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); openRules(); });
+  document.getElementById('rulesCloseBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); closeRules(); });
+  document.getElementById('rules').addEventListener('click', (e) => {
+    if(e.target.id === 'rules') closeRules();
+  });
+
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
+    const onGameScreen = !document.getElementById('gameScreen').classList.contains('hidden');
+    if(onGameScreen){
+      runOrConfirm(openSetupScreen, 'ホームへ戻る', '現在の対局を中断してモード選択に戻ります。よろしいですか？');
+      return;
+    }
+    window.location.href = 'index.html';
+  });
+
+  function openUndoConfirm(requestedBy){
+    if(moveHistory.length === 0 || undoBlocked || undoUseCount >= 5) return;
+    if(window.sePlayer) window.sePlayer.play('click');
+    if(totalUndoUsedThisGame >= totalUndoLimitForMode()){
+      const modeLabel = cpuDifficulty === 'oni' ? '鬼' : '達人';
+      const message = cpuDifficulty === 'oni' ? '「待ったは一切禁止だ！」' : '「待ったを使いすぎた！」';
+      showModeStampPopup(modeLabel + message, requestedBy);
+      if(window.sePlayer) window.sePlayer.play('deny');
+      return;
+    }
+    if(vsCPU){
+      undoUseCount++;
+      totalUndoUsedThisGame++;
+      undoForCPUMode();
+      return;
+    }
+    pendingUndoRequestedBy = requestedBy;
+    const responder = requestedBy === 'sente' ? '後手' : '先手';
+    document.getElementById('undoConfirmText').textContent =
+      '直前の一手を取り消します。' + responder + 'の許可が必要です。よろしいですか？（1手につき待ったは5回まで）';
+    // Rotate the card so whichever side must respond can read it right-side up.
+    document.getElementById('undoConfirmCard').classList.toggle('rotated', requestedBy === 'sente');
+    document.getElementById('undoConfirmOverlay').classList.add('show');
+  }
+
+  function undoForCPUMode(){
+    undoLastMove();
+    // Undo the CPU's move too, so the human always lands back on their own turn.
+    if(moveHistory.length > 0 && turn === cpuSide()){
+      undoLastMove();
+    }
+  }
+
+  document.getElementById('undoBtn').addEventListener('click', () => openUndoConfirm('sente'));
+  document.getElementById('undoBtnGote').addEventListener('click', () => openUndoConfirm('gote'));
+
+  document.getElementById('undoAllowBtn').addEventListener('click', () => {
+    document.getElementById('undoConfirmOverlay').classList.remove('show');
+    if(window.sePlayer) window.sePlayer.play('click');
+    undoUseCount++;
+    totalUndoUsedThisGame++;
+    undoLastMove();
+  });
+  document.getElementById('undoDenyBtn').addEventListener('click', () => {
+    document.getElementById('undoConfirmOverlay').classList.remove('show');
+    if(window.sePlayer) window.sePlayer.play('deny');
+    rejectionCount++;
+    if(rejectionCount >= 2){
+      undoBlocked = true;
+    }
+    updateUndoButton();
+  });
+
+  document.getElementById('promoteYesBtn').addEventListener('click', () => {
+    document.getElementById('promotionOverlay').classList.remove('show');
+    const move = pendingPromotionMove;
+    pendingPromotionMove = null;
+    if(move) commitMove(move, true);
+  });
+  document.getElementById('promoteNoBtn').addEventListener('click', () => {
+    document.getElementById('promotionOverlay').classList.remove('show');
+    const move = pendingPromotionMove;
+    pendingPromotionMove = null;
+    if(move) commitMove(move, false);
+  });
+
+  // --- user-selectable background color switch (setup screen only; hidden during play) ---
+  // ホーム画面（⚙→ゲーム→背景）と同じ localStorage キーを共有し、
+  // どちらで選んでも全ページに反映されるようにしている
   (function(){
     const BG_STORAGE_KEY = 'pref_bg_gradient';
     const btn = document.getElementById('bgSwitchBtn');
@@ -1456,6 +2301,7 @@
       swatches.forEach(s => s.classList.toggle('active', s.getAttribute('data-grad') === gradStops));
     }
 
+    // ページを開いた時点で、他の画面で選ばれていたテーマがあればそれを反映する
     let savedGrad = null;
     try{ savedGrad = localStorage.getItem(BG_STORAGE_KEY); }catch(e){}
     if(savedGrad){
@@ -1469,6 +2315,7 @@
 
     swatches.forEach(sw => {
       sw.addEventListener('click', () => {
+        if(window.sePlayer) window.sePlayer.play('click');
         const grad = sw.getAttribute('data-grad');
         applyBg(grad);
         setActiveSwatch(grad);
@@ -1486,7 +2333,6 @@
 })();
 </script>
 <script src="timer-watcher.js"></script>
-<script src="bg-theme.js"></script>
 <script src="stats-tracker.js"></script>
 <script src="bgm-player.js?v=2"></script>
 </body>
