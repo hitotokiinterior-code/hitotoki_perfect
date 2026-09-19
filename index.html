@@ -2420,6 +2420,7 @@ body.panel-open .setting-btn{
 <script src="notices.js"></script>
 <script src="stats-tracker.js"></script>
 <script src="bgm-player.js?v=2"></script>
+<script src="se-player.js"></script>
 <script>
 (function(){
   // ピンチズームの保険（Safari対策）
@@ -2428,6 +2429,46 @@ body.panel-open .setting-btn{
   document.addEventListener('touchmove', e => {
     if(e.touches.length > 1) e.preventDefault();
   }, { passive: false });
+
+  // ================= 効果音（SE）: se-player.js（ミニ将棋・コネクトフォー等と共通）を使用 =================
+  function sePlay(name){
+    if(window.sePlayer) window.sePlayer.play(name);
+  }
+  function seIsMuted(){
+    return window.sePlayer ? window.sePlayer.isMuted() : false;
+  }
+  function seSetMuted(v){
+    if(window.sePlayer) window.sePlayer.setMuted(v);
+  }
+  // 主要な操作要素はクラス名で網羅的に拾い、id を1つずつ登録しなくても
+  // 新しく追加したボタン（動的生成されるものも含む）に自動でクリック音がつくようにする。
+  // 通知ボタン(.setting-btn 内の #noticeBtn)もこの中に含まれるので、⚙/☰/お知らせすべてに連動する。
+  const SE_CLICK_SELECTOR = [
+    '.setting-btn',
+    '.close-btn',
+    '.nav-btn',
+    '.tool-toggle',
+    '.tool-btn',
+    '.count-btn',
+    '.preset-btn',
+    '.step-btn',
+    '.timer-stop-btn',
+    '.theme-swatch',
+    '.records-subtab-btn',
+    '.collection-subtab-btn',
+    '.howto-item-header',
+    '.setting-menu-item',
+    '.menu-game-item',
+    '.history-card',
+    '.history-modal-close',
+    '.notice-modal-close',
+    '.game-card',
+    '.switch-slider',
+  ].join(',');
+  document.addEventListener('click', (e) => {
+    if(e.target.closest(SE_CLICK_SELECTOR)) sePlay('click');
+  });
+  // ================= /効果音（SE） =================
 
   const PIP_PATTERNS = {
     1: [5], 2: [1,9], 3: [1,5,9], 4: [1,3,7,9], 5: [1,3,5,7,9], 6: [1,3,4,6,7,9],
@@ -3373,11 +3414,10 @@ panelBackdrop.addEventListener("click", closeAllPanels);
 
 // --- サウンド設定（BGM／効果音／振動）：状態を端末に保存して次回起動時も引き継ぐ ---
 // BGMは bgm-player.js（共通スクリプト）が実際の再生を担当している。
-// 効果音は再生の仕組み自体がまだ無いため、今はON/OFFの状態を保持するのみ。
+// 効果音は se-player.js（共通スクリプト）が実際の再生とミュート状態の保存を担当している。
 // 振動は既存のタイマー機能と連動させ、OFFなら鳴動しないようにする。
 const soundPrefs = {
   bgm: localStorage.getItem('pref_bgm') === 'on',
-  se: localStorage.getItem('pref_se') === 'on',
   vibration: localStorage.getItem('pref_vibration') === 'on',
 };
 
@@ -3395,8 +3435,18 @@ function bindSoundToggle(id, key){
   });
 }
 bindSoundToggle('bgmToggle', 'bgm');
-bindSoundToggle('seToggle', 'se');
 bindSoundToggle('vibToggle', 'vibration');
+
+// 効果音（SE）：se-player.js の実際のミュート状態をそのまま表示・操作する。
+// ミニ将棋・コネクトフォーなど他のページと localStorage キー(pref_se_muted)を共有しているので、
+// どの画面でON/OFFを切り替えても、すべてのページに同じ状態が反映される。
+const seToggleEl = document.getElementById('seToggle');
+if(seToggleEl){
+  seToggleEl.checked = !seIsMuted(); // チェックON＝効果音が鳴る状態
+  seToggleEl.addEventListener('change', () => {
+    seSetMuted(!seToggleEl.checked);
+  });
+}
 
 // --- 通知設定（⚙→アプリ→通知設定）：
 //     今のところ、実際に外部からプッシュ通知を送る仕組みは無いため、
