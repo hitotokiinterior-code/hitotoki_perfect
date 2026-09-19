@@ -1028,6 +1028,7 @@
   </div>
 </div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
   const COLS = 7, ROWS = 6;
@@ -1040,6 +1041,18 @@
   let cpuThinking = false;
   let cpuMovesMade = 0;
   let gameStartedAt = null;
+
+  // ================= 効果音（SE）: se-player.js（将棋と共通）を使用 =================
+  function sePlay(name){
+    if(window.sePlayer) window.sePlayer.play(name);
+  }
+  function attachClickSE(ids){
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('click', () => sePlay('click'));
+    });
+  }
+  // ================= /効果音（SE） =================
 
   function cpuSide(){
     if(!vsCPU) return null;
@@ -1391,6 +1404,7 @@
       if(e.animationName === 'drop') spawnImpact(r, c);
     });
     document.getElementById('chipLayer').appendChild(chipEl);
+    setTimeout(() => sePlay('drop'), 0.62 * 0.6 * 1000);
 
     const win = checkWin(r, c, turn);
     if(win){
@@ -1451,6 +1465,14 @@
 
   function showWinner(winner, draw){
     lastResult = draw ? { winner: null, draw: true } : { winner: winner, draw: false };
+
+    if(draw){
+      sePlay('draw');
+    } else if(vsCPU && winner !== humanSide){
+      sePlay('lose');
+    } else {
+      sePlay('win');
+    }
 
     // ホーム画面の「記録」タブ用に対局結果を記録しておく
     if(window.hitotokiStats){
@@ -1672,6 +1694,7 @@
         setActiveSwatch(grad);
         try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
         panel.classList.add('hidden');
+        sePlay('click');
       });
     });
 
@@ -1681,6 +1704,15 @@
       }
     });
   })();
+
+  // --- 主要なUIボタンに軽いクリック音を付与 ---
+  attachClickSE([
+    'homeBtn', 'bgSwitchBtn',
+    'modeTwoPlayerBtn', 'modeCPUBtn', 'modeCPUMasterBtn',
+    'sideWhiteBtn', 'sideBlackBtn', 'startGameBtn', 'setupRulesBtn',
+    'againBtn', 'rulesCloseBtn', 'confirmOkBtn', 'confirmCancelBtn',
+    'landscapeNextBtn',
+  ]);
 
   // モード選択画面（設定・対局側の切替、はじめる）のどのボタンを最初に押しても、
   // その瞬間にBGMが鳴り始めるようにする。ミニ将棋と同じ考え方の修正。
