@@ -707,6 +707,7 @@
   </div>
 </div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
   // 画像は base64 埋め込みではなく、images/ フォルダの外部ファイルを参照する
@@ -762,30 +763,33 @@
     document.getElementById('sizeMediumBtn').classList.toggle('active', size === 'medium');
     document.getElementById('sizeLargeBtn').classList.toggle('active', size === 'large');
   }
-  document.getElementById('sizeSmallBtn').addEventListener('click', () => setBoardSize('small'));
-  document.getElementById('sizeMediumBtn').addEventListener('click', () => setBoardSize('medium'));
-  document.getElementById('sizeLargeBtn').addEventListener('click', () => setBoardSize('large'));
+  document.getElementById('sizeSmallBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); setBoardSize('small'); });
+  document.getElementById('sizeMediumBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); setBoardSize('medium'); });
+  document.getElementById('sizeLargeBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); setBoardSize('large'); });
 
   function setMode(newVsCPU){
     vsCPU = newVsCPU;
     document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !vsCPU);
     document.getElementById('modeCPUBtn').classList.toggle('active', vsCPU);
   }
-  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => setMode(false));
-  document.getElementById('modeCPUBtn').addEventListener('click', () => setMode(true));
+  document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); setMode(false); });
+  document.getElementById('modeCPUBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); setMode(true); });
 
   document.getElementById('sideP1Btn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     humanSide = 'p1';
     document.getElementById('sideP1Btn').classList.add('active');
     document.getElementById('sideP2Btn').classList.remove('active');
   });
   document.getElementById('sideP2Btn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     humanSide = 'p2';
     document.getElementById('sideP2Btn').classList.add('active');
     document.getElementById('sideP1Btn').classList.remove('active');
   });
 
   document.getElementById('startGameBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     document.getElementById('setupScreen').classList.add('hidden');
     document.getElementById('gameScreen').classList.remove('hidden');
     document.getElementById('bgSwitchBtn').classList.add('hidden');
@@ -796,9 +800,11 @@
   // --- how to play modal ---
   const howToPlayModal = document.getElementById('howToPlayModal');
   document.getElementById('howToPlayBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     howToPlayModal.classList.remove('hidden');
   });
   document.getElementById('howToPlayCloseBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     howToPlayModal.classList.add('hidden');
   });
   howToPlayModal.addEventListener('click', (e) => {
@@ -895,6 +901,7 @@
     cpuMemory.set(idx, cards[idx].symbol);
     const el = cardEls()[idx];
     if(el) el.classList.add('flipped');
+    if(window.sePlayer) window.sePlayer.play('flip');
 
     if(revealed.length === 2){
       busy = true;
@@ -908,6 +915,7 @@
     const isMatch = cards[i].symbol === cards[j].symbol;
 
     if(isMatch){
+      if(window.sePlayer) window.sePlayer.play('match');
       cards[i].matched = true;
       cards[j].matched = true;
       const els = cardEls();
@@ -926,6 +934,7 @@
       updateTurnUI(true);
       maybeTriggerCPU();
     } else {
+      if(window.sePlayer) window.sePlayer.play('mismatch');
       const els = cardEls();
       [i, j].forEach(k => { if(els[k]) els[k].classList.add('shake'); });
       setTimeout(() => {
@@ -950,6 +959,16 @@
       lastResult = { draw:false, winner: scores.p1 > scores.p2 ? 'p1' : 'p2' };
     }
     updateTurnUI(false);
+
+    if(window.sePlayer){
+      if(lastResult.draw){
+        window.sePlayer.play('draw');
+      } else if(vsCPU){
+        window.sePlayer.play(lastResult.winner === humanSide ? 'win' : 'lose');
+      } else {
+        window.sePlayer.play('win');
+      }
+    }
 
     // ホーム画面の「記録」タブ用に対局結果を記録しておく（p1が常に人間側）
     if(window.hitotokiStats){
@@ -1074,7 +1093,7 @@
   }
 
   // --- controls ---
-  document.getElementById('againBtn').addEventListener('click', startNewGame);
+  document.getElementById('againBtn').addEventListener('click', () => { if(window.sePlayer) window.sePlayer.play('click'); startNewGame(); });
 
   const confirmModal = document.getElementById('confirmModal');
   let pendingConfirmAction = null;
@@ -1093,12 +1112,14 @@
   }
 
   document.getElementById('confirmOkBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     confirmModal.classList.add('hidden');
     const action = pendingConfirmAction;
     pendingConfirmAction = null;
     if(action) action();
   });
   document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     confirmModal.classList.add('hidden');
     pendingConfirmAction = null;
   });
@@ -1114,6 +1135,7 @@
   }
 
   document.getElementById('homeBtn').addEventListener('click', () => {
+    if(window.sePlayer) window.sePlayer.play('click');
     const onSetupScreen = !document.getElementById('setupScreen').classList.contains('hidden');
     if(onSetupScreen){
       window.location.href = 'index.html';
