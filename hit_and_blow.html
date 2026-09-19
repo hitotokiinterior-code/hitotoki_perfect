@@ -895,8 +895,31 @@
   </div>
 </div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
+  // ================= 効果音（SE）: se-player.js（hitotoki全ゲーム共通）を使用 =================
+  function sePlay(name){
+    if(window.sePlayer) window.sePlayer.play(name);
+  }
+  // 主要なボタン群はクラス名で網羅的に拾い、クリック音を鳴らす。
+  // 「決定」「予想する」の2つの主ボタンだけは、結果に応じた専用の音（drop/move + win/lose/deny）を
+  // 別途鳴らすので、ここでの汎用クリック音とは重ならないよう除外している。
+  const SE_CLICK_SELECTOR = [
+    '.home-btn',
+    '.bg-switch-btn',
+    '.bg-swatch',
+    '.mode-grid-btn',
+    '.mode-toggle-btn',
+    '.main-btn:not(#setupConfirmBtn):not(#guessSubmitBtn)',
+    '.keypad-btn',
+    '.history-toggle-btn',
+  ].join(',');
+  document.addEventListener('click', (e) => {
+    if(e.target.closest(SE_CLICK_SELECTOR)) sePlay('click');
+  });
+  // ================= /効果音（SE） =================
+
   let secrets, guesses, turn, phase, settingFor;
   let gameStartedAt = null;
   let historyExpanded = { sente: false, gote: false };
@@ -1071,6 +1094,7 @@
     row.classList.remove('shake');
     void row.offsetWidth;
     row.classList.add('shake');
+    sePlay('deny');
   }
 
   document.getElementById('setupConfirmBtn').addEventListener('click', () => {
@@ -1082,6 +1106,7 @@
       return;
     }
     secrets[settingFor] = values.map(Number);
+    sePlay('drop');
 
     if(vsCPU){
       document.getElementById('handoffTitle').textContent = '設定が完了しました';
@@ -1197,6 +1222,7 @@
     const result = computeHitBlow(guess, humanSecret);
     guesses[turn].push({ guess, result });
     renderHistory(turn);
+    sePlay('move');
 
     cpuCandidates = cpuCandidates.filter(c => {
       const r = computeHitBlow(guess, c);
@@ -1245,6 +1271,7 @@
     const result = computeHitBlow(guess, secrets[opponent]);
     guesses[turn].push({ guess, result });
     renderHistory(turn);
+    sePlay('move');
 
     if(result.hit === 3){
       phase = 'over';
@@ -1347,6 +1374,7 @@
     document.getElementById('codeReveal').textContent = revealedCode.join('  ');
     document.getElementById('winnerSub').textContent = '相手の暗証番号を解読しました';
     overlay.classList.add('show');
+    sePlay(vsCPU ? (winner === humanSide ? 'win' : 'lose') : 'win');
 
     // ホーム画面の「記録」タブ用に対局結果を記録しておく
     if(window.hitotokiStats){
