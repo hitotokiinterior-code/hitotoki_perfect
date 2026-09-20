@@ -709,6 +709,7 @@
   </div>
 </div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
   const SIZE = 10;
@@ -721,6 +722,18 @@
   let cpuDifficulty = 'normal';
   let humanSide = 'white';
   const DIRS4 = [[0,1],[1,0],[1,1],[1,-1]];
+
+  // ================= 効果音（SE）: se-player.js（他ゲームと共通）を使用 =================
+  function sePlay(name){
+    if(window.sePlayer) window.sePlayer.play(name);
+  }
+  function attachClickSE(ids){
+    ids.forEach(id => {
+      const elm = document.getElementById(id);
+      if(elm) elm.addEventListener('click', () => sePlay('click'));
+    });
+  }
+  // ================= /効果音（SE） =================
 
   function opponentOf(player){ return player === 'white' ? 'black' : 'white'; }
   function cpuSide(){ return vsCPU ? opponentOf(humanSide) : null; }
@@ -956,6 +969,7 @@
     const stoneEl = document.createElement('div');
     stoneEl.className = 'stone ' + turn;
     point.appendChild(stoneEl);
+    sePlay('move');
 
     const win = checkWin(r,c,turn);
     if(win){
@@ -1009,10 +1023,12 @@
     if(draw){
       text.textContent = '引き分け';
       sub.textContent = '盤面が埋まりました';
+      sePlay('draw');
     } else {
       const dotColor = winner === 'white' ? 'var(--ivory-mid)' : 'var(--ebony-mid)';
       text.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:' + dotColor + ';box-shadow:0 0 0 1px var(--silver-dim);"></span>' + (winner === 'white' ? '白' : '黒') + 'の勝ち！';
       sub.textContent = WIN_LEN + 'つ並びました';
+      if(vsCPU && winner !== humanSide){ sePlay('lose'); } else { sePlay('win'); }
     }
     overlay.classList.add('show');
 
@@ -1176,6 +1192,7 @@
         setActiveSwatch(grad);
         try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
         panel.classList.add('hidden');
+        sePlay('click');
       });
     });
 
@@ -1185,6 +1202,14 @@
       }
     });
   })();
+
+  // --- 主要なUIボタンに軽いクリック音を付与 ---
+  attachClickSE([
+    'homeBtn', 'bgSwitchBtn',
+    'modeTwoPlayerBtn', 'modeCPUBtn', 'modeCPUMasterBtn',
+    'sideWhiteBtn', 'sideBlackBtn', 'startGameBtn', 'rulesBtn',
+    'againBtn', 'howToPlayCloseBtn', 'confirmOkBtn', 'confirmCancelBtn',
+  ]);
 
   // モード選択画面のどのボタンを最初に押しても、その瞬間にBGMが鳴り始めるようにする
   ['modeTwoPlayerBtn','modeCPUBtn','modeCPUMasterBtn','sideWhiteBtn','sideBlackBtn','startGameBtn'].forEach(id => {
