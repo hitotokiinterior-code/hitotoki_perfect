@@ -722,7 +722,7 @@
 <body>
 
 <div class="menu-screen" id="menuScreen">
-  <a href="index.html" class="home-btn" aria-label="ホームへ戻る">← ホーム</a>
+  <a href="index.html" class="home-btn" id="homeBtnLink" aria-label="ホームへ戻る">← ホーム</a>
   <button id="bgSwitchBtn" class="bg-switch-btn" aria-label="背景色を変更">背景</button>
   <div id="bgSwitchPanel" class="bg-switch-panel hidden">
     <button class="bg-swatch active" data-grad="IMAGE" style="--sw:#1a130d; background-image:url('assets/backgrounds/game-home-default.jpg'); background-size:cover; background-position:center;" aria-label="フォト"></button>
@@ -869,6 +869,7 @@
 
 <div class="ad-slot" id="adSlot"></div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
   // 画面のスワイプ/バウンススクロールを完全にロックする
@@ -876,6 +877,18 @@
   // ---------- Labels (fixed: 白 / 黒) ----------
   const LABEL_P1 = '白';
   const LABEL_P2 = '黒';
+
+  // ================= 効果音（SE）: se-player.js（他ゲームと共通）を使用 =================
+  function sePlay(name){
+    if(window.sePlayer) window.sePlayer.play(name);
+  }
+  function attachClickSE(ids){
+    ids.forEach(id => {
+      const elm = document.getElementById(id);
+      if(elm) elm.addEventListener('click', () => sePlay('click'));
+    });
+  }
+  // ================= /効果音（SE） =================
 
   // ---------- DOM refs ----------
   const menuScreen = document.getElementById('menuScreen');
@@ -918,6 +931,7 @@
 
   sizeGrid.querySelectorAll('.size-row').forEach(btn => {
     btn.addEventListener('click', () => {
+      sePlay('click');
       sizeGrid.querySelectorAll('.size-row').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       selectedRows = parseInt(btn.dataset.rows, 10);
@@ -930,8 +944,8 @@
     mode2pBtn.classList.toggle('active', m === '2p');
     modeCpuBtn.classList.toggle('active', m === 'cpu');
   }
-  mode2pBtn.addEventListener('click', () => setMode('2p'));
-  modeCpuBtn.addEventListener('click', () => setMode('cpu'));
+  mode2pBtn.addEventListener('click', () => { sePlay('click'); setMode('2p'); });
+  modeCpuBtn.addEventListener('click', () => { sePlay('click'); setMode('cpu'); });
 
   // 先攻は常に白(player)、後攻は常に黒(cpu)で固定
   startBtn.addEventListener('click', () => startGame(selectedRows, selectedCols, selectedMode));
@@ -967,6 +981,7 @@
   function runAiMove(){ expertMove(); }
 
   function startGame(rows, cols, gameMode){
+    sePlay('click');
     ROWS = rows; COLS = cols; mode = gameMode;
     totalBoxes = ROWS * COLS;
     CELL = 100;
@@ -1121,6 +1136,7 @@
     line.classList.add(owner==='player' ? 'filled-player' : 'filled-cpu');
     if(owner==='cpu'){ outlineEls[key].classList.add('filled-cpu'); }
     hitEls[key].classList.add('disabled');
+    sePlay('line');
 
     const boxes = boxesTouchingEdge(type,r,c);
     let completed = 0;
@@ -1129,6 +1145,7 @@
         boxOwner[br][bc] = owner;
         revealBox(br,bc,owner);
         completed++;
+        sePlay('capture');
         if(owner==='player'){ scoreYou++; scoreYouEl.textContent = scoreYou; }
         else { scoreCpu++; scoreCpuEl.textContent = scoreCpu; }
       }
@@ -1178,8 +1195,10 @@
     const tie = scoreYou === scoreCpu;
     if(tie){
       endTitle.textContent = 'ひきわけ';
+      sePlay('draw');
     } else {
       endTitle.textContent = win ? `${LABEL_P1}の勝ち` : `${LABEL_P2}の勝ち`;
+      if(isCpuMode() && !win){ sePlay('lose'); } else { sePlay('win'); }
     }
     endTitle.classList.toggle('win', win);
     endTitle.classList.toggle('lose', !win && !tie);
@@ -1371,6 +1390,13 @@
     if(e.target === howToPlayModal){ howToPlayModal.classList.add('hidden'); }
   });
 
+  // --- 主要なUIボタンに軽いクリック音を付与 ---
+  attachClickSE([
+    'homeBtnLink', 'bgSwitchBtn',
+    'howToPlayBtn', 'howToPlayCloseBtn',
+    'playAgainBtn', 'changeStageBtn', 'viewBoardBtn', 'resultFab', 'backBtn',
+  ]);
+
   // --- user-selectable background color switch (menu screen only) ---
   // 他のゲームと同じ localStorage キーを共有し、どちらで選んでも
   // アプリ全体でテーマが揃うようにしている
@@ -1411,6 +1437,7 @@
         setActiveSwatch(grad);
         try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
         panel.classList.add('hidden');
+        sePlay('click');
       });
     });
 
