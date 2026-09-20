@@ -13,13 +13,14 @@
  *
  * 使い方:
  *   window.sePlayer.play('move');     // 駒を動かす(将棋)
- *   window.sePlayer.play('capture');  // 相手の駒を取る(将棋)
+ *   window.sePlayer.play('capture');  // 相手の駒を取る(将棋) / 箱を完成させる(ドット＆ボックス)
  *   window.sePlayer.play('drop');     // 持ち駒を打つ(将棋) / コインが盤に落ちる(コネクトフォー)
  *   window.sePlayer.play('check');    // 王手(将棋)
  *   window.sePlayer.play('promote');  // 成る(将棋)
  *   window.sePlayer.play('flip');     // カードをめくる(神経衰弱)
  *   window.sePlayer.play('match');    // ペア成立(神経衰弱)
  *   window.sePlayer.play('mismatch'); // ペア失敗(神経衰弱)
+ *   window.sePlayer.play('line');     // 点と点を線で結ぶ(ドット＆ボックス)
  *   window.sePlayer.play('draw');     // 引き分け
  *   window.sePlayer.play('win');      // 勝ち
  *   window.sePlayer.play('lose');     // 負け
@@ -183,6 +184,12 @@
     tone(c, { type: 'triangle', freq: 440, duration: 0.28, delay: 0.16, attack: 0.005, volume: 0.15 });
   }
 
+  // 点と点を線で結ぶ、さっと引く短い「シャッ」という音(ドット＆ボックス)。
+  // フィルターの中心周波数を高→低へ動かして、線を引き下ろす質感を出す。
+  function playLine(c) {
+    noiseBurst(c, { filterType: 'bandpass', filterFreq: 2400, filterFreqEnd: 900, filterQ: 1.1, duration: 0.09, volume: 0.22, falloff: 1.7 });
+  }
+
   function playWin(c) {
     // 明るい短いファンファーレ
     var notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
@@ -224,6 +231,7 @@
     flip: playFlip,
     match: playMatch,
     mismatch: playMismatch,
+    line: playLine,
     draw: playDraw,
     win: playWin,
     lose: playLose,
