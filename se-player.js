@@ -1,37 +1,46 @@
 /*
  * se-player.js
- * 効果音(SE)プレイヤー（ミニ将棋・コネクトフォー など、複数のゲームで共有）。
+ * hitotoki 全ゲーム共通の効果音(SE)プレイヤー（ミニ将棋・神経衰弱・コネクトフォー など、複数のゲームで共有）。
  *
  * 音声ファイルを使わず、Web Audio API のオシレーター/ノイズ合成だけで
- * 「木の駒がコツンと当たる音」「王手のアラート」「勝敗のファンファーレ」等を
+ * 「木の駒がコツンと当たる音」「カードをめくる音」「勝敗のファンファーレ」等を
  * その場で生成する。音源ファイルが不要なので assets/ フォルダを増やさずに
  * 済み、bgm-player.js とも独立して動作する。
  *
+ * ホーム画面(⚙→サウンド→効果音)のON/OFFスイッチと同じ localStorage キー
+ * 'pref_se'（値は 'on' / 'off'）を共有しているので、ホームで切り替えれば
+ * すべてのゲームページに反映される。未設定時（初回起動時）はONがデフォルト。
+ *
  * 使い方:
- *   window.sePlayer.play('move');     // 駒を動かす
- *   window.sePlayer.play('capture');  // 相手の駒を取る
- *   window.sePlayer.play('drop');     // 持ち駒を打つ / コインを落とす
- *   window.sePlayer.play('check');    // 王手
- *   window.sePlayer.play('promote');  // 成る
+ *   window.sePlayer.play('move');     // 駒を動かす(将棋)
+ *   window.sePlayer.play('capture');  // 相手の駒を取る(将棋)
+ *   window.sePlayer.play('drop');     // 持ち駒を打つ(将棋) / コインが盤に落ちる(コネクトフォー)
+ *   window.sePlayer.play('check');    // 王手(将棋)
+ *   window.sePlayer.play('promote');  // 成る(将棋)
+ *   window.sePlayer.play('flip');     // カードをめくる(神経衰弱)
+ *   window.sePlayer.play('match');    // ペア成立(神経衰弱)
+ *   window.sePlayer.play('mismatch'); // ペア失敗(神経衰弱)
+ *   window.sePlayer.play('draw');     // 引き分け
  *   window.sePlayer.play('win');      // 勝ち
  *   window.sePlayer.play('lose');     // 負け
- *   window.sePlayer.play('draw');     // 引き分け
  *   window.sePlayer.play('click');    // ボタン/UI操作
  *   window.sePlayer.play('timeout');  // 鬼モードの持ち時間切れ
  *   window.sePlayer.play('deny');     // 待った却下など、軽いネガティブ操作
  *
- *   window.sePlayer.setMuted(true/false);
+ *   window.sePlayer.setEnabled(true/false); // ホームのスイッチと同じ意味(ON=鳴らす)
+ *   window.sePlayer.isEnabled();
+ *   window.sePlayer.setMuted(true/false);   // setEnabledの逆。互換用
  *   window.sePlayer.isMuted();
  */
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'pref_se_muted';
+  var STORAGE_KEY = 'pref_se';
   var ctx = null;
-  var muted = false;
+  var muted = false; // 未設定時（初回起動時）はONがデフォルト
 
   try {
-    muted = localStorage.getItem(STORAGE_KEY) === '1';
+    muted = localStorage.getItem(STORAGE_KEY) === 'off';
   } catch (e) { /* localStorage が使えない環境では無視 */ }
 
   function getContext() {
@@ -75,7 +84,7 @@
     osc.stop(startAt + (opts.attack || 0.005) + (opts.decay || opts.duration || 0.2) + 0.05);
   }
 
-  // ノイズバースト(木片やパチンという打撃音のアタック成分に使う)
+  // ノイズバースト(木片やパチンという打撃音、カードのシャッという音などに使う)
   function noiseBurst(c, opts) {
     var startAt = c.currentTime + (opts.delay || 0);
     var duration = opts.duration || 0.08;
@@ -91,7 +100,12 @@
 
     var filter = c.createBiquadFilter();
     filter.type = opts.filterType || 'bandpass';
-    filter.frequency.setValueAtTime(opts.filterFreq || 1200, startAt);
+    var f0 = opts.filterFreq || 1200;
+    var f1 = opts.filterFreqEnd;
+    filter.frequency.setValueAtTime(f0, startAt);
+    if (f1 != null) {
+      filter.frequency.linearRampToValueAtTime(f1, startAt + duration);
+    }
     if (opts.filterQ != null) filter.Q.setValueAtTime(opts.filterQ, startAt);
 
     var gain = c.createGain();
@@ -107,6 +121,7 @@
   }
 
   // --- 個々の効果音 --------------------------------------------------------
+
   // 将棋の駒(木の五角形)が盤に当たる感触を、短いノイズの「アタック」+
   // 低めの木質トーンの「ボディ」の2層で表現する。取る時はアタックを鋭く・
   // 高めにし、動かす時より少しだけ長い余韻を足して差をつけている。
@@ -124,7 +139,7 @@
 
   function playDrop(c) {
     // 駒台からつまんで打つ、少しやわらかい「コトッ」という音
-    // （コネクトフォーではコインが盤に着地する音としても流用）
+    // （コネクトフォーではコインが盤に着地する音としてもそのまま流用できる）
     noiseBurst(c, { filterFreq: 1400, filterQ: 1.4, duration: 0.06, volume: 0.3, falloff: 2.6 });
     tone(c, { type: 'sine', freq: 200, freqEnd: 130, duration: 0.11, attack: 0.004, volume: 0.2 });
   }
@@ -144,6 +159,30 @@
     });
   }
 
+  // カードを1枚めくる、紙の擦れるような短い「シュッ」。ノイズのフィルター中心
+  // 周波数を低→高へ素早く動かして、めくり上げる動きの質感を出す。
+  function playFlip(c) {
+    noiseBurst(c, { filterType: 'highpass', filterFreq: 700, filterFreqEnd: 3200, filterQ: 0.7, duration: 0.11, volume: 0.28, falloff: 1.4 });
+  }
+
+  // ペア成立: 明るい2音のきらめき
+  function playMatch(c) {
+    tone(c, { type: 'sine', freq: 659.25, duration: 0.14, attack: 0.004, volume: 0.16 });
+    tone(c, { type: 'sine', freq: 987.77, duration: 0.22, delay: 0.08, attack: 0.004, volume: 0.18 });
+    tone(c, { type: 'triangle', freq: 1975.5, duration: 0.16, delay: 0.08, attack: 0.004, volume: 0.05 });
+  }
+
+  // ペア失敗: 軽く肩を落とすような短い下降
+  function playMismatch(c) {
+    tone(c, { type: 'sine', freq: 330, freqEnd: 220, duration: 0.16, attack: 0.004, volume: 0.13 });
+  }
+
+  // 引き分け: 勝ちでも負けでもない、フラットな二音
+  function playDraw(c) {
+    tone(c, { type: 'triangle', freq: 440, duration: 0.2, attack: 0.005, volume: 0.15 });
+    tone(c, { type: 'triangle', freq: 440, duration: 0.28, delay: 0.16, attack: 0.005, volume: 0.15 });
+  }
+
   function playWin(c) {
     // 明るい短いファンファーレ
     var notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
@@ -159,12 +198,6 @@
     notes.forEach(function (f, i) {
       tone(c, { type: 'sine', freq: f, duration: 0.28, delay: i * 0.14, attack: 0.006, volume: 0.15 });
     });
-  }
-
-  function playDraw(c) {
-    // 勝ち負けのどちらでもない、フラットで落ち着いた二音
-    tone(c, { type: 'sine', freq: 440, freqEnd: 330, duration: 0.22, attack: 0.006, volume: 0.15 });
-    tone(c, { type: 'sine', freq: 330, freqEnd: 262, duration: 0.28, delay: 0.12, attack: 0.006, volume: 0.13 });
   }
 
   function playClick(c) {
@@ -188,9 +221,12 @@
     drop: playDrop,
     check: playCheck,
     promote: playPromote,
+    flip: playFlip,
+    match: playMatch,
+    mismatch: playMismatch,
+    draw: playDraw,
     win: playWin,
     lose: playLose,
-    draw: playDraw,
     click: playClick,
     deny: playDeny,
     timeout: playTimeout,
@@ -208,10 +244,18 @@
 
   function setMuted(value) {
     muted = !!value;
-    try { localStorage.setItem(STORAGE_KEY, muted ? '1' : '0'); } catch (e) {}
+    try { localStorage.setItem(STORAGE_KEY, muted ? 'off' : 'on'); } catch (e) {}
   }
 
   function isMuted() { return muted; }
+  function setEnabled(value) { setMuted(!value); }
+  function isEnabled() { return !muted; }
 
-  window.sePlayer = { play: play, setMuted: setMuted, isMuted: isMuted };
+  window.sePlayer = {
+    play: play,
+    setMuted: setMuted,
+    isMuted: isMuted,
+    setEnabled: setEnabled,
+    isEnabled: isEnabled,
+  };
 })();
