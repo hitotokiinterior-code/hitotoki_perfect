@@ -534,12 +534,25 @@
   </div>
 </div>
 
+<script src="se-player.js"></script>
 <script>
 (function(){
   "use strict";
 
   const HOUND_ICON = "assets/icons/rabbit_and_hounds_hound.png";
   const HARE_ICON = "assets/icons/rabbit_and_hounds_hare.png";
+
+  // ================= 効果音（SE）: se-player.js（他ゲームと共通）を使用 =================
+  function sePlay(name){
+    if(window.sePlayer) window.sePlayer.play(name);
+  }
+  function attachClickSE(ids){
+    ids.forEach(id => {
+      const elm = document.getElementById(id);
+      if(elm) elm.addEventListener('click', () => sePlay('click'));
+    });
+  }
+  // ================= /効果音（SE） =================
 
   /* ---------------- board topology (crystal shape) ---------------- */
   const NODES = {
@@ -880,12 +893,14 @@
     state.hounds[mv.idx] = mv.dest;
     state.moveCount++;
     selected = null;
+    sePlay('move');
     afterHoundMove();
   }
   function doHareMove(dest){
     state.hare = dest;
     state.moveCount++;
     selected = null;
+    sePlay('move');
     afterHareMove();
   }
 
@@ -943,6 +958,18 @@
     else txt.textContent='引き分け';
     document.getElementById('screen-result').classList.add('active');
 
+    // 効果音: 決着の種類とプレイヤーの役割から win/lose/draw を判定する
+    const winningRole = (winner === 'hare' || winner === 'hare_special') ? 'hare'
+      : (winner === 'hound') ? 'hound'
+      : null;
+    if(winningRole === null){
+      sePlay('draw');
+    } else if(config.mode !== 'pvp' && winningRole !== config.playerRole){
+      sePlay('lose');
+    } else {
+      sePlay('win');
+    }
+
     // ホーム画面の「記録」タブ用に対局結果を記録しておく
     if(window.hitotokiStats){
       const vsCPU = config.mode !== 'pvp';
@@ -951,9 +978,6 @@
       // モード選択画面の「白の役割」で選んだ役割(config.whiteRole)を持つ側が「1P」、
       // もう一方（逆の役割）が「2P」という扱いにする。
       let winnerPlayer = null;
-      const winningRole = (winner === 'hare' || winner === 'hare_special') ? 'hare'
-        : (winner === 'hound') ? 'hound'
-        : null;
 
       if(!vsCPU){
         won = undefined;
@@ -994,6 +1018,7 @@
     return !!state && state.moveCount > 0;
   }
   document.getElementById('home-btn-game').addEventListener('click', ()=>{
+    sePlay('click');
     if(hasProgress()){
       homeConfirmOverlay.classList.remove('hidden');
     } else {
@@ -1036,11 +1061,13 @@
   let chosenMode='pvp', chosenRole='hare';
   document.getElementById('mode-pair').addEventListener('click', e=>{
     const card = e.target.closest('.mode-grid-btn'); if(!card) return;
+    sePlay('click');
     chosenMode = card.dataset.mode;
     document.querySelectorAll('#mode-pair .mode-grid-btn').forEach(c=>c.classList.toggle('active', c===card));
   });
   document.getElementById('role-pair').addEventListener('click', e=>{
     const card = e.target.closest('.opt-card'); if(!card) return;
+    sePlay('click');
     chosenRole = card.dataset.role;
     document.querySelectorAll('#role-pair .opt-card').forEach(c=>c.classList.toggle('selected', c===card));
   });
@@ -1105,6 +1132,7 @@
         setActiveSwatch(grad);
         try{ localStorage.setItem(BG_STORAGE_KEY, grad); }catch(e){}
         panel.classList.add('hidden');
+        sePlay('click');
       });
     });
 
@@ -1156,6 +1184,7 @@
         setActiveSwatch(grad);
         try{ localStorage.setItem(GAME_BG_KEY, grad); }catch(e){}
         panel.classList.add('hidden');
+        sePlay('click');
       });
     });
 
@@ -1165,6 +1194,15 @@
       }
     });
   })();
+
+  // --- 主要なUIボタンに軽いクリック音を付与 ---
+  attachClickSE([
+    'home-btn-mode', 'bgSwitchBtn', 'gameBgSwitchBtn',
+    'btn-how-to-play', 'howToPlayCloseBtn',
+    'btn-view-board', 'btn-again', 'btn-result-home',
+    'homeConfirmOkBtn', 'homeConfirmCancelBtn',
+    'btn-start-game', 'btn-random-hare',
+  ]);
 
 })();
 </script>
