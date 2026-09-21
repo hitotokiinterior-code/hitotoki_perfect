@@ -680,42 +680,78 @@
   }
 
   /* ---------------- 達人CPU: 深さ制限つきミニマックス(常に理論値ではないが読みが深い) ---------------- */
-  const MASTER_DEPTH = 6;
+  // 猟犬・ウサギ両方とも20手先読みに統一。
+  const MASTER_DEPTH = 20;
+  // 30手ルール(千日手=ウサギの特殊勝利)に対応するためのスコア。
+  // ウサギの通常勝利(-1e6系)よりは軽いが、猟犬にとっては明確な敗北として扱う。
+  const MOVE_LIMIT_SCORE = -900000;
 
-  function minimax(hounds, hare, turn, depth, alpha, beta){
+  function boardKey(hounds, hare, turn, depth){
+    return hounds.slice().sort().join('') + '|' + hare + '|' + turn + '|' + depth;
+  }
+
+  // atMoveLimit: この探索の depth===0 が「実際の30手上限への到達」と一致する場合 true。
+  // (残り手数がMASTER_DEPTH以下のときだけ、読み切りの終端=真の終局となる)
+  //
+  // 置換表(tt)で同一局面の再計算を避けている。20手先読みは分岐の多さから
+  // 素朴なアルファベータ探索だけだと計算量が爆発してフリーズしうるが、
+  // この盤面はもともと状態数(猟犬3匹+ウサギ1匹の位置の組み合わせ)が非常に少ないため、
+  // メモ化すれば重複計算がほぼなくなり高速に収まる。
+  function minimax(hounds, hare, turn, depth, atMoveLimit, tt){
+    const key = boardKey(hounds, hare, turn, depth);
+    const cached = tt.get(key);
+    if(cached !== undefined) return cached;
+
+    let result;
     if(turn==='hare'){
       const hMoves = hareMoves(hounds, hare);
-      if(hMoves.length===0) return { score: 1e6 + depth, move:null };
-      if(depth===0) return { score: evalForHound(hounds, hare), move:null };
-      let best=null, bestScore=Infinity;
-      for(const dest of hMoves){
-        const score = (colOf(dest)===0) ? (-1e6 - depth) : minimax(hounds, dest, 'hound', depth-1, alpha, beta).score;
-        if(score<bestScore){ bestScore=score; best=dest; }
-        if(bestScore<beta) beta=bestScore;
-        if(beta<=alpha) break;
+      if(hMoves.length===0){
+        result = { score: 1e6 + depth, move:null };
+      } else if(depth===0){
+        result = { score: atMoveLimit ? MOVE_LIMIT_SCORE : evalForHound(hounds, hare), move:null };
+      } else {
+        let best=null, bestScore=Infinity;
+        for(const dest of hMoves){
+          const score = (colOf(dest)===0) ? (-1e6 - depth) : minimax(hounds, dest, 'hound', depth-1, atMoveLimit, tt).score;
+          if(score<bestScore){ bestScore=score; best=dest; }
+        }
+        result = { score:bestScore, move:best };
       }
-      return { score:bestScore, move:best };
     } else {
-      if(depth===0) return { score: evalForHound(hounds, hare), move:null };
-      const hMoves = allHoundMoves(hounds, hare);
-      let best=null, bestScore=-Infinity;
-      for(const mv of hMoves){
-        const newHounds = hounds.slice(); newHounds[mv.idx]=mv.dest;
-        const score = (hareMoves(newHounds, hare).length===0) ? (1e6 + depth) : minimax(newHounds, hare, 'hare', depth-1, alpha, beta).score;
-        if(score>bestScore){ bestScore=score; best=mv; }
-        if(bestScore>alpha) alpha=bestScore;
-        if(beta<=alpha) break;
+      if(depth===0){
+        result = { score: atMoveLimit ? MOVE_LIMIT_SCORE : evalForHound(hounds, hare), move:null };
+      } else {
+        const hMoves = allHoundMoves(hounds, hare);
+        let best=null, bestScore=-Infinity;
+        for(const mv of hMoves){
+          const newHounds = hounds.slice(); newHounds[mv.idx]=mv.dest;
+          const score = (hareMoves(newHounds, hare).length===0) ? (1e6 + depth) : minimax(newHounds, hare, 'hare', depth-1, atMoveLimit, tt).score;
+          if(score>bestScore){ bestScore=score; best=mv; }
+        }
+        result = { score:bestScore, move:best };
       }
-      return { score:bestScore, move:best };
     }
+
+    tt.set(key, result);
+    return result;
+  }
+
+  // 残り手数(30 - moveCount)がMASTER_DEPTH以下になったら、探索の深さを
+  // 残り手数ちょうどに合わせて「実際に30手上限へ到達するかどうか」まで正確に読み切る。
+  function masterSearch(turn){
+    const remaining = Math.max(1, 30 - state.moveCount);
+    const depth = Math.min(MASTER_DEPTH, remaining);
+    const atMoveLimit = remaining <= MASTER_DEPTH;
+    const tt = new Map();
+    return minimax(state.hounds, state.hare, turn, depth, atMoveLimit, tt);
   }
 
   function masterHoundMove(){
-    const res = minimax(state.hounds, state.hare, 'hound', MASTER_DEPTH, -Infinity, Infinity);
+    const res = masterSearch('hound');
     return res.move || cpuHoundMove();
   }
   function masterHareMove(){
-    const res = minimax(state.hounds, state.hare, 'hare', MASTER_DEPTH, -Infinity, Infinity);
+    const res = masterSearch('hare');
     return res.move || cpuHareMove();
   }
 
