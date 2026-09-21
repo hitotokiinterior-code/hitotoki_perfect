@@ -27,6 +27,7 @@
  *   window.sePlayer.play('click');    // ボタン/UI操作
  *   window.sePlayer.play('timeout');  // 鬼モードの持ち時間切れ
  *   window.sePlayer.play('deny');     // 待った却下など、軽いネガティブ操作
+ *   window.sePlayer.play('alarm');    // ホーム画面のタイマーが0になった時の「ピピッ」
  *
  *   window.sePlayer.setEnabled(true/false); // ホームのスイッチと同じ意味(ON=鳴らす)
  *   window.sePlayer.isEnabled();
@@ -222,6 +223,13 @@
     }
   }
 
+  // ホーム画面のタイマー機能が0になった時の「ピピッ」という、
+  // キッチンタイマーのようなクリーンな電子音(2連打)。
+  function playAlarm(c) {
+    tone(c, { type: 'sine', freq: 1046.5, duration: 0.12, attack: 0.005, volume: 0.22 });
+    tone(c, { type: 'sine', freq: 1046.5, duration: 0.12, delay: 0.18, attack: 0.005, volume: 0.22 });
+  }
+
   var PLAYERS = {
     move: playMove,
     capture: playCapture,
@@ -238,6 +246,7 @@
     click: playClick,
     deny: playDeny,
     timeout: playTimeout,
+    alarm: playAlarm,
   };
 
   function play(name) {
