@@ -22,6 +22,9 @@ workflows:
           else
             npx cap copy ios
           fi
+      - name: 最低対応iOSバージョンを15.0に引き上げ(OneSignal対応)
+        script: |
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
       - name: シミュレーター用にビルド(署名不要)
         script: |
           cd ios/App && xcodebuild -project $XCODE_PROJECT \
@@ -29,6 +32,7 @@ workflows:
             -sdk iphonesimulator \
             -configuration Debug \
             -derivedDataPath build \
+            IPHONEOS_DEPLOYMENT_TARGET=15.0 \
             build
     artifacts:
       - ios/App/build/**/*.app
