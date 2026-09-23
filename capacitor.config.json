@@ -1,0 +1,16 @@
+{
+  "appId": "com.hitotoki.boardgames",
+  "appName": "hitotoki",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "AdMob": {
+      "requestTrackingAuthorization": true
+    }
+  }
+}

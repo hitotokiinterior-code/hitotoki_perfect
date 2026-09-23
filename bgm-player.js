@@ -61,6 +61,26 @@
     if(document.hidden) savePosition();
   });
 
+  // ---- ネイティブアプリ(Capacitor)のライフサイクル対応 ----
+  // Webブラウザのタブ切り替えは visibilitychange で検知できるが、
+  // iOSアプリとしてホームボタンでバックグラウンドに行った時は、
+  // WKWebViewだと再生が中断されず鳴り続けたり、逆に復帰時に再生されなかったりする
+  // ケースがあるため、Capacitorの@capacitor/appプラグインでアプリの状態変化を
+  // 明示的に検知し、確実に一時停止/再開する。
+  // (Web版として動かした場合はCapacitorが存在しないので、このブロックは自動的にスキップされる)
+  try{
+    if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App){
+      window.Capacitor.Plugins.App.addListener('appStateChange', function(state){
+        if(state.isActive){
+          if(bgmEnabled()) audio.play().catch(function(){});
+        }else{
+          savePosition();
+          audio.pause();
+        }
+      });
+    }
+  }catch(e){}
+
   var retryListenersAttached = false;
   function attachRetryOnce(){
     if(retryListenersAttached) return;

@@ -1,0 +1,35 @@
+{
+  "name": "hitotoki_perfect",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bg-theme.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:bridge": "esbuild src/capacitor-bridge.js --bundle --format=iife --outfile=capacitor-bridge.js",
+    "sync": "npm run build:bridge && node scripts/sync-www.js",
+    "cap:copy": "npm run sync && npx cap copy ios",
+    "cap:open": "npm run sync && npx cap copy ios && npx cap open ios"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hitotokiinterior-code/hitotoki_perfect.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hitotokiinterior-code/hitotoki_perfect/issues"
+  },
+  "homepage": "https://github.com/hitotokiinterior-code/hitotoki_perfect#readme",
+  "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@onesignal/capacitor-plugin": "^1.1.12"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "esbuild": "^0.28.2"
+  }
+}
