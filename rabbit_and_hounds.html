@@ -1240,8 +1240,15 @@
     'btn-start-game', 'btn-random-hare',
   ]);
 
+  // モード選択画面のどのボタンを最初に押しても、その瞬間にBGMが鳴り始めるようにする
+  ['mode-pair', 'role-pair', 'btn-start-game', 'btn-random-hare'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('click', () => { if(window.hitotokiBGM) window.hitotokiBGM.play(); });
+  });
+
 })();
 </script>
+<script src="bgm-player.js?v=2"></script>
 <script src="stats-tracker.js"></script>
 </body>
 </html>
