@@ -25,6 +25,13 @@ workflows:
       - name: 最低対応iOSバージョンを15.0に引き上げ(OneSignal対応)
         script: |
           sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+      - name: Info.plistに広告設定を追加(毎回自動生成されるため)
+        script: |
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :GADApplicationIdentifier string ca-app-pub-9422550075542216~8338742673" "$PLIST" || \
+          /usr/libexec/PlistBuddy -c "Set :GADApplicationIdentifier ca-app-pub-9422550075542216~8338742673" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :NSUserTrackingUsageDescription string 'あなたに合った広告を表示するために、この許可が使用されます。'" "$PLIST" || \
+          /usr/libexec/PlistBuddy -c "Set :NSUserTrackingUsageDescription 'あなたに合った広告を表示するために、この許可が使用されます。'" "$PLIST"
       - name: シミュレーター用にビルド(署名不要)
         script: |
           cd ios/App && xcodebuild -project $XCODE_PROJECT \
