@@ -6,7 +6,7 @@ workflows:
     environment:
       node: 22
       vars:
-        XCODE_WORKSPACE: "App.xcworkspace"
+        XCODE_PROJECT: "App.xcodeproj"
         XCODE_SCHEME: "App"
     scripts:
       - name: npmで必要な部品をインストール
@@ -22,12 +22,9 @@ workflows:
           else
             npx cap copy ios
           fi
-      - name: CocoaPodsの依存関係をインストール
-        script: |
-          cd ios/App && pod install
       - name: シミュレーター用にビルド(署名不要)
         script: |
-          cd ios/App && xcodebuild -workspace $XCODE_WORKSPACE \
+          cd ios/App && xcodebuild -project $XCODE_PROJECT \
             -scheme $XCODE_SCHEME \
             -sdk iphonesimulator \
             -configuration Debug \
