@@ -1516,11 +1516,11 @@
   text-transform:uppercase;
   color:#efe8da;
   text-shadow:0 2px 20px rgba(0,0,0,0.6);
-  animation: introTapBlink 1.1s steps(1, end) infinite;
+  animation: introTapBlink 2s ease-in-out infinite;
 }
 @keyframes introTapBlink{
-  0%, 50%{ opacity:1; }
-  51%, 100%{ opacity:0; }
+  0%, 100%{ opacity:0.15; }
+  50%{ opacity:1; }
 }
 @media (prefers-reduced-motion: reduce){
   #introScreen .intro-tap span{ animation:none; opacity:0.85; }
@@ -3075,11 +3075,8 @@ body.panel-open .setting-btn{
 
     introScreen.addEventListener("click", () => {
       sessionStorage.setItem("hitotokiStarted", "true");
-      introScreen.style.opacity = "0";
-      setTimeout(() => {
-        introScreen.style.display = "none";
-        app.style.display = "flex";
-      }, 400);
+      app.style.display = "flex";
+      introScreen.style.display = "none";
     });
   }
 
