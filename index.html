@@ -1476,7 +1476,7 @@
 }
 #introScreen .intro-content{
   position:absolute;
-  top:50%;
+  top:38%;
   left:50%;
   transform:translate(calc(-50% + 10px), -50%);
   z-index:2;
@@ -1508,9 +1508,7 @@
   0%, 100%{ opacity:0.15; }
   50%{ opacity:1; }
 }
-@media (prefers-reduced-motion: reduce){
-  #introScreen .intro-tap span{ animation:none; opacity:0.85; }
-}
+/* 「動きを減らす」設定が有効な端末でも、Tap to Startの点滅は意図した演出として維持する */
 
   /* --- bonus tools（設定メニュー内、リンク一覧の下に配置） --- */
   .extras{
@@ -3038,11 +3036,8 @@ body.panel-open .setting-btn{
     app.style.display = "flex";
   } else {
     function showIntroScreen(){
-      opening.style.opacity = "0";
-      setTimeout(() => {
-        opening.style.display = "none";
-        introScreen.style.display = "flex";
-      }, 500);
+      opening.style.display = "none";
+      introScreen.style.display = "flex";
     }
 
     openingVideo.addEventListener("ended", showIntroScreen);
