@@ -1437,7 +1437,7 @@
   align-items:center;
   overflow:hidden;
   cursor:pointer;
-  transition:opacity .5s ease;
+  transition:opacity 1.4s ease;
 }
 #openingVideo{
   width:100%;
@@ -1456,7 +1456,7 @@
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  transition:opacity .4s ease;
+  transition:opacity 1.4s ease;
 }
 #introScreen .intro-bg-photo{
   position:absolute;
@@ -3039,8 +3039,19 @@ body.panel-open .setting-btn{
     function showIntroScreen(){
       if(advanced) return; // 二重発火防止
       advanced = true;
-      opening.style.display = "none";
+      // ゆっくりクロスフェード：intro側を先に描画してから、
+      // オープニング動画をフェードアウトしつつintro側をフェードインする
       introScreen.style.display = "flex";
+      introScreen.style.opacity = "0";
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          opening.style.opacity = "0";
+          introScreen.style.opacity = "1";
+        });
+      });
+      setTimeout(() => {
+        opening.style.display = "none";
+      }, 1400);
     }
 
     openingVideo.addEventListener("ended", showIntroScreen);
