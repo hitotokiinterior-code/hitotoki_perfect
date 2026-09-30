@@ -4,6 +4,8 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     environment:
+      groups:
+        - appetize_credentials # APPETIZE_API_TOKEN / APPETIZE_APP_PUBLIC_KEY (Codemagic側で登録)
       node: 22
       vars:
         XCODE_PROJECT: "App.xcodeproj"
@@ -15,12 +17,16 @@ workflows:
       - name: Capacitorのbridgeをビルド & wwwを最新化
         script: |
           npm run sync
-      - name: iOSプロジェクトを生成(まだ無ければ)
+      - name: iOSプロジェクトを生成(まだ無ければ) / ネイティブ依存を同期
         script: |
           if [ ! -d "ios" ]; then
             npx cap add ios
           else
-            npx cap copy ios
+            # cap copy ではなく cap sync にする。
+            # cap copy はwwwの中身をコピーするだけで、package.jsonに
+            # 追加したネイティブプラグイン(RevenueCat等)のCocoaPodsが
+            # 更新されない。cap sync は copy + pod install 相当を行う。
+            npx cap sync ios
           fi
       - name: 最低対応iOSバージョンを15.0に引き上げ(OneSignal対応)
         script: |
@@ -34,12 +40,40 @@ workflows:
           /usr/libexec/PlistBuddy -c "Set :NSUserTrackingUsageDescription 'あなたに合った広告を表示するために、この許可が使用されます。'" "$PLIST"
       - name: シミュレーター用にビルド(署名不要)
         script: |
-          cd ios/App && xcodebuild -project $XCODE_PROJECT \
-            -scheme $XCODE_SCHEME \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -derivedDataPath build \
-            IPHONEOS_DEPLOYMENT_TARGET=15.0 \
-            build
+          cd ios/App
+          # RevenueCat/AdMobなどCocoaPods製プラグインを使っているので、
+          # .xcodeproj単体ではなく、podが統合された .xcworkspace を
+          # ビルド対象にする(-projectのままだとPodが正しくリンクされない)
+          if [ -d "$XCODE_SCHEME.xcworkspace" ]; then
+            xcodebuild -workspace "$XCODE_SCHEME.xcworkspace" \
+              -scheme $XCODE_SCHEME \
+              -sdk iphonesimulator \
+              -configuration Debug \
+              -derivedDataPath build \
+              IPHONEOS_DEPLOYMENT_TARGET=15.0 \
+              build
+          else
+            xcodebuild -project $XCODE_PROJECT \
+              -scheme $XCODE_SCHEME \
+              -sdk iphonesimulator \
+              -configuration Debug \
+              -derivedDataPath build \
+              IPHONEOS_DEPLOYMENT_TARGET=15.0 \
+              build
+          fi
     artifacts:
       - ios/App/build/**/*.app
+    publishing:
+      scripts:
+        - name: Appetize.ioにアップロード(ブラウザでシミュレーター確認用)
+          # 事前準備(手動・1回だけ):
+          #   1. https://appetize.io/upload でこのビルドの.appを手動で1回アップロードし、
+          #      発行される公開キー(publicKey)を控える
+          #   2. https://appetize.io/account でAPIトークンを発行
+          #   3. Codemagicの環境変数に APPETIZE_API_TOKEN / APPETIZE_APP_PUBLIC_KEY を
+          #      グループ名 appetize_credentials として登録(Secret扱いで)
+          script: |
+            cd ios/App/build/Build/Products/Debug-iphonesimulator
+            zip -r app.zip "$XCODE_SCHEME.app"
+            curl --location --request POST "https://$APPETIZE_API_TOKEN@api.appetize.io/v1/apps/$APPETIZE_APP_PUBLIC_KEY" \
+              --form "file=@app.zip"
