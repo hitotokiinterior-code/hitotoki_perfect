@@ -96,6 +96,13 @@
     }
 
     saveStats(stats);
+
+    // ads.js側で「2局ごとにインタースティシャル広告を出す」判定に使うイベント。
+    // stats-tracker.js自体は広告のことを知らなくていいように、イベント発火だけ担当する。
+    try{
+      window.dispatchEvent(new CustomEvent('hitotoki:gameEnd', { detail: { gameId: gameId, title: title } }));
+    }catch(e){}
+
     return stats;
   }
 
