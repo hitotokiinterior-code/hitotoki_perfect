@@ -14,6 +14,7 @@
     --nav-h: 60px;
     --card-h: 94px;   /* ゲームカードの高さ。.game-card クラスを使う場所すべてで共通 */
     --card-gap: 6px;
+    --ad-h: 60px;     /* バナー広告枠の高さ。実際のバナー表示後にads.jsが実寸へ更新する */
   }
 
   *{ box-sizing:border-box; }
@@ -50,6 +51,11 @@
   gap:28px;
   padding-bottom: calc(var(--nav-h) + 14px);
 }
+
+  /* 広告表示中は、固定表示の広告枠に隠れないよう下に余白を足す */
+  body.ads-on .app{
+    padding-bottom: calc(var(--nav-h) + var(--ad-h) + 14px);
+  }
 
   /* --- 切り替わる画面（ホーム／記録／コレクション） --- */
   .view-content{
@@ -1285,7 +1291,7 @@
   }
 
   /* 「広告を消す」未購入の間：カード3枚ぶんの高さに縮めて、
-     すぐ下に表示する .ad-banner-card が視覚的に「4枚目」に見えるようにする */
+     下部の広告枠(.ad-banner-card)の分だけ縦スペースを空ける */
   .game-grid.ads-active{
     height: calc(var(--card-h) * 3 + var(--card-gap) * 2 + 4px);
   }
@@ -1423,13 +1429,24 @@
     color: var(--silver-dim);
   }
 
-  /* 「広告を消す」カード：ゲームリストのすぐ下、ちょうど4枚目の位置に表示。
-     実際の広告(ネイティブバナー)はこの上に重ねてAdMobが描画するので、
-     このカード自体は見た目上のプレースホルダー兼、購入導線を兼ねる */
+  /* 広告枠：下部ナビの真上に固定（ゲームカード → 広告 → ナビ の順）。
+     実際の広告(ネイティブバナー)はこの枠の上にAdMobが重ねて描画する。
+     広告の読み込み前・失敗時は何も載っていない暗い枠が見える */
   .ad-banner-card{
-    flex: 0 0 var(--card-h);
-    height: var(--card-h);
-    margin: var(--card-gap) 4px 0;
+    position:fixed;
+    left:0; right:0;
+    bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+    z-index:590; /* ナビ(600)のすぐ下 */
+    height: var(--ad-h);
+    background:#000;
+    border-top: 1px solid var(--hairline);
+  }
+  .ad-banner-card.hidden{ display:none; }
+
+  /* 「広告を消す」：☰メニューパネルの一番下に表示する購入導線 */
+  .menu-remove-ads{
+    margin-top:auto;           /* メニューパネルの下端に寄せる */
+    flex-shrink:0;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -1440,24 +1457,34 @@
     border-radius: 8px;
     box-shadow: 0 6px 14px rgba(0,0,0,0.4);
   }
-  .ad-banner-card .ad-banner-copy{
+  .menu-remove-ads.hidden{ display:none; }
+  /* メニューパネルは縦flexにして、購入導線を下端に固定できるようにする */
+  .setting-panel.menu-panel{
+    display:flex;
+    flex-direction:column;
+    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 24px));
+  }
+  .setting-panel.menu-panel > *{ flex-shrink:0; }
+  #menuGameList{ margin-bottom:24px; } /* 購入導線との間に最低限の余白 */
+
+  .menu-remove-ads .ad-banner-copy{
     display:flex;
     flex-direction:column;
     gap:2px;
     min-width:0;
   }
-  .ad-banner-card .ad-banner-title{
+  .menu-remove-ads .ad-banner-title{
     font-family:'Kaisei Decol', serif;
     font-weight:700;
     font-size:0.86rem;
     color:#ece4d1;
   }
-  .ad-banner-card .ad-banner-sub{
+  .menu-remove-ads .ad-banner-sub{
     font-size:0.62rem;
     color: var(--silver-dim);
     letter-spacing:0.02em;
   }
-  .ad-banner-card .ad-banner-buy-btn{
+  .menu-remove-ads .ad-banner-buy-btn{
     flex-shrink:0;
     font-family:'Jost', sans-serif;
     font-weight:600;
@@ -1470,8 +1497,7 @@
     padding:9px 16px;
     cursor:pointer;
   }
-  .ad-banner-card .ad-banner-buy-btn:active{ opacity:0.85; }
-  .ad-banner-card.hidden{ display:none; }
+  .menu-remove-ads .ad-banner-buy-btn:active{ opacity:0.85; }
 
 
 
@@ -2328,6 +2354,14 @@ body.panel-open .setting-btn{
 
   <div class="setting-menu" id="menuGameList"></div>
 
+  <div class="menu-remove-ads hidden" id="menuRemoveAds">
+    <div class="ad-banner-copy">
+      <div class="ad-banner-title">広告を消す</div>
+      <div class="ad-banner-sub" id="adBannerSub">買い切り・アプリ内課金</div>
+    </div>
+    <button class="ad-banner-buy-btn" id="adBannerBuyBtn" type="button">購入する</button>
+  </div>
+
 </div>
   
   <div class="view-content" id="homeView">
@@ -2364,13 +2398,7 @@ body.panel-open .setting-btn{
 
     <nav class="game-grid" id="gameGrid"></nav>
 
-    <div class="ad-banner-card hidden" id="adBannerCard">
-      <div class="ad-banner-copy">
-        <div class="ad-banner-title">広告を消す</div>
-        <div class="ad-banner-sub" id="adBannerSub">買い切り・アプリ内課金</div>
-      </div>
-      <button class="ad-banner-buy-btn" id="adBannerBuyBtn" type="button">購入する</button>
-    </div>
+    <div class="ad-banner-card hidden" id="adBannerCard"></div>
   </div>
 
   <div class="view-content" id="recordsView" style="display:none;">
@@ -2738,12 +2766,15 @@ body.panel-open .setting-btn{
   // --- 「広告を消す」課金(purchases.js)の状態に合わせて、ゲームリストの
   //     見え方を切り替える：広告あり＝カード3枚+広告カード／広告なし＝カード4枚 ---
   const adBannerCard = document.getElementById('adBannerCard');
+  const menuRemoveAds = document.getElementById('menuRemoveAds');
   const adBannerBuyBtn = document.getElementById('adBannerBuyBtn');
   const adBannerSub = document.getElementById('adBannerSub');
 
   function applyAdsVisibility(adsRemoved){
     if(gameGrid) gameGrid.classList.toggle('ads-active', !adsRemoved);
     if(adBannerCard) adBannerCard.classList.toggle('hidden', adsRemoved);
+    document.body.classList.toggle('ads-on', !adsRemoved);
+    if(menuRemoveAds) menuRemoveAds.classList.toggle('hidden', adsRemoved);
   }
 
   if(window.hitotokiPurchases){
