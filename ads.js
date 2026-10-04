@@ -35,12 +35,10 @@
  * このファイルを読み込むこと。
  */
 (function () {
-  // ✅ 本番の広告ユニットID(バナー)に差し替え済み
-  var BANNER_AD_UNIT_ID_IOS = 'ca-app-pub-9422550075542216/2933363590';
-
-  // ⚠️ Googleの検証用ID(インタースティシャル)。AdMobで本物のユニットを
-  //    作成したら、そのIDに差し替えてください
-  var INTERSTITIAL_AD_UNIT_ID_IOS = 'ca-app-pub-3940256099942544/4411468910';
+  // ✅ 本番の広告ユニットID(新AdMobアカウント: pub-4044413836429156)
+  //    アプリID: ca-app-pub-4044413836429156~5152450361 (codemagic.yaml の Info.plist 設定側で使用)
+  var BANNER_AD_UNIT_ID_IOS = 'ca-app-pub-4044413836429156/8030070153';
+  var INTERSTITIAL_AD_UNIT_ID_IOS = 'ca-app-pub-4044413836429156/5615484797';
 
   var GAMES_PER_INTERSTITIAL = 2; // 何局ごとにインタースティシャルを出すか
   var INTERSTITIAL_COUNT_KEY = 'hitotoki_games_since_interstitial';
@@ -57,6 +55,23 @@
   var AdMob = window.AdMob;
   var bannerShown = false;
 
+  // 下部ナビ(#bottomNav)があるページ(=ホーム)では、バナーをナビの真上に浮かせる。
+  // バナーはセーフエリア下端から margin 分だけ上に置かれるので、ナビ本体の高さ(--nav-h)を渡す。
+  // ゲーム画面などナビが無いページは従来どおり margin 0(画面最下部)。
+  function getBannerMargin() {
+    if (!document.getElementById('bottomNav')) return 0;
+    var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'));
+    return Math.round(isNaN(navH) ? 60 : navH);
+  }
+
+  // 実際に表示されたバナーの高さをCSS変数 --ad-h に反映し、
+  // 画面側の広告枠(.ad-banner-card)の高さとぴったり合わせる
+  AdMob.addListener('bannerAdSizeChanged', function (info) {
+    if (info && info.height > 0) {
+      document.documentElement.style.setProperty('--ad-h', Math.ceil(info.height) + 'px');
+    }
+  });
+
   async function showTheBanner() {
     if (bannerShown) return;
     try {
@@ -64,7 +79,7 @@
         adId: BANNER_AD_UNIT_ID_IOS,
         adSize: 'ADAPTIVE_BANNER',
         position: 'BOTTOM_CENTER',
-        margin: 0,
+        margin: getBannerMargin(),
         isTesting: true, // 本番切り替え時にこの行を削除する
       });
       bannerShown = true;
