@@ -69,6 +69,7 @@
   AdMob.addListener('bannerAdSizeChanged', function (info) {
     if (info && info.height > 0) {
       document.documentElement.style.setProperty('--ad-h', Math.ceil(info.height) + 'px');
+      window.dispatchEvent(new Event('resize')); // 一覧の高さなどを再計算させる
     }
   });
 
