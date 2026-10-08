@@ -77,3 +77,74 @@ workflows:
             zip -r app.zip "$XCODE_SCHEME.app"
             curl --location --request POST "https://$APPETIZE_API_TOKEN@api.appetize.io/v1/apps/$APPETIZE_APP_PUBLIC_KEY" \
               --form "file=@app.zip"
+
+  # =====================================================================
+  # App Store / TestFlight 用（署名あり）
+  # 使い方: Codemagicで「ios-release」を選んでビルドを開始する(手動実行のみ)。
+  # 事前準備(1回だけ):
+  #   Codemagic > Teams > Integrations > App Store Connect で、
+  #   App Store ConnectのAPIキー(Issuer ID / Key ID / .p8)を、
+  #   下の integrations に書いた名前「hitotoki_asc」で登録しておく。
+  # =====================================================================
+  ios-release:
+    name: iOS Release (TestFlight用・署名あり)
+    max_build_duration: 90
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: hitotoki_asc
+    environment:
+      node: 22
+      xcode: latest # 2026年4月28日以降はXcode 26以降(iOS 26 SDK)でのビルドが必須
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.hitotoki.boardgames
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+    scripts:
+      - name: npmで必要な部品をインストール
+        script: |
+          npm install
+      - name: Capacitorのbridgeをビルド & wwwを最新化
+        script: |
+          npm run sync
+      - name: iOSプロジェクトを生成(まだ無ければ) / ネイティブ依存を同期
+        script: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          else
+            npx cap sync ios
+          fi
+      - name: 最低対応iOSバージョンを15.0に引き上げ(OneSignal対応)
+        script: |
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+      - name: Info.plistに広告・暗号化の設定を追加(毎回自動生成されるため)
+        script: |
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :GADApplicationIdentifier string ca-app-pub-4044413836429156~5152450361" "$PLIST" || \
+          /usr/libexec/PlistBuddy -c "Set :GADApplicationIdentifier ca-app-pub-4044413836429156~5152450361" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :NSUserTrackingUsageDescription string 'あなたに合った広告を表示するために、この許可が使用されます。'" "$PLIST" || \
+          /usr/libexec/PlistBuddy -c "Set :NSUserTrackingUsageDescription 'あなたに合った広告を表示するために、この許可が使用されます。'" "$PLIST"
+          # 輸出コンプライアンス(暗号化)の質問を毎回聞かれないようにする(標準的なHTTPS通信のみ)
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST" || \
+          /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST"
+      - name: ビルド番号をCodemagicの連番に設定(TestFlightは毎回増える番号が必要)
+        script: |
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" ios/App/App.xcodeproj/project.pbxproj
+      - name: 署名設定をXcodeプロジェクトに反映
+        script: |
+          xcode-project use-profiles
+      - name: 署名つきの.ipaをビルド
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        # false: TestFlightにアップロードするだけ(自分たち=内部テスターは審査なしで使える)。
+        # true にすると外部テスター向けのベータ審査まで自動で提出する。
+        submit_to_testflight: false
