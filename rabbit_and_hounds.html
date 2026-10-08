@@ -27,6 +27,10 @@
     font-family:'Shippori Mincho','Noto Serif JP',serif;
   }
   #app{position:fixed; inset:0; display:flex; flex-direction:column;}
+  /* バナー広告が出る間は、画面全体(#app)を広告の高さぶん縮めて、広告に被らないようにする（ads.js が html.ads-game を付ける） */
+  html.ads-game #app{ bottom: calc(env(safe-area-inset-bottom, 0px) + var(--ad-h, 60px)); }
+  /* 画面の縦が短い端末（iPhone SE など）では、広告ぶん狭くなるモード選択を少し縮めて収める */
+  @media (max-height: 700px){ html.ads-game .mode-wrap{ zoom:.88; } }
   .screen{
     position:absolute; inset:0; display:none; flex-direction:column;
     align-items:center; justify-content:center;
