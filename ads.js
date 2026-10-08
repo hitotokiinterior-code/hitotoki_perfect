@@ -55,6 +55,38 @@
   var AdMob = window.AdMob;
   var bannerShown = false;
 
+  // ---------- ゲーム画面(モード選択・プレイ画面)用のレイアウト調整 ----------
+  // ナビ(#bottomNav)が無いページ＝各ゲーム画面では、バナーは画面最下部(セーフエリアの上)に出る。
+  // バナーに被らないよう、広告が出る間は body の高さをバナーの高さぶん縮める(html.ads-game)。
+  // 広告を消す課金済みの端末では縮めない。課金状態は localStorage に控えて、起動直後から正しく判定する。
+  var ADS_REMOVED_HINT_KEY = 'hitotoki_ads_removed_hint';
+  // 広告用の余白(#adSlot)を自前で持っているゲーム(ドッツ&ボックス)は、二重に縮めないよう対象外にする
+  var isGamePage = !document.getElementById('bottomNav') && !document.getElementById('adSlot');
+
+  function readRemovedHint() {
+    try { return window.localStorage.getItem(ADS_REMOVED_HINT_KEY) === '1'; } catch (e) { return false; }
+  }
+  function writeRemovedHint(removed) {
+    try { window.localStorage.setItem(ADS_REMOVED_HINT_KEY, removed ? '1' : '0'); } catch (e) { /* ignore */ }
+  }
+  function setGameReserve(on) {
+    if (!isGamePage) return;
+    document.documentElement.classList.toggle('ads-game', !!on);
+  }
+
+  if (isGamePage) {
+    var st = document.createElement('style');
+    st.textContent =
+      'html.ads-game body{' +
+      'box-sizing:border-box;' +
+      'height:calc(100dvh - env(safe-area-inset-bottom, 0px) - var(--ad-h, 60px));' +
+      'max-height:calc(100dvh - env(safe-area-inset-bottom, 0px) - var(--ad-h, 60px));' +
+      'padding-bottom:8px !important;}';
+    document.head.appendChild(st);
+    // 課金済みでなければ、広告の読み込みを待たずに最初から枠を確保して、画面のガタつきを防ぐ
+    setGameReserve(!readRemovedHint());
+  }
+
   // 下部ナビ(#bottomNav)があるページ(=ホーム)では、バナーをナビの真上に浮かせる。
   // バナーはセーフエリア下端から margin 分だけ上に置かれるので、ナビ本体の高さ(--nav-h)を渡す。
   // ゲーム画面などナビが無いページは従来どおり margin 0(画面最下部)。
@@ -73,6 +105,9 @@
     }
   });
 
+  // 広告の読み込みに失敗したら、確保していた枠を元に戻す
+  AdMob.addListener('bannerAdFailedToLoad', function () { setGameReserve(false); });
+
   async function showTheBanner() {
     if (bannerShown) return;
     try {
@@ -84,8 +119,10 @@
         isTesting: true, // 本番切り替え時にこの行を削除する
       });
       bannerShown = true;
+      setGameReserve(true);
     } catch (e) {
       console.warn('[ads] AdMob showBanner failed', e);
+      setGameReserve(false);
     }
   }
 
@@ -94,6 +131,7 @@
     try {
       await AdMob.hideBanner();
       bannerShown = false;
+      setGameReserve(false);
     } catch (e) {
       console.warn('[ads] AdMob hideBanner failed', e);
     }
@@ -189,7 +227,7 @@
       if (consentInfo.isConsentFormAvailable && consentInfo.status === 'REQUIRED') {
         consentInfo = await AdMob.showConsentForm();
       }
-      if (consentInfo.canRequestAds === false) return; // 同意が取れない場合は広告を出さない
+      if (consentInfo.canRequestAds === false) { setGameReserve(false); return; } // 同意が取れない場合は広告を出さない
 
       // 「広告を消す」課金(purchases.js)の状態を見て出し分ける。
       // purchases.jsが読み込まれていない場合は、従来通り常に広告を出す。
@@ -201,16 +239,20 @@
       }
 
       await purchases.ready; // 起動時の購入状態チェックが終わるまで待つ
+      writeRemovedHint(purchases.isAdsRemoved());
+      if (purchases.isAdsRemoved()) setGameReserve(false);
       if (!purchases.isAdsRemoved()) await showTheBanner();
       setupInterstitialTrigger(purchases); // gameEndの監視は常に張っておき、出す判定は発火時に行う
 
       // 購入 / 復元によって状態が後から変わった場合にも追従する
       purchases.onChange(function (adsRemoved) {
+        writeRemovedHint(adsRemoved);
         if (adsRemoved) hideTheBanner();
         else { showTheBanner(); prepareTheInterstitial(); }
       });
     } catch (e) {
       console.warn('[ads] AdMob start failed', e);
+      setGameReserve(false);
     }
   }
 
