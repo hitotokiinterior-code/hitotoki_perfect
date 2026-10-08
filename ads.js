@@ -20,7 +20,7 @@
  * 対局が終わるたび(stats-tracker.jsのrecordGameEnd実行時)にカウントし、
  * GAMES_PER_INTERSTITIAL局に1回、結果画面が出ているタイミングで全画面広告を挟む。
  * カウントはlocalStorageに保存するので、途中でアプリを閉じたりゲームを
- * 切り替えたりしても「2局に1回」がリセットされずに続く。
+ * 切り替えたりしても「3局に1回」がリセットされずに続く。
  *
  * iOSのApp Tracking Transparency(ATT)について:
  * 「トラッキングの許可を求める」ダイアログをユーザーに出す必要があり、
@@ -40,7 +40,7 @@
   var BANNER_AD_UNIT_ID_IOS = 'ca-app-pub-4044413836429156/8030070153';
   var INTERSTITIAL_AD_UNIT_ID_IOS = 'ca-app-pub-4044413836429156/5615484797';
 
-  var GAMES_PER_INTERSTITIAL = 2; // 何局ごとにインタースティシャルを出すか
+  var GAMES_PER_INTERSTITIAL = 3; // 何局ごとにインタースティシャルを出すか
   var INTERSTITIAL_COUNT_KEY = 'hitotoki_games_since_interstitial';
 
   function isNative() {
@@ -98,7 +98,7 @@
     }
   }
 
-  // ---------- インタースティシャル(2局に1回) ----------
+  // ---------- インタースティシャル(3局に1回) ----------
   var interstitialReady = false;
   var interstitialShowing = false;
 
@@ -131,7 +131,7 @@
     }
   }
 
-  // 対局終了イベント(stats-tracker.js)を購読し、2局に1回インタースティシャルを出す
+  // 対局終了イベント(stats-tracker.js)を購読し、3局に1回インタースティシャルを出す
   function setupInterstitialTrigger(purchases) {
     AdMob.addListener('interstitialAdDismissed', function () {
       interstitialShowing = false;
