@@ -52,6 +52,18 @@
   padding-bottom: calc(var(--nav-h) + 14px);
 }
 
+  /* 広告表示中は、内部スクロールするリストもバナーの高さ分だけ短くして、広告にかからないようにする */
+  body.ads-on .history-grid{
+    max-height: calc(100vh - 300px - var(--ad-h));
+    max-height: calc(100dvh - 300px - var(--ad-h));
+  }
+  body.ads-on .records-history-list{
+    max-height: calc(100vh - 320px - var(--ad-h));
+    max-height: calc(100dvh - 320px - var(--ad-h));
+  }
+  /* お知らせ画面の「広告を消す」は、リストの下に少し間を空ける */
+  .notice-remove-ads{ margin-top:18px; }
+
   /* 広告表示中は、固定表示の広告枠に隠れないよう下に余白を足す */
   body.ads-on .app{
     padding-bottom: calc(var(--nav-h) + var(--ad-h) + 14px);
@@ -861,11 +873,47 @@
   }
 
   /* --- アチーブメント：バッジのグリッド表示 --- */
+  /* 横スクロールで1ページずつ切り替わるページャー。1ページ = 横2 × 縦3（6個） */
   .achievement-grid{
     width:100%;
+    display:flex;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    touch-action: pan-x pan-y;
+    padding: 4px 4px 6px;
+    box-sizing:border-box;
+    scrollbar-width:none;
+  }
+  .achievement-grid::-webkit-scrollbar{ display:none; }
+  .achievement-page{
+    flex:0 0 100%;
+    box-sizing:border-box;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
     display:grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
     gap:10px;
+    padding: 0 2px;
+  }
+  .achievement-dots{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    padding-top:2px;
+  }
+  .achievement-dots span{
+    width:6px; height:6px;
+    border-radius:50%;
+    background: var(--silver-dim);
+    opacity:0.45;
+    transition: opacity .2s ease, background .2s ease;
+  }
+  .achievement-dots span.active{
+    background:#ece4d1;
+    opacity:1;
   }
   .achievement-badge{
     display:flex;
@@ -1431,15 +1479,15 @@
 
   /* 広告枠：下部ナビの真上に固定（ゲームカード → 広告 → ナビ の順）。
      実際の広告(ネイティブバナー)はこの枠の上にAdMobが重ねて描画する。
-     広告の読み込み前・失敗時は何も載っていない暗い枠が見える */
+     広告の読み込み前・失敗時は、透明な余白になる */
   .ad-banner-card{
     position:fixed;
     left:0; right:0;
     bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
     z-index:590; /* ナビ(600)のすぐ下 */
     height: var(--ad-h);
-    background:#000;
-    border-top: 1px solid var(--hairline);
+    background: transparent; /* 広告が出ない間は、ただの余白に見えるようにする */
+    pointer-events:none;
   }
   .ad-banner-card.hidden{ display:none; }
 
@@ -2509,6 +2557,7 @@ body.panel-open .setting-btn{
         <!-- アチーブメント：バッジのグリッド表示。中身は JS の ACHIEVEMENTS から生成する -->
         <div class="collection-panel" id="collectionPanelAchievement">
           <div class="achievement-grid" id="achievementGrid"></div>
+          <div class="achievement-dots" id="achievementDots"></div>
         </div>
 
       </div>
@@ -2534,6 +2583,13 @@ body.panel-open .setting-btn{
     <button class="notice-modal-close" id="noticeModalClose">×</button>
     <div class="notice-modal-title">お知らせ</div>
     <div class="notice-list" id="noticeList"></div>
+    <div class="menu-remove-ads notice-remove-ads hidden" id="noticeRemoveAds">
+      <div class="ad-banner-copy">
+        <div class="ad-banner-title">広告を消す</div>
+        <div class="ad-banner-sub">買い切り・アプリ内課金</div>
+      </div>
+      <button class="ad-banner-buy-btn" type="button">購入する</button>
+    </div>
   </div>
 </div>
 
@@ -2767,14 +2823,17 @@ body.panel-open .setting-btn{
   //     見え方を切り替える：広告あり＝カード3枚+広告カード／広告なし＝カード4枚 ---
   const adBannerCard = document.getElementById('adBannerCard');
   const menuRemoveAds = document.getElementById('menuRemoveAds');
-  const adBannerBuyBtn = document.getElementById('adBannerBuyBtn');
-  const adBannerSub = document.getElementById('adBannerSub');
+  const noticeRemoveAds = document.getElementById('noticeRemoveAds');
+  // 「広告を消す」ボタンは複数の場所（☰メニュー／お知らせ）にあるので、まとめて扱う
+  const adBuyBtns = document.querySelectorAll('.ad-banner-buy-btn');
+  const adSubs = document.querySelectorAll('.ad-banner-sub');
 
   function applyAdsVisibility(adsRemoved){
     if(gameGrid) gameGrid.classList.toggle('ads-active', !adsRemoved);
     if(adBannerCard) adBannerCard.classList.toggle('hidden', adsRemoved);
     document.body.classList.toggle('ads-on', !adsRemoved);
     if(menuRemoveAds) menuRemoveAds.classList.toggle('hidden', adsRemoved);
+    if(noticeRemoveAds) noticeRemoveAds.classList.toggle('hidden', adsRemoved);
   }
 
   if(window.hitotokiPurchases){
@@ -2789,7 +2848,7 @@ body.panel-open .setting-btn{
     applyAdsVisibility(false);
   }
 
-  if(adBannerBuyBtn){
+  adBuyBtns.forEach(adBannerBuyBtn => {
     adBannerBuyBtn.addEventListener('click', async () => {
       if(!window.hitotokiPurchases){ return; }
       adBannerBuyBtn.disabled = true;
@@ -2805,12 +2864,12 @@ body.panel-open .setting-btn{
       }catch(e){
         console.warn('[index] buyRemoveAds failed', e);
         adBannerBuyBtn.textContent = originalLabel;
-        if(adBannerSub) adBannerSub.textContent = '購入できませんでした。時間をおいて再度お試しください';
+        adSubs.forEach(el => { el.textContent = '購入できませんでした。時間をおいて再度お試しください'; });
       }finally{
         adBannerBuyBtn.disabled = false;
       }
     });
-  }
+  });
 
   // 設定パネル内「購入を復元」ボタン
   const restorePurchaseBtn = document.getElementById('restorePurchaseBtn');
@@ -3127,23 +3186,52 @@ body.panel-open .setting-btn{
 
   function renderAchievementGrid(){
     const grid = document.getElementById('achievementGrid');
+    const dots = document.getElementById('achievementDots');
     if(!grid) return;
     const unlockedIds = getUnlockedAchievementIds();
+    const PER_PAGE = 6; // 横2 × 縦3
+    const prevScroll = grid.scrollLeft;
     grid.innerHTML = '';
-    ACHIEVEMENTS.forEach(a => {
-      const unlocked = unlockedIds.includes(a.id);
-      const badge = document.createElement('div');
-      badge.className = 'achievement-badge ' + (unlocked ? 'unlocked' : 'locked');
-      const icon = document.createElement('div');
-      icon.className = 'badge-icon';
-      icon.textContent = unlocked ? '🏆' : '🔒';
-      const title = document.createElement('div');
-      title.className = 'badge-title';
-      title.textContent = a.title;
-      badge.appendChild(icon);
-      badge.appendChild(title);
-      grid.appendChild(badge);
-    });
+    const pageCount = Math.max(1, Math.ceil(ACHIEVEMENTS.length / PER_PAGE));
+    for(let p = 0; p < pageCount; p++){
+      const page = document.createElement('div');
+      page.className = 'achievement-page';
+      ACHIEVEMENTS.slice(p * PER_PAGE, (p + 1) * PER_PAGE).forEach(a => {
+        const unlocked = unlockedIds.includes(a.id);
+        const badge = document.createElement('div');
+        badge.className = 'achievement-badge ' + (unlocked ? 'unlocked' : 'locked');
+        const icon = document.createElement('div');
+        icon.className = 'badge-icon';
+        icon.textContent = unlocked ? '🏆' : '🔒';
+        const title = document.createElement('div');
+        title.className = 'badge-title';
+        title.textContent = a.title;
+        badge.appendChild(icon);
+        badge.appendChild(title);
+        page.appendChild(badge);
+      });
+      grid.appendChild(page);
+    }
+    grid.scrollLeft = prevScroll;
+
+    // ページ位置を示すドット（ページが2枚以上のときだけ表示）
+    if(dots){
+      dots.innerHTML = '';
+      if(pageCount > 1){
+        for(let i = 0; i < pageCount; i++) dots.appendChild(document.createElement('span'));
+      }
+      const updateDots = () => {
+        const idx = Math.round(grid.scrollLeft / Math.max(1, grid.clientWidth));
+        Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === idx));
+      };
+      updateDots();
+      if(!grid.dataset.bound){
+        grid.dataset.bound = '1';
+        grid.addEventListener('scroll', updateDots, { passive:true });
+        // このエリア内の横スワイプはページ送り専用にして、外側の「紋章／アチーブメント」タブ切り替えとは競合させない
+        ['touchstart','mousedown'].forEach(ev => grid.addEventListener(ev, e => e.stopPropagation(), { passive:true }));
+      }
+    }
   }
 
   // 右からシュッと入って、約3秒後に消えるトーストを1つ表示する
