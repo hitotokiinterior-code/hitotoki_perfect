@@ -95,10 +95,12 @@ workflows:
     environment:
       node: 22
       xcode: latest # 2026年4月28日以降はXcode 26以降(iOS 26 SDK)でのビルドが必須
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.hitotoki.boardgames
+      # Codemagicの画面(アプリの Environment variables)で作る変数グループ「code-signing」。
+      # 中に CERTIFICATE_PRIVATE_KEY(証明書の秘密鍵)を、Secure にして入れておく。
+      groups:
+        - code-signing
       vars:
+        BUNDLE_ID: "com.hitotoki.boardgames"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
     scripts:
@@ -131,6 +133,17 @@ workflows:
       - name: ビルド番号をCodemagicの連番に設定(TestFlightは毎回増える番号が必要)
         script: |
           sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" ios/App/App.xcodeproj/project.pbxproj
+      - name: 署名用のキーチェーンを準備
+        script: |
+          keychain initialize
+      - name: 証明書とプロビジョニングプロファイルをAppleから取得(無ければ自動で作成)
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+      - name: 取得した証明書をキーチェーンに追加
+        script: |
+          keychain add-certificates
       - name: 署名設定をXcodeプロジェクトに反映
         script: |
           xcode-project use-profiles
