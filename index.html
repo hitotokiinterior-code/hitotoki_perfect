@@ -882,7 +882,7 @@
     scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;
     touch-action: pan-x pan-y;
-    padding: 4px 4px 6px;
+    padding: 4px 0 6px;
     box-sizing:border-box;
     scrollbar-width:none;
   }
@@ -896,7 +896,7 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(3, 1fr);
     gap:10px;
-    padding: 0 2px;
+    padding: 0 4px;
   }
   .achievement-dots{
     display:flex;
@@ -2834,6 +2834,7 @@ body.panel-open .setting-btn{
     document.body.classList.toggle('ads-on', !adsRemoved);
     if(menuRemoveAds) menuRemoveAds.classList.toggle('hidden', adsRemoved);
     if(noticeRemoveAds) noticeRemoveAds.classList.toggle('hidden', adsRemoved);
+    if(typeof fitScrollAreas === 'function') requestAnimationFrame(fitScrollAreas);
   }
 
   if(window.hitotokiPurchases){
@@ -3827,6 +3828,28 @@ if(timerFeatureToggle){
 const navButtons = document.querySelectorAll('.nav-btn');
 const views = document.querySelectorAll('.view-content');
 
+// 内部スクロールする一覧（紋章カード／記録の履歴）の高さを、
+// 「一覧の上端」から「バナー広告の上端（広告なしならナビの上端）」までに自動で合わせる。
+// 端末の画面サイズやセーフエリアが違っても、広告に被らず、余白も余らない。
+function fitScrollAreas(){
+  const nav = document.getElementById('bottomNav');
+  if(!nav) return;
+  // 広告枠はホーム画面の中にあって他の画面では計測できないので、ナビの上端から広告の高さ分を引いて求める
+  const adH = document.body.classList.contains('ads-on')
+    ? (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ad-h')) || 60)
+    : 0;
+  const limit = nav.getBoundingClientRect().top - adH;
+  ['historyGrid','recordsHistoryList'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el || el.offsetParent === null) return; // 非表示の画面は計算しない
+    const top = el.getBoundingClientRect().top;
+    const h = Math.floor(limit - top - 10);
+    if(h > 120) el.style.maxHeight = h + 'px';
+  });
+}
+window.addEventListener('resize', () => requestAnimationFrame(fitScrollAreas));
+window.addEventListener('orientationchange', () => setTimeout(fitScrollAreas, 300));
+
 function switchView(viewId){
   views.forEach(v => { v.style.display = (v.id === viewId) ? 'flex' : 'none'; });
   navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
@@ -3845,6 +3868,7 @@ function switchView(viewId){
     checkAndNotifyAchievements();
     collectionCarousel.recalc();
   }
+  requestAnimationFrame(fitScrollAreas);
 }
 
 // --- 記録タブ：全体／ゲーム別／履歴を、指の動きに追従するカルーセルで切り替える ---
