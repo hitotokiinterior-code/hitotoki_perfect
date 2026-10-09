@@ -57,7 +57,8 @@
     max-height: calc(100vh - 300px - var(--ad-h));
     max-height: calc(100dvh - 300px - var(--ad-h));
   }
-  body.ads-on .records-history-list{
+  body.ads-on .records-history-list,
+  body.ads-on .records-winrate-list{
     max-height: calc(100vh - 320px - var(--ad-h));
     max-height: calc(100dvh - 320px - var(--ad-h));
   }
@@ -1159,6 +1160,55 @@
   }
   .records-winrate-item .rw-pct.has-data{
     color:#ece4d1;
+  }
+
+  /* ゲーム別：行をタップすると、モード別（2人／CPU／達人／鬼）の内訳が開く */
+  .records-winrate-list{
+    max-height: calc(100vh - 320px);
+    max-height: calc(100dvh - 320px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    touch-action: pan-y; /* このエリアだけ縦スワイプを許可 */
+  }
+  .records-winrate-list::-webkit-scrollbar{ display:none; }
+  .records-winrate-item{ cursor:pointer; }
+  .records-winrate-item .rw-chevron{
+    width:7px; height:7px;
+    border-right:1.5px solid var(--silver-dim);
+    border-bottom:1.5px solid var(--silver-dim);
+    transform: rotate(45deg);
+    transition: transform .2s ease;
+    margin:0 4px 3px 2px;
+    flex-shrink:0;
+  }
+  .records-winrate-group.open .records-winrate-item{ border-bottom-color:transparent; }
+  .records-winrate-group.open .rw-chevron{ transform: rotate(-135deg); margin-bottom:-2px; }
+  .records-winrate-detail{
+    display:none;
+    flex-direction:column;
+    padding:2px 4px 12px 12px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .records-winrate-group.open .records-winrate-detail{ display:flex; }
+  .records-winrate-detail .rw-detail-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 0;
+  }
+  .records-winrate-detail .rw-detail-label{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.74rem;
+    color: var(--silver);
+    letter-spacing:0.03em;
+  }
+  .records-winrate-detail .rw-note{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.64rem;
+    color: var(--silver-dim);
+    margin-top:4px;
   }
 
   /* 履歴パネル：直近10件 */
@@ -4156,20 +4206,72 @@ function renderRecordsOverall(stats, history){
   }
 }
 
+// ゲーム別：モードごとに直近何戦を集計するか
+const RECORD_MODE_WINDOW = 30;
+const RECORD_MODE_LABELS = {
+  '2p': '2人対戦',
+  'normal': 'CPU対戦',
+  'master': '達人CPU対戦',
+  'oni': '鬼CPU対戦',
+};
+// 各ゲームで遊べるモード（新しいCPUレベルを足すときはここに追記する）
+const RECORD_GAME_MODES = {
+  mini_shogi:        ['2p', 'normal', 'master', 'oni'],
+  connect_four:      ['2p', 'normal', 'master'],
+  memory_match:      ['2p', 'normal'],
+  hit_and_blow:      ['2p', 'normal', 'master'],
+  dots_and_boxes:    ['2p', 'normal'],
+  gomoku:            ['2p', 'normal', 'master'],
+  rabbit_and_hounds: ['2p', 'normal', 'master'],
+};
+let recordsOpenGameId = null; // いま内訳を開いているゲーム（再描画しても開いたままにする）
+
+// 履歴1件が、どのモードの対局だったかを判定する。
+// cpuLevel が記録される前の古い履歴は、CPUの強さが1種類しかないゲームだけ救済し、
+// 強さが複数あるゲームでは判別できないので null（集計に含めない）にする。
+function resolveRecordMode(h, modes){
+  if(!h.vsCPU) return '2p';
+  if(h.cpuLevel) return h.cpuLevel;
+  const cpuModes = modes.filter(m => m !== '2p');
+  return cpuModes.length === 1 ? cpuModes[0] : null;
+}
+
 function renderRecordsByGame(history){
   // ゲーム別 対CPU勝率（GAMES配列の並び順で、全ゲーム分を表示。記録が無いものは「記録なし」）
+  // 行をタップすると、2人対戦／CPU／達人CPU／鬼CPU ごとの内訳（直近30戦）が開く。
   // COMING SOON（href を持たないダミーカード）はここでも除外しておく
   const listEl = document.getElementById('recordsWinrateList');
   listEl.innerHTML = '';
+
+  function makeRateBar(rate){
+    const bar = document.createElement('div');
+    bar.className = 'rw-bar';
+    const fill = document.createElement('div');
+    fill.className = 'rw-bar-fill';
+    fill.style.width = rate + '%';
+    bar.appendChild(fill);
+    return bar;
+  }
+
   GAMES.filter(game => !game.comingSoon).forEach(game => {
     const gameId = game.href.replace('.html', '');
-    const cpuResults = history
-      .filter(h => h.gameId === gameId && h.vsCPU && h.won !== null)
+    const modes = RECORD_GAME_MODES[gameId] || ['2p', 'normal'];
+    const gameHistory = history.filter(h => h.gameId === gameId);
+
+    const group = document.createElement('div');
+    group.className = 'records-winrate-group';
+    if(recordsOpenGameId === gameId) group.classList.add('open');
+
+    // ---- 見出し行（従来どおり：対CPU全体の勝率）----
+    const cpuResults = gameHistory
+      .filter(h => h.vsCPU && h.won !== null)
       .slice(-50)
       .map(h => h.won);
 
     const row = document.createElement('div');
     row.className = 'records-winrate-item';
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-expanded', recordsOpenGameId === gameId ? 'true' : 'false');
 
     const title = document.createElement('div');
     title.className = 'rw-title';
@@ -4178,31 +4280,101 @@ function renderRecordsByGame(history){
     const right = document.createElement('div');
     right.className = 'rw-right';
 
-    const bar = document.createElement('div');
-    bar.className = 'rw-bar';
-    const barFill = document.createElement('div');
-    barFill.className = 'rw-bar-fill';
-
     const pct = document.createElement('div');
     pct.className = 'rw-pct';
-
+    let headRate = 0;
     if(cpuResults.length > 0){
       const winCount = cpuResults.filter(Boolean).length;
-      const rate = Math.round((winCount / cpuResults.length) * 100);
-      barFill.style.width = rate + '%';
-      pct.textContent = `${rate}%（${winCount}/${cpuResults.length}）`;
+      headRate = Math.round((winCount / cpuResults.length) * 100);
+      pct.textContent = `${headRate}%（${winCount}/${cpuResults.length}）`;
       pct.classList.add('has-data');
     } else {
-      barFill.style.width = '0%';
       pct.textContent = '記録なし';
     }
 
-    bar.appendChild(barFill);
-    right.appendChild(bar);
+    const chevron = document.createElement('span');
+    chevron.className = 'rw-chevron';
+
+    right.appendChild(makeRateBar(headRate));
     right.appendChild(pct);
+    right.appendChild(chevron);
     row.appendChild(title);
     row.appendChild(right);
-    listEl.appendChild(row);
+
+    // ---- 内訳（モード別）----
+    const detail = document.createElement('div');
+    detail.className = 'records-winrate-detail';
+
+    modes.forEach(mode => {
+      const modeHistory = gameHistory.filter(h => resolveRecordMode(h, modes) === mode);
+
+      const dRow = document.createElement('div');
+      dRow.className = 'rw-detail-row';
+
+      const label = document.createElement('div');
+      label.className = 'rw-detail-label';
+      label.textContent = RECORD_MODE_LABELS[mode];
+
+      const dRight = document.createElement('div');
+      dRight.className = 'rw-right';
+
+      const dPct = document.createElement('div');
+      dPct.className = 'rw-pct';
+
+      if(mode === '2p'){
+        // 2人対戦は勝ち負けの判定がないので、遊んだ回数だけ表示する
+        if(modeHistory.length > 0){
+          dPct.textContent = `${modeHistory.length}回`;
+          dPct.classList.add('has-data');
+        } else {
+          dPct.textContent = '記録なし';
+        }
+        dRight.appendChild(dPct);
+      } else {
+        const results = modeHistory
+          .filter(h => h.won !== null)
+          .slice(-RECORD_MODE_WINDOW)
+          .map(h => h.won);
+        let rate = 0;
+        if(results.length > 0){
+          const wins = results.filter(Boolean).length;
+          rate = Math.round((wins / results.length) * 100);
+          dPct.textContent = `${rate}%（${wins}/${results.length}）`;
+          dPct.classList.add('has-data');
+        } else {
+          dPct.textContent = '記録なし';
+        }
+        dRight.appendChild(makeRateBar(rate));
+        dRight.appendChild(dPct);
+      }
+
+      dRow.appendChild(label);
+      dRow.appendChild(dRight);
+      detail.appendChild(dRow);
+    });
+
+    const note = document.createElement('div');
+    note.className = 'rw-note';
+    note.textContent = `CPU対戦は直近${RECORD_MODE_WINDOW}戦の勝率（引き分けを除く）`;
+    detail.appendChild(note);
+
+    row.addEventListener('click', () => {
+      const willOpen = !group.classList.contains('open');
+      // 同時に開くのは1ゲームだけ
+      listEl.querySelectorAll('.records-winrate-group.open').forEach(g => {
+        g.classList.remove('open');
+        g.querySelector('.records-winrate-item').setAttribute('aria-expanded', 'false');
+      });
+      recordsOpenGameId = willOpen ? gameId : null;
+      if(willOpen){
+        group.classList.add('open');
+        row.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    group.appendChild(row);
+    group.appendChild(detail);
+    listEl.appendChild(group);
   });
 }
 
