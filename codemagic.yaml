@@ -133,6 +133,18 @@ workflows:
       - name: ビルド番号をCodemagicの連番に設定(TestFlightは毎回増える番号が必要)
         script: |
           sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" ios/App/App.xcodeproj/project.pbxproj
+      - name: 証明書の秘密鍵が読み込めているか確認(中身は表示しません)
+        script: |
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "❌ CERTIFICATE_PRIVATE_KEY が空です。Codemagicの Environment variables で、"
+            echo "   名前・グループ名(code-signing)・保存の有無を確認してください。"
+            exit 1
+          fi
+          echo "✅ CERTIFICATE_PRIVATE_KEY を読み込めました(文字数: ${#CERTIFICATE_PRIVATE_KEY})"
+          case "$CERTIFICATE_PRIVATE_KEY" in
+            *"BEGIN RSA PRIVATE KEY"*) echo "✅ 形式OK(RSA PRIVATE KEY)";;
+            *) echo "⚠️ 先頭が「-----BEGIN RSA PRIVATE KEY-----」ではありません。コピーし直してください。";;
+          esac
       - name: 署名用のキーチェーンを準備
         script: |
           keychain initialize
