@@ -18,6 +18,8 @@
  *       title: "ミニ将棋",
  *       ts: 1735689600000,     // 対局終了時刻（ミリ秒）
  *       vsCPU: true,
+ *       cpuLevel: "master",   // CPUの強さ: "normal"(CPU) / "master"(達人) / "oni"(鬼)。2人対戦は null。
+ *                             // ※この項目を追加する前の古い履歴には存在しない（undefined）
  *       won: true,            // true=勝ち / false=負け / null=引き分け・2人対戦など判定なし
  *       durationSec: 185,     // 対局時間（秒）。取得できない場合は null
  *     },
@@ -32,6 +34,7 @@
  * そのうえで、対局が終わったタイミングで1回だけ呼び出す：
  *   window.hitotokiStats.recordGameEnd('mini_shogi', 'ミニ将棋', {
  *     vsCPU: true,
+ *     cpuLevel: 'master',   // vsCPU:true の時のCPUの強さ 'normal' | 'master' | 'oni'（省略すると 'normal' 扱い）
  *     won: true,            // vsCPU:true の時、プレイヤー視点で勝ったか（引き分けは省略可）
  *     durationSec: 185,     // 対局にかかった秒数（分かる場合のみ）
  *   });
@@ -82,11 +85,18 @@
     if(opts.won === true) won = true;
     else if(opts.won === false) won = false;
 
+    // CPUの強さ。2人対戦なら null、CPU対戦で未指定・不明な値なら 'normal' に寄せる
+    var cpuLevel = null;
+    if(opts.vsCPU){
+      cpuLevel = (opts.cpuLevel === 'master' || opts.cpuLevel === 'oni') ? opts.cpuLevel : 'normal';
+    }
+
     stats.history.push({
       gameId: gameId,
       title: title,
       ts: Date.now(),
       vsCPU: !!opts.vsCPU,
+      cpuLevel: cpuLevel,
       won: won,
       durationSec: (typeof opts.durationSec === 'number' && !isNaN(opts.durationSec)) ? opts.durationSec : null,
     });
