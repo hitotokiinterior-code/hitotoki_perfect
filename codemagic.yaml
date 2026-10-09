@@ -31,6 +31,14 @@ workflows:
       - name: 最低対応iOSバージョンを15.0に引き上げ(OneSignal対応)
         script: |
           sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+          # OneSignalプラグインの旧版(1.1.x)は Package.swift で「iOS 14以上」と宣言しているが、
+          # 本体のOneSignalはiOS 15以上が必要でビルドが失敗する。宣言を15に書き換える。
+          # (1.2.0以降は修正済みで、その場合は何も変わらない)
+          ONESIGNAL_PKG=node_modules/@onesignal/capacitor-plugin/Package.swift
+          if [ -f "$ONESIGNAL_PKG" ]; then
+            sed -i '' 's/\.iOS(\.v14)/.iOS(.v15)/' "$ONESIGNAL_PKG"
+            grep -n "platforms" "$ONESIGNAL_PKG" || true
+          fi
       - name: Info.plistに広告設定を追加(毎回自動生成されるため)
         script: |
           PLIST=ios/App/App/Info.plist
@@ -121,6 +129,14 @@ workflows:
       - name: 最低対応iOSバージョンを15.0に引き上げ(OneSignal対応)
         script: |
           sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj
+          # OneSignalプラグインの旧版(1.1.x)は Package.swift で「iOS 14以上」と宣言しているが、
+          # 本体のOneSignalはiOS 15以上が必要でビルドが失敗する。宣言を15に書き換える。
+          # (1.2.0以降は修正済みで、その場合は何も変わらない)
+          ONESIGNAL_PKG=node_modules/@onesignal/capacitor-plugin/Package.swift
+          if [ -f "$ONESIGNAL_PKG" ]; then
+            sed -i '' 's/\.iOS(\.v14)/.iOS(.v15)/' "$ONESIGNAL_PKG"
+            grep -n "platforms" "$ONESIGNAL_PKG" || true
+          fi
       - name: Info.plistに広告・暗号化の設定を追加(毎回自動生成されるため)
         script: |
           PLIST=ios/App/App/Info.plist
