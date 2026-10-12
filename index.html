@@ -3329,16 +3329,32 @@ body.panel-open .setting-btn{
   const introScreen = document.getElementById("introScreen");
   const app = document.querySelector(".app");
 
-  if(sessionStorage.getItem("hitotokiStarted")){
+  // sessionStorage が使えない環境（プライベートブラウズ／サンドボックス内のプレビュー等）でも
+  // ここで例外が出てスクリプト全体が止まらないよう、読み書きは try/catch で包む
+  function hasStarted(){
+    try{ return !!sessionStorage.getItem("hitotokiStarted"); }catch(e){ return false; }
+  }
+  function markStarted(){
+    try{ sessionStorage.setItem("hitotokiStarted", "true"); }catch(e){}
+  }
+
+  if(hasStarted()){
     // 今回のセッションで既に一度見ている場合：オープニング演出は全部スキップしてホームへ
     opening.style.display = "none";
     introScreen.style.display = "none";
     app.style.display = "flex";
   } else {
     let advanced = false;
+    let introReadyAt = 0;
     function showIntroScreen(){
       if(advanced) return; // 二重発火防止
       advanced = true;
+      // フェード中も動画（手前にあるレイヤー）がタップを受け止めてしまわないよう、
+      // タップは下のintro画面へ素通しにする → フェードの途中でもすぐ「Tap to Start」できる
+      opening.style.pointerEvents = "none";
+      // オープニングを素早く2回タップしても、スタート画面を見ないままホームへ飛ばないよう、
+      // フェード開始から少しの間だけは、スタート画面のタップを受け付けない
+      introReadyAt = Date.now() + 400;
       // ゆっくりクロスフェード：intro側を先に描画してから、
       // オープニング動画をフェードアウトしつつintro側をフェードインする
       introScreen.style.display = "flex";
@@ -3377,9 +3393,14 @@ body.panel-open .setting-btn{
     setTimeout(showIntroScreen, 6000);
 
     introScreen.addEventListener("click", () => {
-      sessionStorage.setItem("hitotokiStarted", "true");
+      if(Date.now() < introReadyAt) return; // フェード開始直後の誤タップは無視
+      markStarted();
       app.style.display = "flex";
       introScreen.style.display = "none";
+      // フェード途中でタップした場合に、動画レイヤーがホームの上に残らないよう即座に消す
+      advanced = true;
+      openingVideo.pause();
+      opening.style.display = "none";
     });
   }
 
