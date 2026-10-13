@@ -8,6 +8,10 @@
   @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Jost:wght@500;600;700&display=swap');
 
   :root{
+    /* ホーム上部の ☰ ・お知らせ・⚙ を、画面最上部（時計・バッテリー）から離すために下げる量 */
+    --header-btn-shift: 12px;
+    /* ロゴ（hitotoki）とそれより下の全体を下げる量。ロゴ上の隙間を広げる */
+    --logo-shift: 5px;
     --hairline: rgba(255,255,255,0.14);
     --silver: #cfcfcf;
     --silver-dim: #6f6f6f;
@@ -991,7 +995,7 @@
   .achievement-toast-container{
     position:fixed;
     right:14px;
-    top: calc(env(safe-area-inset-top) + 78px); /* ヘッダー（⚙・☰・お知らせ）の下に来る位置 */
+    top: calc(env(safe-area-inset-top) + 78px + var(--header-btn-shift)); /* ヘッダー（⚙・☰・お知らせ）の下に来る位置 */
     z-index:9998;
     display:flex;
     flex-direction:column; /* 新しい要素ほど上、既存のものは下にずれる */
@@ -1278,6 +1282,11 @@
   }
 
   /* --- 下部ナビゲーションバー --- */
+  /* オープニング〜Tap to Start の間は、下部メニューを隠す
+     （メニューは .app の外にあるので、フェードで画面が透けている間に見えてしまうため） */
+  body.intro-active .bottom-nav{
+    visibility:hidden;
+  }
   .bottom-nav{
     position:fixed;
     left:0; right:0; bottom:0;
@@ -1332,7 +1341,7 @@
   .app-title{
     width:100%;
     text-align:center;
-    margin-top:-24px;
+    margin-top: calc(-24px + var(--logo-shift));
   }
   .logo-title{
     height:44px;
@@ -1842,7 +1851,7 @@
 
   position:absolute;
 
-  top:50%;
+  top: calc(50% + var(--header-btn-shift));
   transform: translateY(-50%);
 
   width:32px;
@@ -3344,17 +3353,22 @@ body.panel-open .setting-btn{
     introScreen.style.display = "none";
     app.style.display = "flex";
   } else {
+    // オープニング〜Tap to Start の間、下部メニューを隠す（Tap to Startを押したら外す）
+    document.body.classList.add("intro-active");
+
     let advanced = false;
     let introReadyAt = 0;
-    function showIntroScreen(){
+    // 「オープニングをタップして進めた直後」だけ、同じ操作の重複イベントや、
+    // 勢い余ったタップでスタート画面が一瞬で飛ばされないよう、ごく短い間だけ受け付けない。
+    // 動画が自然に終わった場合は待ち時間なし。完全に即反応にしたい場合は 0 にする。
+    const INTRO_TAP_GUARD_MS = 150;
+    function showIntroScreen(byTap){
       if(advanced) return; // 二重発火防止
       advanced = true;
       // フェード中も動画（手前にあるレイヤー）がタップを受け止めてしまわないよう、
       // タップは下のintro画面へ素通しにする → フェードの途中でもすぐ「Tap to Start」できる
       opening.style.pointerEvents = "none";
-      // オープニングを素早く2回タップしても、スタート画面を見ないままホームへ飛ばないよう、
-      // フェード開始から少しの間だけは、スタート画面のタップを受け付けない
-      introReadyAt = Date.now() + 400;
+      introReadyAt = (byTap === true) ? Date.now() + INTRO_TAP_GUARD_MS : 0;
       // ゆっくりクロスフェード：intro側を先に描画してから、
       // オープニング動画をフェードアウトしつつintro側をフェードインする
       introScreen.style.display = "flex";
@@ -3370,31 +3384,32 @@ body.panel-open .setting-btn{
       }, 1400);
     }
 
-    openingVideo.addEventListener("ended", showIntroScreen);
+    openingVideo.addEventListener("ended", () => showIntroScreen(false));
     // 動画が読み込めない・再生できない場合も、そこで止まらずintro画面へ進む
-    openingVideo.addEventListener("error", showIntroScreen);
+    openingVideo.addEventListener("error", () => showIntroScreen(false));
     // 一部のブラウザ／WebViewでは 'ended' が発火しないことがあるための保険
     openingVideo.addEventListener("timeupdate", () => {
       if(openingVideo.duration && openingVideo.currentTime >= openingVideo.duration - 0.15){
-        showIntroScreen();
+        showIntroScreen(false);
       }
     });
     opening.addEventListener("click", () => {
       openingVideo.pause();
-      showIntroScreen();
+      showIntroScreen(true);
     });
     // 保険その1：動画の長さが分かり次第、それに応じた妥当なタイムアウトを設定する
     openingVideo.addEventListener("loadedmetadata", () => {
       if(isFinite(openingVideo.duration)){
-        setTimeout(showIntroScreen, openingVideo.duration * 1000 + 800);
+        setTimeout(() => showIntroScreen(false), openingVideo.duration * 1000 + 800);
       }
     });
     // 保険その2：動画そのものが読み込めない等、何をしても進まない場合の最終フォールバック
-    setTimeout(showIntroScreen, 6000);
+    setTimeout(() => showIntroScreen(false), 6000);
 
     introScreen.addEventListener("click", () => {
-      if(Date.now() < introReadyAt) return; // フェード開始直後の誤タップは無視
+      if(Date.now() < introReadyAt) return; // オープニングをタップした直後のごく短い間だけ無視
       markStarted();
+      document.body.classList.remove("intro-active"); // 下部メニューを表示
       app.style.display = "flex";
       introScreen.style.display = "none";
       // フェード途中でタップした場合に、動画レイヤーがホームの上に残らないよう即座に消す
