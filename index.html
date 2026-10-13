@@ -2269,6 +2269,15 @@ body.panel-open .setting-btn{
     <source src="opening.mp4" type="video/mp4">
   </video>
 </div>
+<script>
+  // 起動直後のタップを取りこぼさないための早期リスナー。
+  // メインのスクリプトは、この後ろの外部スクリプトを何本も読み込んだ後でないとタップを
+  // 受け付けられないため、その間のタップはここで記録しておき、準備ができたら反映する。
+  window.__hitotokiOpeningTapped = false;
+  document.getElementById("opening").addEventListener("click", function(){
+    window.__hitotokiOpeningTapped = true;
+  });
+</script>
 
 <div id="introScreen" style="display:none;">
   <img class="intro-bg-photo" src="assets/intro/intro_bg.jpg" alt="">
@@ -3417,6 +3426,12 @@ body.panel-open .setting-btn{
       openingVideo.pause();
       opening.style.display = "none";
     });
+
+    // 起動直後（上の準備が整う前）にタップされていた場合は、ここでオープニングを飛ばす
+    if(window.__hitotokiOpeningTapped){
+      openingVideo.pause();
+      showIntroScreen(true);
+    }
   }
 
 // 設定パネル（⚙：右からスライドイン。プライバシーポリシー等＋おまけ機能）
