@@ -55,6 +55,39 @@
   var AdMob = window.AdMob;
   var bannerShown = false;
 
+  // ---------- 診断モード ----------
+  // TestFlightの実機ではSafariのWeb Inspectorが使えないため、広告が出ない原因を調べる間だけ、
+  // 「どこまで進んで、どこで止まったか」を画面のダイアログで表示する。
+  // ★ 原因が分かったら false にする（審査提出前は必ず false）★
+  var ADS_DEBUG = true;
+  var debugLines = [];
+  var debugFlushed = false;
+  function errText(e) {
+    try {
+      if (e && (e.message || e.errorMessage)) {
+        return (e.code !== undefined ? 'code ' + e.code + ': ' : '') + (e.message || e.errorMessage);
+      }
+      return JSON.stringify(e);
+    } catch (_) { return String(e); }
+  }
+  function dbg(line) {
+    console.log('[ads] ' + line);
+    if (ADS_DEBUG) debugLines.push(line);
+  }
+  // 最初の結果（バナー成功／失敗／処理が途中で終了）が出た時に、1回だけダイアログで表示する
+  function dbgFlush(title) {
+    if (!ADS_DEBUG || debugFlushed) return;
+    debugFlushed = true;
+    try { alert('【広告診断】' + title + '\n\n' + debugLines.join('\n')); } catch (e) { /* ignore */ }
+  }
+  if (ADS_DEBUG) {
+    // バナーの読み込みは showBanner が成功した後に非同期で行われるので、結果はイベントで受け取る
+    AdMob.addListener('bannerAdLoaded', function () { dbg('バナー: 読み込み成功'); dbgFlush('バナー表示OK'); });
+    AdMob.addListener('bannerAdFailedToLoad', function (err) { dbg('バナー: 読み込み失敗 ' + errText(err)); dbgFlush('バナー読み込み失敗'); });
+    // 何のイベントも来なかった場合の保険（10秒後に途中経過を表示）
+    setTimeout(function () { dbgFlush('10秒たっても結果なし'); }, 10000);
+  }
+
   // ---------- ゲーム画面(モード選択・プレイ画面)用のレイアウト調整 ----------
   // ナビ(#bottomNav)が無いページ＝各ゲーム画面では、バナーは画面最下部(セーフエリアの上)に出る。
   // バナーに被らないよう、広告が出る間は body の高さをバナーの高さぶん縮める(html.ads-game)。
@@ -120,8 +153,11 @@
       });
       bannerShown = true;
       setGameReserve(true);
+      dbg('バナー: showBanner 呼び出しOK（読み込み結果を待っています）');
     } catch (e) {
       console.warn('[ads] AdMob showBanner failed', e);
+      dbg('バナー: showBanner 失敗 ' + errText(e));
+      dbgFlush('showBanner失敗');
       setGameReserve(false);
     }
   }
@@ -164,8 +200,10 @@
         isTesting: true, // 本番切り替え時にこの行を削除する
       });
       interstitialReady = true;
+      dbg('全画面広告: 準備OK');
     } catch (e) {
       console.warn('[ads] prepareInterstitial failed', e);
+      dbg('全画面広告: 準備失敗 ' + errText(e));
       interstitialReady = false;
     }
   }
@@ -209,38 +247,80 @@
     });
   }
 
+  // 各段階は個別に try/catch する。トラッキング許可や同意確認(UMP)で例外が出ても、
+  // それだけで広告全体を止めないため（日本などGDPR対象外の地域では同意確認は不要）。
+  // ※ EEA等で同意が取れていない場合の配信可否は、AdMob SDK側が制御する。
   async function startAds() {
+    // 1) 初期化（ここが失敗したら広告は出せない）
     try {
       await AdMob.initialize({
         // 開発中はtrueにしてGoogleのテスト広告だけを表示する。
         // 本番リリース時はfalseにする(Info.plistのGADApplicationIdentifierが必要)
         initializeForTesting: true,
       });
+      dbg('1 初期化: OK');
+    } catch (e) {
+      console.warn('[ads] AdMob initialize failed', e);
+      dbg('1 初期化: 失敗 ' + errText(e));
+      setGameReserve(false);
+      dbgFlush('初期化に失敗');
+      return;
+    }
 
-      // iOS 14以降のApp Tracking Transparency許可ダイアログ
+    // 2) iOS 14以降のApp Tracking Transparency許可ダイアログ（失敗しても続行）
+    try {
       var trackingInfo = await AdMob.trackingAuthorizationStatus();
+      dbg('2 トラッキング許可: ' + trackingInfo.status);
       if (trackingInfo.status === 'notDetermined') {
-        await AdMob.requestTrackingAuthorization();
+        var after = await AdMob.requestTrackingAuthorization();
+        dbg('2 トラッキング許可(ダイアログ後): ' + (after && after.status));
       }
+    } catch (e) {
+      dbg('2 トラッキング許可: エラー（続行） ' + errText(e));
+    }
 
+    // 3) 同意確認(UMP)（失敗しても続行。明確に「同意が取れていない」場合だけ広告を止める）
+    try {
       var consentInfo = await AdMob.requestConsentInfo();
+      dbg('3 同意確認: status=' + consentInfo.status + ' canRequestAds=' + consentInfo.canRequestAds);
       if (consentInfo.isConsentFormAvailable && consentInfo.status === 'REQUIRED') {
         consentInfo = await AdMob.showConsentForm();
+        dbg('3 同意フォーム後: status=' + consentInfo.status + ' canRequestAds=' + consentInfo.canRequestAds);
       }
-      if (consentInfo.canRequestAds === false) { setGameReserve(false); return; } // 同意が取れない場合は広告を出さない
+      if (consentInfo.canRequestAds === false) {
+        dbg('3 同意が取れていないため広告を出しません');
+        setGameReserve(false);
+        dbgFlush('同意が取れていない');
+        return;
+      }
+    } catch (e) {
+      dbg('3 同意確認: エラー（続行） ' + errText(e));
+    }
 
-      // 「広告を消す」課金(purchases.js)の状態を見て出し分ける。
-      // purchases.jsが読み込まれていない場合は、従来通り常に広告を出す。
+    // 4) 「広告を消す」課金(purchases.js)の状態を見て出し分ける。
+    //    purchases.jsが読み込まれていない場合は、従来通り常に広告を出す。
+    try {
       var purchases = window.hitotokiPurchases;
       if (!purchases) {
+        dbg('4 課金モジュール: なし（広告を出します）');
         await showTheBanner();
         setupInterstitialTrigger(null);
         return;
       }
 
-      await purchases.ready; // 起動時の購入状態チェックが終わるまで待つ
+      // 課金の状態確認が終わるまで待つ。ただしRevenueCat側が応答しない場合に
+      // 広告が永遠に出なくならないよう、最大5秒で見切りをつける。
+      var readyResult = await Promise.race([
+        purchases.ready.then(function () { return 'ready'; }),
+        new Promise(function (resolve) { setTimeout(function () { resolve('timeout'); }, 5000); }),
+      ]);
+      dbg('4 課金状態の確認: ' + readyResult + ' / 広告削除済み=' + purchases.isAdsRemoved());
+
       writeRemovedHint(purchases.isAdsRemoved());
-      if (purchases.isAdsRemoved()) setGameReserve(false);
+      if (purchases.isAdsRemoved()) {
+        setGameReserve(false);
+        dbgFlush('広告削除が有効なので広告は出しません');
+      }
       if (!purchases.isAdsRemoved()) await showTheBanner();
       setupInterstitialTrigger(purchases); // gameEndの監視は常に張っておき、出す判定は発火時に行う
 
@@ -252,7 +332,9 @@
       });
     } catch (e) {
       console.warn('[ads] AdMob start failed', e);
+      dbg('4 広告の開始処理: 失敗 ' + errText(e));
       setGameReserve(false);
+      dbgFlush('広告の開始処理に失敗');
     }
   }
 
