@@ -3,11 +3,16 @@
   "appName": "hitotoki",
   "webDir": "www",
   "ios": {
-    "contentInset": "always"
+    "contentInset": "always",
+    "backgroundColor": "#000000"
   },
   "plugins": {
     "PushNotifications": {
-      "presentationOptions": ["badge", "sound", "alert"]
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
     },
     "AdMob": {
       "requestTrackingAuthorization": true
