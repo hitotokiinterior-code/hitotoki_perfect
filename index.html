@@ -10,6 +10,8 @@
   :root{
     /* ホーム上部の ☰ ・お知らせ・⚙ を、画面最上部（時計・バッテリー）から離すために下げる量 */
     --header-btn-shift: 12px;
+    /* ☰・⚙ パネルの×ボタンの上端位置。画面最上部(時計・バッテリー)から12px下げる。最低でも20px */
+    --panel-close-top: max(20px, calc(env(safe-area-inset-top) + 12px));
     /* ロゴ（hitotoki）とそれより下の全体を下げる量。ロゴ上の隙間を広げる */
     --logo-shift: 5px;
     --hairline: rgba(255,255,255,0.14);
@@ -1573,6 +1575,12 @@
   }
   .setting-panel.menu-panel > *{ flex-shrink:0; }
   #menuGameList{ margin-bottom:24px; } /* 購入導線との間に最低限の余白 */
+  /* バナー広告は画面の一番手前（ネイティブ）に、安全領域＋下部メニューの上に出る。
+     パネルの下端(「広告を消す」など)が広告の下に隠れないよう、広告が出ている間だけ
+     「安全領域＋下部メニュー＋広告の高さ」ぶんを、パネルの下に空ける */
+  body.ads-on .setting-panel{
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-h) + var(--ad-h) + 16px);
+  }
 
   .menu-remove-ads .ad-banner-copy{
     display:flex;
@@ -1941,6 +1949,7 @@ body.panel-open .setting-btn{
   z-index:999;
 
   padding:40px 25px;
+  padding-top: calc(var(--panel-close-top) + 20px); /* ×ボタンの位置に合わせて、中身も下げる */
 
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
@@ -1981,7 +1990,7 @@ body.panel-open .setting-btn{
 
 .setting-panel .close-btn{
   position:absolute;
-  top:20px;
+  top: var(--panel-close-top);
   right:20px;
   width:32px;
   height:32px;
