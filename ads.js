@@ -50,8 +50,9 @@
   // ---------- 診断モード ----------
   // TestFlightの実機ではSafariのWeb Inspectorが使えないため、広告が出ない原因を調べる間だけ、
   // 「どこまで進んで、どこで止まったか」を画面に緑の文字で表示し続ける（タップで閉じる）。
-  // ★ 原因が分かったら ADS_DEBUG を false にする（審査提出前は必ず false）★
-  var ADS_DEBUG = true;
+  // ★ 広告が出ない原因は特定済み(同意確認のエラーで処理が止まっていた)。通常は false。
+  //    また調べたくなったら true にすると、画面に緑のログが出る。審査提出前は必ず false ★
+  var ADS_DEBUG = false;
   // iOSアプリ内のWebView(UAに Safari/ が付かない)か。Web版(Vercel等)の通常ブラウザでは診断を出さない
   var inIosApp = /iPhone|iPad|iPod/.test(navigator.userAgent) && !/Safari\//.test(navigator.userAgent);
   var debugLines = ['ads.js 診断版 v3'];
