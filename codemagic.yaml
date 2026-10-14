@@ -154,6 +154,32 @@ workflows:
           # 輸出コンプライアンス(暗号化)の質問を毎回聞かれないようにする(標準的なHTTPS通信のみ)
           /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST" || \
           /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST"
+      - name: アプリアイコンを差し替え(1024x1024・透明なしのPNG。毎回自動生成されるため)
+        script: |
+          # アイコン画像は、リポジトリの resources/AppIcon-1024.png に置く。
+          # App Storeの条件: 1024x1024 / 透明(アルファ)なし / 角丸なし(角丸はAppleが自動でかける)
+          ICON_SRC="resources/AppIcon-1024.png"
+          ICON_DST="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+          if [ ! -f "$ICON_SRC" ]; then
+            echo "⚠️ $ICON_SRC がありません。Capacitor標準のアイコンのままビルドします。"
+            echo "   App Storeに提出する前に、resources フォルダにアイコンを置いてください。"
+          else
+            W=$(sips -g pixelWidth "$ICON_SRC" | awk '/pixelWidth/{print $2}')
+            H=$(sips -g pixelHeight "$ICON_SRC" | awk '/pixelHeight/{print $2}')
+            A=$(sips -g hasAlpha "$ICON_SRC" | awk '/hasAlpha/{print $2}')
+            echo "アイコン画像: ${W}x${H} / 透明チャンネル: ${A}"
+            if [ "$W" != "1024" ] || [ "$H" != "1024" ]; then
+              echo "❌ アイコンは 1024x1024 のPNGにしてください(今: ${W}x${H})"
+              exit 1
+            fi
+            if [ "$A" = "yes" ]; then
+              echo "❌ アイコンに透明(アルファ)チャンネルがあります。App Storeは受け付けません。"
+              echo "   背景を塗りつぶして、透明なしで書き出してください。"
+              exit 1
+            fi
+            cp "$ICON_SRC" "$ICON_DST"
+            echo "✅ アプリアイコンを差し替えました: $ICON_DST"
+          fi
       - name: ビルド番号をCodemagicの連番に設定(TestFlightは毎回増える番号が必要)
         script: |
           sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" ios/App/App.xcodeproj/project.pbxproj
