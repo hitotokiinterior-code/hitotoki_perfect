@@ -47,21 +47,16 @@
     return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   }
 
-  if (!isNative()) return; // Web版では何もしない
-  if (!window.AdMob) return;
-  if (window.hitotokiAdsInitialized) return; // 複数ページで多重初期化しないためのガード
-  window.hitotokiAdsInitialized = true;
-
-  var AdMob = window.AdMob;
-  var bannerShown = false;
-
   // ---------- 診断モード ----------
   // TestFlightの実機ではSafariのWeb Inspectorが使えないため、広告が出ない原因を調べる間だけ、
-  // 「どこまで進んで、どこで止まったか」を画面のダイアログで表示する。
-  // ★ 原因が分かったら false にする（審査提出前は必ず false）★
+  // 「どこまで進んで、どこで止まったか」を画面に緑の文字で表示し続ける（タップで閉じる）。
+  // ★ 原因が分かったら ADS_DEBUG を false にする（審査提出前は必ず false）★
   var ADS_DEBUG = true;
-  var debugLines = [];
+  // iOSアプリ内のWebView(UAに Safari/ が付かない)か。Web版(Vercel等)の通常ブラウザでは診断を出さない
+  var inIosApp = /iPhone|iPad|iPod/.test(navigator.userAgent) && !/Safari\//.test(navigator.userAgent);
+  var debugLines = ['ads.js 診断版 v3'];
   var debugFlushed = false;
+
   function errText(e) {
     try {
       if (e && (e.message || e.errorMessage)) {
@@ -70,16 +65,53 @@
       return JSON.stringify(e);
     } catch (_) { return String(e); }
   }
+  function debugActive() { return ADS_DEBUG && (isNative() || inIosApp); }
+  function renderDebugOverlay() {
+    if (!debugActive()) return;
+    try {
+      var el = document.getElementById('hitotokiAdsDebug');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'hitotokiAdsDebug';
+        el.style.cssText = 'position:fixed;left:8px;right:8px;top:70px;z-index:2147483647;' +
+          'background:rgba(0,0,0,0.88);color:#9f9;font:11px/1.45 monospace;padding:8px 10px;' +
+          'border:1px solid #9f9;border-radius:8px;white-space:pre-wrap;max-height:55vh;overflow:auto;';
+        el.addEventListener('click', function () { el.remove(); });
+        (document.body || document.documentElement).appendChild(el);
+      }
+      el.textContent = debugLines.join('\n') + '\n(タップで閉じる)';
+    } catch (e) { /* ignore */ }
+  }
   function dbg(line) {
     console.log('[ads] ' + line);
-    if (ADS_DEBUG) debugLines.push(line);
+    if (ADS_DEBUG) { debugLines.push(line); renderDebugOverlay(); }
   }
-  // 最初の結果（バナー成功／失敗／処理が途中で終了）が出た時に、1回だけダイアログで表示する
+  // 最初の結果（バナー成功／失敗／処理が途中で終了）が出た時に、1回だけダイアログでも知らせる
   function dbgFlush(title) {
-    if (!ADS_DEBUG || debugFlushed) return;
+    if (!debugActive() || debugFlushed) return;
     debugFlushed = true;
-    try { alert('【広告診断】' + title + '\n\n' + debugLines.join('\n')); } catch (e) { /* ignore */ }
+    try { alert('【広告診断 v3】' + title + '\n\n' + debugLines.join('\n')); } catch (e) { /* ignore */ }
   }
+
+  dbg('Capacitor: ' + (window.Capacitor
+    ? 'あり platform=' + (window.Capacitor.getPlatform ? window.Capacitor.getPlatform() : '?') + ' native=' + isNative()
+    : 'なし'));
+  dbg('window.AdMob: ' + (window.AdMob ? 'あり' : 'なし'));
+  dbg('purchases.js: ' + (window.hitotokiPurchases ? 'あり' : 'なし'));
+
+  if (!isNative()) { dbg('→ ネイティブ判定がfalseのため、広告を出しません'); return; } // Web版では何もしない
+  if (!window.AdMob) {
+    // ネイティブアプリなのにAdMobが見つからない＝広告が出ない原因の候補
+    dbg('→ window.AdMob が無いため終了（capacitor-bridge.js にAdMobが含まれていない可能性）');
+    dbgFlush('AdMobが見つからない');
+    return;
+  }
+  if (window.hitotokiAdsInitialized) { dbg('→ 初期化済みのため終了'); return; } // 複数ページで多重初期化しないためのガード
+  window.hitotokiAdsInitialized = true;
+
+  var AdMob = window.AdMob;
+  var bannerShown = false;
+
   if (ADS_DEBUG) {
     // バナーの読み込みは showBanner が成功した後に非同期で行われるので、結果はイベントで受け取る
     AdMob.addListener('bannerAdLoaded', function () { dbg('バナー: 読み込み成功'); dbgFlush('バナー表示OK'); });
