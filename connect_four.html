@@ -8,6 +8,9 @@
   @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
 
   :root{
+    /* ホーム／背景ボタンの上端。時計・バッテリー(画面上部の安全領域)の下に8px空けて置く。
+       安全領域が無い端末では、従来と同じ14pxのまま */
+    --game-btn-top: max(14px, calc(env(safe-area-inset-top) + 8px));
     --bg-0: #050505;
     --bg-1: #0e0e0e;
     --void: #060606;
@@ -49,7 +52,7 @@
 
   .home-btn{
     position: fixed;
-    top: 14px;
+    top: var(--game-btn-top);
     left: 14px;
     z-index: 100;
     font-family:'Zen Kaku Gothic New', sans-serif;
@@ -69,7 +72,7 @@
 
   .bg-switch-btn{
     position: fixed;
-    top: 14px;
+    top: var(--game-btn-top);
     right: 14px;
     z-index: 100;
     font-family:'Zen Kaku Gothic New', sans-serif;
@@ -89,7 +92,7 @@
 
   .bg-switch-panel{
     position: fixed;
-    top: 52px;
+    top: calc(var(--game-btn-top) + 38px);
     right: 14px;
     z-index: 100;
     display:flex;
@@ -1478,6 +1481,7 @@
     if(window.hitotokiStats){
       window.hitotokiStats.recordGameEnd('connect_four', 'コネクトフォー', {
         vsCPU: vsCPU,
+        cpuLevel: vsCPU ? cpuDifficulty : null,
         won: (vsCPU && !draw) ? (winner === humanSide) : undefined,
         durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
       });
