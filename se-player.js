@@ -1,6 +1,6 @@
 /*
  * se-player.js
- * hitotoki 全ゲーム共通の効果音(SE)プレイヤー（ミニ将棋・神経衰弱・コネクトフォー など、複数のゲームで共有）。
+ * hitotoki 全ゲーム共通の効果音(SE)プレイヤー（ミニ将棋・神経衰弱・重力四目並べ など、複数のゲームで共有）。
  *
  * 音声ファイルを使わず、Web Audio API のオシレーター/ノイズ合成だけで
  * 「木の駒がコツンと当たる音」「カードをめくる音」「勝敗のファンファーレ」等を
@@ -14,7 +14,7 @@
  * 使い方:
  *   window.sePlayer.play('move');     // 駒を動かす(将棋)
  *   window.sePlayer.play('capture');  // 相手の駒を取る(将棋) / 箱を完成させる(ドット＆ボックス)
- *   window.sePlayer.play('drop');     // 持ち駒を打つ(将棋) / コインが盤に落ちる(コネクトフォー)
+ *   window.sePlayer.play('drop');     // 持ち駒を打つ(将棋) / コインが盤に落ちる(重力四目並べ)
  *   window.sePlayer.play('check');    // 王手(将棋)
  *   window.sePlayer.play('promote');  // 成る(将棋)
  *   window.sePlayer.play('flip');     // カードをめくる(神経衰弱)
@@ -141,7 +141,7 @@
 
   function playDrop(c) {
     // 駒台からつまんで打つ、少しやわらかい「コトッ」という音
-    // （コネクトフォーではコインが盤に着地する音としてもそのまま流用できる）
+    // （重力四目並べではコインが盤に着地する音としてもそのまま流用できる）
     noiseBurst(c, { filterFreq: 1400, filterQ: 1.4, duration: 0.06, volume: 0.3, falloff: 2.6 });
     tone(c, { type: 'sine', freq: 200, freqEnd: 130, duration: 0.11, attack: 0.004, volume: 0.2 });
   }
