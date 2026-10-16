@@ -59,7 +59,8 @@
 }
 
   /* 広告表示中は、内部スクロールするリストもバナーの高さ分だけ短くして、広告にかからないようにする */
-  body.ads-on .history-grid{
+  body.ads-on .history-grid,
+  body.ads-on .achievement-grid{
     max-height: calc(100vh - 300px - var(--ad-h));
     max-height: calc(100dvh - 300px - var(--ad-h));
   }
@@ -470,16 +471,22 @@
     max-height: calc(100vh - 300px);
     max-height: calc(100dvh - 300px); /* スマホのアドレスバー分のズレを補正（対応ブラウザではこちらが優先される） */
     display:grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr; /* 1列：カードを大きくして、上下にスクロールして見る */
     grid-auto-rows: min-content;
-    gap: 8px;
+    gap: 10px;
     overflow-y:auto;
     overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     touch-action: pan-y; /* このエリアだけ縦スワイプを許可 */
-    padding: 2px 4px;
+    padding: 2px 4px 28px; /* 下は、フェードで隠れる分の余白 */
+    /* 下端をふわっと薄くして、「まだ続きがある」ことが分かるようにする */
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
   }
   .history-grid::-webkit-scrollbar{
+    display:none;
+  }
+  .achievement-grid::-webkit-scrollbar{
     display:none;
   }
 
@@ -490,8 +497,8 @@
     justify-content:center;
   }
   .history-grid .game-card{
-    height:118px;
-    min-height:118px;
+    height:136px;
+    min-height:136px;
   }
   .history-grid .history-card .card-body{
     display:flex;
@@ -518,8 +525,8 @@
     text-align:center;
     font-family:'Kaisei Decol', serif;
     font-weight:700;
-    font-size:0.74rem;
-    letter-spacing:0.03em;
+    font-size:0.92rem;
+    letter-spacing:0.04em;
     color:#ece4d1;
     line-height:1.4;
   }
@@ -608,7 +615,7 @@
   /* 画像が左1/5を占めるカードでは、穴の並びをその分だけ右にずらし、
      文字側(残り4/5)の幅の中だけに収める */
   .history-grid .history-card.has-image .tier-badges{
-    left:20%;
+    left:36%;
   }
   .history-card .badge-slot{
     position:relative;
@@ -883,45 +890,23 @@
   /* 横スクロールで1ページずつ切り替わるページャー。1ページ = 横2 × 縦3（6個） */
   .achievement-grid{
     width:100%;
-    display:flex;
-    overflow-x:auto;
-    overflow-y:hidden;
-    scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;
-    touch-action: pan-x pan-y;
-    padding: 4px 0 6px;
-    box-sizing:border-box;
-    scrollbar-width:none;
-  }
-  .achievement-grid::-webkit-scrollbar{ display:none; }
-  .achievement-page{
-    flex:0 0 100%;
-    box-sizing:border-box;
-    scroll-snap-align:start;
-    scroll-snap-stop:always;
+    max-height: calc(100vh - 300px);
+    max-height: calc(100dvh - 300px);
     display:grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
+    grid-auto-rows: min-content;
     gap:10px;
-    padding: 0 4px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    touch-action: pan-y; /* 上下にスライドして確認する */
+    padding: 4px 4px 28px; /* 下は、フェードで隠れる分の余白 */
+    box-sizing:border-box;
+    scrollbar-width:none;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
   }
-  .achievement-dots{
-    display:flex;
-    justify-content:center;
-    gap:8px;
-    padding-top:2px;
-  }
-  .achievement-dots span{
-    width:6px; height:6px;
-    border-radius:50%;
-    background: var(--silver-dim);
-    opacity:0.45;
-    transition: opacity .2s ease, background .2s ease;
-  }
-  .achievement-dots span.active{
-    background:#ece4d1;
-    opacity:1;
-  }
+  .achievement-grid::-webkit-scrollbar{ display:none; }
   .achievement-badge{
     display:flex;
     flex-direction:column;
@@ -929,6 +914,7 @@
     justify-content:center;
     gap:8px;
     padding:22px 10px;
+    min-height:124px;
     border-radius:10px;
     border:1px solid var(--hairline);
     background: linear-gradient(160deg, #202020, #101010 55%, #030303);
@@ -1344,6 +1330,7 @@
     width:100%;
     text-align:center;
     margin-top: calc(-24px + var(--logo-shift));
+    flex-shrink:0; /* ヘッダーと同じく、縮ませない */
   }
   .logo-title{
     height:44px;
@@ -1496,7 +1483,7 @@
   }
   /* コレクション「ゲームの歴史」の画像付きカードは、画像を1/5幅の帯にする */
   .history-grid .game-card .card-image{
-    width:20%;
+    width:36%;
   }
   .game-card .card-image::after{
     content:"";
@@ -1848,11 +1835,12 @@
   .tool-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
   .tool-btn:active{ transform: translateY(1px); }
   header{
-  position:relative;
-  width:100%;
-  height:32px;
-  text-align:center;
-}
+    position:relative;
+    width:100%;
+    height:32px;
+    text-align:center;
+    flex-shrink:0; /* 中身が縦に長い画面でも、ここが縮んでボタンやロゴが上にずれないように */
+  }
 
 
 .setting-btn{
@@ -2631,10 +2619,9 @@ body.panel-open .setting-btn{
           <div class="history-grid" id="historyGrid"></div>
         </div>
 
-        <!-- アチーブメント：バッジのグリッド表示。中身は JS の ACHIEVEMENTS から生成する -->
+        <!-- アチーブメント：バッジを2列で並べ、上下にスクロールして確認する。中身は JS の ACHIEVEMENTS から生成する -->
         <div class="collection-panel" id="collectionPanelAchievement">
           <div class="achievement-grid" id="achievementGrid"></div>
-          <div class="achievement-dots" id="achievementDots"></div>
         </div>
 
       </div>
@@ -2825,7 +2812,7 @@ body.panel-open .setting-btn{
   //             だけで使うタイトル表示調整。ホーム画面のカードには影響しません。
   const GAMES = [
     { num:'01', title:'ミニ将棋', href:'mini_shogi.html', img:'assets/cards/mini_shogi.jpg', noFade:true, tags:[{t:'2人'},{t:'CPU',c:'cpu'},{t:'達人',c:'master'}], history:'' },
-    { num:'02', title:'コネクトフォー', href:'connect_four.html', img:'assets/cards/connect_four.jpg', noFade:true, tags:[{t:'2人'},{t:'CPU',c:'cpu'},{t:'達人',c:'master'}], history:'', historyTitleLines:['コネクト','フォー'] },
+    { num:'02', title:'重力四目並べ', href:'connect_four.html', img:'assets/cards/connect_four.jpg', noFade:true, tags:[{t:'2人'},{t:'CPU',c:'cpu'},{t:'達人',c:'master'}], history:'' },
     { num:'03', title:'神経衰弱', href:'memory_match.html', img:'assets/cards/memory_match.jpg', noFade:true, tags:[{t:'2人'},{t:'CPU',c:'cpu'}], history:'', historyTitleNoWrap:true },
     { num:'04', title:'ヒット＆ブロー', href:'hit_and_blow.html', img:'assets/cards/hit_and_blow.jpg', historyImg:'assets/cards/hit_and_blow_collection.jpg', noFade:true, tags:[{t:'2人'},{t:'CPU',c:'cpu'},{t:'達人',c:'master'}], history:'', historyTitleLines:['ヒット＆','ブロー'] },
     { num:'05', title:'ドット＆ボックス', href:'dots_and_boxes.html', img:'assets/cards/dots_and_boxes.jpg', noFade:true, tags:[{t:'2人'}], history:'', historyTitleLines:['ドット＆','ボックス'] },
@@ -3077,16 +3064,8 @@ body.panel-open .setting-btn{
 
     const info = document.createElement('div');
     info.className = 'history-card-info';
-    info.appendChild(document.createTextNode(`${game.num}　`));
-    if(game.historyTitleLines){
-      // 指定された位置で改行（例：コネクト / フォー）
-      game.historyTitleLines.forEach((line, i) => {
-        if(i > 0) info.appendChild(document.createElement('br'));
-        info.appendChild(document.createTextNode(line));
-      });
-    } else {
-      info.appendChild(document.createTextNode(game.title));
-    }
+    // 紋章カードは1列の横長なので、タイトルは改行せずに1行で表示する
+    info.appendChild(document.createTextNode(`${game.num}　${game.title}`));
 
     if(cardImg){
       const imageDiv = document.createElement('div');
@@ -3264,52 +3243,26 @@ body.panel-open .setting-btn{
 
   function renderAchievementGrid(){
     const grid = document.getElementById('achievementGrid');
-    const dots = document.getElementById('achievementDots');
     if(!grid) return;
     const unlockedIds = getUnlockedAchievementIds();
-    const PER_PAGE = 6; // 横2 × 縦3
-    const prevScroll = grid.scrollLeft;
+    const prevScroll = grid.scrollTop; // 描き直しても、見ていた位置を保つ
     grid.innerHTML = '';
-    const pageCount = Math.max(1, Math.ceil(ACHIEVEMENTS.length / PER_PAGE));
-    for(let p = 0; p < pageCount; p++){
-      const page = document.createElement('div');
-      page.className = 'achievement-page';
-      ACHIEVEMENTS.slice(p * PER_PAGE, (p + 1) * PER_PAGE).forEach(a => {
-        const unlocked = unlockedIds.includes(a.id);
-        const badge = document.createElement('div');
-        badge.className = 'achievement-badge ' + (unlocked ? 'unlocked' : 'locked');
-        const icon = document.createElement('div');
-        icon.className = 'badge-icon';
-        icon.textContent = unlocked ? '🏆' : '🔒';
-        const title = document.createElement('div');
-        title.className = 'badge-title';
-        title.textContent = a.title;
-        badge.appendChild(icon);
-        badge.appendChild(title);
-        page.appendChild(badge);
-      });
-      grid.appendChild(page);
-    }
-    grid.scrollLeft = prevScroll;
-
-    // ページ位置を示すドット（ページが2枚以上のときだけ表示）
-    if(dots){
-      dots.innerHTML = '';
-      if(pageCount > 1){
-        for(let i = 0; i < pageCount; i++) dots.appendChild(document.createElement('span'));
-      }
-      const updateDots = () => {
-        const idx = Math.round(grid.scrollLeft / Math.max(1, grid.clientWidth));
-        Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === idx));
-      };
-      updateDots();
-      if(!grid.dataset.bound){
-        grid.dataset.bound = '1';
-        grid.addEventListener('scroll', updateDots, { passive:true });
-        // このエリア内の横スワイプはページ送り専用にして、外側の「紋章／アチーブメント」タブ切り替えとは競合させない
-        ['touchstart','mousedown'].forEach(ev => grid.addEventListener(ev, e => e.stopPropagation(), { passive:true }));
-      }
-    }
+    // 全てのバッジを2列で並べる。数が増えても、上下にスクロールして確認できる
+    ACHIEVEMENTS.forEach(a => {
+      const unlocked = unlockedIds.includes(a.id);
+      const badge = document.createElement('div');
+      badge.className = 'achievement-badge ' + (unlocked ? 'unlocked' : 'locked');
+      const icon = document.createElement('div');
+      icon.className = 'badge-icon';
+      icon.textContent = unlocked ? '🏆' : '🔒';
+      const title = document.createElement('div');
+      title.className = 'badge-title';
+      title.textContent = a.title;
+      badge.appendChild(icon);
+      badge.appendChild(title);
+      grid.appendChild(badge);
+    });
+    grid.scrollTop = prevScroll;
   }
 
   // 右からシュッと入って、約3秒後に消えるトーストを1つ表示する
@@ -3568,7 +3521,7 @@ const HOW_TO_PLAY = [
     ],
   },
   {
-    title: 'コネクトフォー',
+    title: '重力四目並べ',
     rules: [
       '7列×6段の盤に、交互にコインを落とします',
       'コインは列の一番下の空きマスまで重力で落ちます',
@@ -3949,7 +3902,7 @@ function fitScrollAreas(){
     ? (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ad-h')) || 60)
     : 0;
   const limit = nav.getBoundingClientRect().top - adH;
-  ['historyGrid','recordsHistoryList'].forEach(id => {
+  ['historyGrid','achievementGrid','recordsHistoryList'].forEach(id => {
     const el = document.getElementById(id);
     if(!el || el.offsetParent === null) return; // 非表示の画面は計算しない
     const top = el.getBoundingClientRect().top;
@@ -4251,7 +4204,7 @@ function renderRecordsOverall(stats, history){
     favEl.textContent = 'まだありません';
   } else {
     const counts = {};
-    history.forEach(h => { counts[h.title] = (counts[h.title] || 0) + 1; });
+    history.forEach(h => { const t = displayGameTitle(h); counts[t] = (counts[t] || 0) + 1; });
     const topTitle = Object.keys(counts).reduce((a, b) => (counts[b] > counts[a] ? b : a));
     favEl.textContent = `${topTitle}（${counts[topTitle]}回）`;
   }
@@ -4264,6 +4217,13 @@ function renderRecordsOverall(stats, history){
   } else {
     firstPlayedEl.textContent = 'まだ記録がありません';
   }
+}
+
+// 履歴に保存されているタイトルは「記録した時点の名前」。ゲーム名を変えても過去の履歴が旧名のまま残らないよう、
+// gameId からいまの名前を引いて表示・集計する
+function displayGameTitle(h){
+  const g = GAMES.find(x => !x.comingSoon && x.href.replace('.html', '') === h.gameId);
+  return g ? g.title : h.title;
 }
 
 // ゲーム別：モードごとに直近何戦を集計するか
@@ -4461,7 +4421,7 @@ function renderRecordsHistory(history){
 
     const title = document.createElement('div');
     title.className = 'hist-title';
-    title.textContent = h.title;
+    title.textContent = displayGameTitle(h);
 
     const d = new Date(h.ts);
     const date = document.createElement('div');
