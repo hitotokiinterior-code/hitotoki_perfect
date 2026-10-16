@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>コネクトフォー — 7×6 重力四目</title>
+<title>重力四目並べ — 7×6</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
 
@@ -915,7 +915,7 @@
 <div class="app">
 
   <header>
-    <h1>コネクトフォー<span class="small">CONNECT FOUR</span></h1>
+    <h1>重力四目並べ<span class="small">GRAVITY FOUR</span></h1>
   </header>
 
   <div id="setupScreen" class="setup-screen">
@@ -1479,7 +1479,7 @@
 
     // ホーム画面の「記録」タブ用に対局結果を記録しておく
     if(window.hitotokiStats){
-      window.hitotokiStats.recordGameEnd('connect_four', 'コネクトフォー', {
+      window.hitotokiStats.recordGameEnd('connect_four', '重力四目並べ', {
         vsCPU: vsCPU,
         cpuLevel: vsCPU ? cpuDifficulty : null,
         won: (vsCPU && !draw) ? (winner === humanSide) : undefined,
