@@ -10,7 +10,7 @@
   :root{
     /* ホーム／背景ボタンの上端。時計・バッテリー(画面上部の安全領域)の下に8px空けて置く。
        安全領域が無い端末では、従来と同じ14pxのまま */
-    --game-btn-top: max(14px, calc(env(safe-area-inset-top) + 8px));
+    --game-btn-top: max(14px, env(safe-area-inset-top));
     --bg-0: #050505;
     --bg-1: #0e0e0e;
     --void: #060606;
