@@ -980,6 +980,35 @@
     to{ opacity:0; transform: translateY(-6px); }
   }
 
+  /* --- 通知の事前確認：ゲームから戻ったときに、システムの許可ダイアログの前に出す説明画面 --- */
+  .push-ask{
+    position:fixed; inset:0; z-index:10002;
+    display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.62);
+    padding: calc(env(safe-area-inset-top) + 16px) 24px calc(env(safe-area-inset-bottom) + 16px);
+  }
+  .push-ask.show{ display:flex; }
+  .push-ask-card{
+    width:100%; max-width:320px;
+    background:#1a1a1a;
+    border:1px solid var(--hairline, rgba(255,255,255,0.16));
+    border-radius:16px;
+    padding:24px 20px 18px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.6);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    color:#fff; text-align:center;
+  }
+  .push-ask-title{ font-size:1rem; letter-spacing:0.06em; margin-bottom:12px; }
+  .push-ask-text{ font-size:0.78rem; line-height:1.8; letter-spacing:0.03em; color:rgba(255,255,255,0.72); margin-bottom:20px; }
+  .push-ask-btns{ display:flex; flex-direction:column; gap:8px; }
+  .push-ask-btn{
+    font-family:inherit; font-size:0.84rem; letter-spacing:0.08em;
+    border-radius:10px; padding:12px 0; cursor:pointer;
+    border:1px solid var(--hairline, rgba(255,255,255,0.16));
+    background:transparent; color:rgba(255,255,255,0.7);
+  }
+  .push-ask-btn.primary{ background:#fff; color:#111; border-color:#fff; }
+
   .achievement-toast-container{
     position:fixed;
     right:14px;
@@ -2663,6 +2692,18 @@ body.panel-open .setting-btn{
 <!-- 汎用トースト：「準備中です」などの短い通知用 -->
 <div class="simple-toast-container" id="simpleToastContainer"></div>
 
+<!-- 通知の事前確認（ゲームから戻ったときだけ表示。「受け取る」でシステムの許可ダイアログへ進む） -->
+<div class="push-ask" id="pushAsk" role="dialog" aria-modal="true" aria-labelledby="pushAskTitle">
+  <div class="push-ask-card">
+    <div class="push-ask-title" id="pushAskTitle">お知らせを受け取りますか？</div>
+    <div class="push-ask-text">新しいゲームの追加などの際に、<br>お知らせします。<br>設定の「通知設定」から、<br>いつでもオフにできます。</div>
+    <div class="push-ask-btns">
+      <button type="button" class="push-ask-btn primary" id="pushAskYes">受け取る</button>
+      <button type="button" class="push-ask-btn" id="pushAskLater">あとで</button>
+    </div>
+  </div>
+</div>
+
 <nav class="bottom-nav" id="bottomNav">
   <button class="nav-btn active" id="navHome" data-view="homeView">
     <img class="nav-icon-img" src="assets/icons/nav_home.png" alt="">
@@ -3796,17 +3837,91 @@ bindSoundToggle('seToggle', 'se');
 bindSoundToggle('vibToggle', 'vibration');
 
 // --- 通知設定（⚙→アプリ→通知設定）：
-//     今のところ、実際に外部からプッシュ通知を送る仕組みは無いため、
-//     このスイッチはON/OFFの状態を端末に保存しておくだけの「設定の入れ物」。
-//     将来プッシュ通知（Web Push／ネイティブ通知）を実装する時に、
-//     ここで保存された設定値を参照する想定。
+//     アプリ版では、push-notifications.js（OneSignal）とつながっていて、
+//     オンにすると端末の許可を取り、オフにするとこのアプリへの配信を止める。
+//     Web版（push非対応）では、これまでどおり、ON/OFFの状態を保存するだけ。
 const notificationToggle = document.getElementById('notificationToggle');
 if(notificationToggle){
-  notificationToggle.checked = localStorage.getItem('pref_notifications') === 'on';
-  notificationToggle.addEventListener('change', () => {
-    localStorage.setItem('pref_notifications', notificationToggle.checked ? 'on' : 'off');
+  const push = window.hitotokiPush;
+  const pushReady = !!(push && push.supported);
+
+  const refreshNotificationToggle = async () => {
+    if(pushReady){
+      notificationToggle.checked = await push.getEnabled();
+    }else{
+      notificationToggle.checked = localStorage.getItem('pref_notifications') === 'on';
+    }
+  };
+  refreshNotificationToggle();
+  // 設定アプリで許可を変えて戻ってきたときのために、⚙を開くたびに最新の状態にする
+  const gearBtnForPush = document.getElementById('gearBtn');
+  if(gearBtnForPush) gearBtnForPush.addEventListener('click', refreshNotificationToggle);
+
+  notificationToggle.addEventListener('change', async () => {
+    if(!pushReady){
+      localStorage.setItem('pref_notifications', notificationToggle.checked ? 'on' : 'off');
+      return;
+    }
+    notificationToggle.disabled = true;
+    try{
+      if(notificationToggle.checked){
+        const result = await push.enable();
+        if(result === 'on'){
+          showSimpleToast('お知らせ通知をオンにしました');
+        }else{
+          notificationToggle.checked = false;
+          showSimpleToast(result === 'denied'
+            ? '端末の設定アプリで通知を許可してください'
+            : '通知を設定できませんでした');
+        }
+      }else{
+        await push.disable();
+        showSimpleToast('お知らせ通知をオフにしました');
+      }
+    }finally{
+      notificationToggle.disabled = false;
+    }
   });
 }
+
+// --- 通知の事前確認：1局以上遊んで、ゲームからホームに戻ってきたときだけ出す ---
+//     ・起動直後（オープニング〜Tap to Start）は出さない
+//       （sessionStorageの hitotokiStarted は、今回の起動でTap to Startを済ませたあとだけ立つ）
+//     ・「受け取る」を押したら、システムの許可ダイアログへ進む
+//     ・「あとで」の場合は、最大2回まで、3日以上あけて、また聞く（push-notifications.js 側で管理）
+(function(){
+  const push = window.hitotokiPush;
+  if(!push || !push.supported) return;
+  let started = false;
+  try{ started = !!sessionStorage.getItem('hitotokiStarted'); }catch(e){}
+  if(!started) return;
+  let games = 0;
+  try{ games = window.hitotokiStats.load().history.length; }catch(e){}
+  if(games < 1) return;
+
+  const ask = document.getElementById('pushAsk');
+  const yesBtn = document.getElementById('pushAskYes');
+  const laterBtn = document.getElementById('pushAskLater');
+  if(!ask || !yesBtn || !laterBtn) return;
+
+  push.shouldAskFirst().then((ok) => {
+    if(!ok) return;
+    setTimeout(() => {
+      push.markAsked();
+      ask.classList.add('show');
+    }, 1200);
+  });
+
+  laterBtn.addEventListener('click', () => ask.classList.remove('show'));
+  yesBtn.addEventListener('click', async () => {
+    ask.classList.remove('show');
+    const result = await push.enable();
+    if(result === 'on'){
+      showSimpleToast('お知らせ通知をオンにしました');
+      if(notificationToggle) notificationToggle.checked = true;
+    }
+  });
+})();
 
 // --- 汎用トースト：まだ実装していない項目をタップした時などに、画面下に短く表示する ---
 function showSimpleToast(message){
