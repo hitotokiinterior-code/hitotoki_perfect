@@ -144,6 +144,22 @@ workflows:
             sed -i '' 's/\.iOS(\.v14)/.iOS(.v15)/' "$ONESIGNAL_PKG"
             grep -n "platforms" "$ONESIGNAL_PKG" || true
           fi
+      - name: iPhone専用にする(iPad非対応。iPadのスクリーンショットが不要になる)
+        script: |
+          PBX=ios/App/App.xcodeproj/project.pbxproj
+          # Capacitor標準は「1,2」(iPhoneとiPad)。「1」(iPhoneのみ)に書き換える。
+          sed -i '' -E 's/TARGETED_DEVICE_FAMILY = "?1,2"?;/TARGETED_DEVICE_FAMILY = 1;/g' "$PBX"
+          grep -n "TARGETED_DEVICE_FAMILY" "$PBX" || true
+          # 書き換えに失敗してiPad対応のまま提出してしまうのを防ぐ
+          if grep -qE 'TARGETED_DEVICE_FAMILY = "?[0-9]*,2"?;|TARGETED_DEVICE_FAMILY = 2;' "$PBX"; then
+            echo "❌ iPad対応の設定が残っています。上の grep の結果を確認してください。"
+            exit 1
+          fi
+          if ! grep -q "TARGETED_DEVICE_FAMILY = 1;" "$PBX"; then
+            echo "❌ iPhone専用の設定(TARGETED_DEVICE_FAMILY = 1)が見つかりません。"
+            exit 1
+          fi
+          echo "✅ iPhone専用に設定しました"
       - name: Info.plistに広告・暗号化の設定を追加(毎回自動生成されるため)
         script: |
           PLIST=ios/App/App/Info.plist
