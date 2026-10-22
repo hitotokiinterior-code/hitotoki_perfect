@@ -37,7 +37,7 @@
  */
 (function () {
   // ⚠️ RevenueCatダッシュボードで発行された「Public API Key(iOS)」に置き換えてください
-  var REVENUECAT_API_KEY_IOS = 'REVENUECAT_API_KEY_HERE';
+  var REVENUECAT_API_KEY_IOS = 'appl_UYiCVjrrtzZgZiNXRQoQaspHWtW';
 
   // App Store Connect / RevenueCat 側で決めた識別子（両方のダッシュボードで一致させる）
   var PRODUCT_ID = 'remove_ads';
