@@ -170,6 +170,41 @@ workflows:
           # 輸出コンプライアンス(暗号化)の質問を毎回聞かれないようにする(標準的なHTTPS通信のみ)
           /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST" || \
           /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST"
+      - name: Push通知の権限を追加(Push Notifications と Background Modes > Remote notifications。毎回自動生成されるため)
+        script: |
+          APP_DIR=ios/App/App
+          PBX=ios/App/App.xcodeproj/project.pbxproj
+          PLIST=$APP_DIR/Info.plist
+          ENT=$APP_DIR/App.entitlements
+
+          # 1) entitlementsファイルを作る(本番(TestFlight/App Store)向けは production)
+          printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+            '<plist version="1.0">' \
+            '<dict>' \
+            '	<key>aps-environment</key>' \
+            '	<string>production</string>' \
+            '</dict>' \
+            '</plist>' > "$ENT"
+          /usr/libexec/PlistBuddy -c "Print" "$ENT"
+
+          # 2) Xcodeプロジェクトに、そのentitlementsを使うよう設定する(Debug/Releaseの両方)
+          if ! grep -q "CODE_SIGN_ENTITLEMENTS" "$PBX"; then
+            perl -pi -e 's/^(\s+)(ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;)/$1$2\n$1CODE_SIGN_ENTITLEMENTS = App\/App.entitlements;/' "$PBX"
+          fi
+          grep -n "CODE_SIGN_ENTITLEMENTS" "$PBX" || true
+          if ! grep -q "CODE_SIGN_ENTITLEMENTS = App/App.entitlements;" "$PBX"; then
+            echo "❌ entitlementsの設定を追加できませんでした。上の grep の結果を確認してください。"
+            exit 1
+          fi
+
+          # 3) Background Modes > Remote notifications
+          /usr/libexec/PlistBuddy -c "Delete :UIBackgroundModes" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string remote-notification" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :UIBackgroundModes" "$PLIST"
+          echo "✅ Push通知の権限を追加しました"
       - name: アプリアイコンを差し替え(1024x1024・透明なしのPNG。毎回自動生成されるため)
         script: |
           # アイコン画像は、リポジトリの resources/AppIcon-1024.png に置く。
