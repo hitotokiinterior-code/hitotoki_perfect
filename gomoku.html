@@ -10,7 +10,7 @@
   :root{
     /* ホーム／背景ボタンの上端。時計・バッテリー(画面上部の安全領域)の下に8px空けて置く。
        安全領域が無い端末では、従来と同じ14pxのまま */
-    --game-btn-top: max(14px, env(safe-area-inset-top));
+    --game-btn-top: max(14px, calc(env(safe-area-inset-top) - 10px), min(env(safe-area-inset-top), 20px));
     --frame-hi: #2a2a2a;
     --frame-mid: #141414;
     --frame-low: #030303;
@@ -121,7 +121,7 @@
     display:flex;
     justify-content:center;
     align-items:flex-start;
-    padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    padding: max(6px, calc(env(safe-area-inset-top) - 10px), min(env(safe-area-inset-top), 20px)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   }
 
   .app{
