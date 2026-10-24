@@ -10,7 +10,7 @@
   :root{
     /* ホーム／背景ボタンの上端。時計・バッテリー(画面上部の安全領域)の下に8px空けて置く。
        安全領域が無い端末では、従来と同じ14pxのまま */
-    --game-btn-top: max(14px, env(safe-area-inset-top));
+    --game-btn-top: max(14px, calc(env(safe-area-inset-top) - 10px), min(env(safe-area-inset-top), 20px));
     --frame-hi: #2a2a2a;
     --frame-mid: #141414;
     --frame-low: #030303;
@@ -123,7 +123,7 @@
     display:flex;
     justify-content:center;
     align-items:flex-start;
-    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    padding: max(8px, calc(env(safe-area-inset-top) - 10px), min(env(safe-area-inset-top), 20px)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   }
 
   .app{
@@ -133,6 +133,10 @@
     flex-direction:column;
     align-items:center;
     gap:10px;
+    /* 広告バナーの分、画面が低くなっても、中身が広告の下に潜らないよう、高さを画面内に収める */
+    height:100%;
+    min-height:0;
+    padding-bottom:10px; /* 「予想する」ボタンと広告バナーの間に余白をとる(誤タップ防止) */
   }
 
   header{
@@ -412,7 +416,7 @@
   }
   .dial{
     flex:1;
-    height: 76px;
+    height: 62px;
     background: var(--cream-box);
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 -3px 0 rgba(0,0,0,0.12), inset 0 0 0 2px var(--gold-dim);
@@ -741,6 +745,15 @@
   .confirm-actions .main-btn{ flex:1; padding:11px 10px; }
   .confirm-ok{ background:var(--cream); color:var(--ink); border-color:var(--cream); }
   .confirm-ok:hover{ background:#eee; border-color:#eee; }
+
+  /* --- 画面の高さが低い端末(iPhone SE・8など)：広告バナーと重ならないよう、少しだけ詰める --- */
+  @media (max-height: 740px){
+    header{ margin-top: 40px; padding-bottom: 6px; }
+    .status-bar{ padding: 6px 4px; }
+    .dial{ height: 54px; }
+    .keypad{ gap: 6px; }
+    .keypad-btn{ height: 40px; }
+  }
 </style>
 </head>
 <body>
