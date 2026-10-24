@@ -1033,6 +1033,8 @@
       }
       window.hitotokiStats.recordGameEnd('rabbit_and_hounds', 'ウサギと猟犬', {
         vsCPU: vsCPU,
+        // CPUの強さ。これを渡さないと、達人CPUに勝っても「CPU(通常)」の記録になってしまう
+        cpuLevel: vsCPU ? (config.mode === 'master' ? 'master' : 'normal') : null,
         won: won,
         winner: winnerPlayer,
         durationSec: gameStartedAt ? Math.round((Date.now() - gameStartedAt) / 1000) : null,
