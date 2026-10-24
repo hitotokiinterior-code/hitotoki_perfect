@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Dots &amp; Boxes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg: #0a0a0a;
@@ -124,40 +124,39 @@
   .bg-swatch:hover{ transform: scale(1.12); border-color:#fff; }
   .bg-swatch.active{ border-color:#fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
 
+  /* ---- メニュー画面：他のゲーム(神経衰弱など)と同じ見た目にそろえている ---- */
   .menu-header{
     text-align:center;
-    margin-top: 60px;
-    padding-bottom: 14px;
+    margin-top: 58px;
   }
   .menu-title-bar{
-    font-family:'Noto Serif JP', serif;
-    font-size: 19px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size: clamp(1.25rem, 5.5vw, 1.7rem);
+    letter-spacing:0.06em;
+    color:#fff;
+    text-shadow: 0 2px 10px rgba(255,255,255,0.12);
   }
   .menu-title-en{
-    margin-top: 4px;
-    font-family:'Space Grotesk', sans-serif;
-    font-size: 10px;
-    letter-spacing: 0.32em;
-    color: var(--text-dim);
+    margin-top:4px;
+    font-family:'Kaisei Decol', serif;
+    font-size:0.56rem;
+    letter-spacing:0.4em;
+    font-weight:500;
+    color:#6f6f6f;
     text-transform: uppercase;
   }
 
   .menu-card{
-    max-width: 640px;
-    margin: 20px auto 0;
-    padding: 0 18px 20px;
+    width:100%;
+    max-width:400px;
+    margin: 28px auto 0;
+    padding: 0 10px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
   }
-
-  .menu-section-title{
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-    text-align:center;
-  }
-  .menu-section-title.second{ margin-top: 26px; }
 
   .setup-divider{
     display:flex;
@@ -165,7 +164,7 @@
     gap:12px;
     width:100%;
     max-width: 260px;
-    margin: 4px auto 16px;
+    margin: -4px 0 -4px;
   }
   .setup-divider .divider-line{
     flex:1;
@@ -182,96 +181,52 @@
   }
 
   .menu-mode-title{
-    font-family:'Noto Serif JP', serif;
-    font-weight: 700;
-    font-size: 17px;
-    letter-spacing: 0.1em;
-    color: var(--text-primary);
-    margin-top: 4px;
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size:1.1rem;
+    letter-spacing:0.12em;
+    color:#fff;
     text-align:center;
   }
-  .menu-mode-label{
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-    margin-top: 2px;
-    margin-bottom: 12px;
+  .menu-mode-label,
+  .menu-section-title{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.2em;
+    font-weight:400;
+    color:#6f6f6f;
     text-align:center;
+    margin:0;
   }
+  .menu-section-title.second{ margin-top:0; margin-bottom:-8px; }
 
+  /* 対戦モードのカード と 盤面の大きさのカード(共通) */
+  .mode-grid,
   .size-list{
     display:grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    width:100%;
   }
+  .mode-grid-btn,
   .size-row{
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    gap: 2px;
-    text-align:left;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 0.5px solid rgba(255,255,255,0.55);
-    background: rgba(255,255,255,0.08);
-    color: var(--text-dim);
-    cursor:pointer;
-    transition: background .2s ease, border-color .2s ease, color .2s ease;
-  }
-  .size-row:hover{ border-color:#fff; }
-  .size-row .row-title{
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-  .size-row .row-sub{
-    font-size: 9px;
-    color: var(--text-dim);
-  }
-  .size-row.active{
-    background: rgba(232,185,63,0.14);
-    border-color: var(--accent-gold);
-  }
-  .size-row.active::after{
-    content:'✓';
-    position:absolute;
-    bottom:6px; right:8px;
-    width:16px; height:16px;
-    border-radius:50%;
-    background: var(--accent-gold);
-    color:#16160f;
-    font-size:0.55rem;
-    font-weight:700;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
-  /* --- mode-select: 2x2 grid of blocks with icons, matching the other games --- */
-  .mode-grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 4px;
-  }
-  .mode-grid-btn{
     position:relative;
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:center;
     gap:8px;
-    min-height: 113px;
-    padding: 18px 10px 14px;
-    border-radius: 8px;
-    border: 0.5px solid rgba(255,255,255,0.55);
-    background: rgba(255,255,255,0.08);
-    color: var(--text-dim);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #6f6f6f;
+    border-radius: 6px;
     cursor:pointer;
     text-align:center;
-    transition: background .2s ease, border-color .2s ease, color .2s ease;
+    transition: background .15s ease, border-color .15s ease;
   }
-  .mode-grid-btn:hover{ border-color:#fff; }
+  .mode-grid-btn{ min-height: 113px; padding: 18px 10px 14px; }
+  .size-row{ min-height: 72px; padding: 14px 8px 12px; gap:6px; }
+  .mode-grid-btn:hover,
+  .size-row:hover{ background: rgba(255,255,255,0.07); border-color:#fff; }
   .mode-grid-icon{
     position:relative;
     width: 32px;
@@ -288,27 +243,36 @@
   .mode-grid-icon .icon-active{ opacity:0; }
   .mode-grid-btn.active .mode-grid-icon .icon-default{ opacity:0; }
   .mode-grid-btn.active .mode-grid-icon .icon-active{ opacity:1; }
-  .mode-grid-title{
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-primary);
+  .mode-grid-title,
+  .size-row .row-title{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.82rem;
+    letter-spacing:0.06em;
+    color:#fff;
   }
-  .mode-grid-desc{
-    font-size: 9px;
-    color: var(--text-dim);
+  .size-row .row-title{ font-size:0.88rem; }
+  .mode-grid-desc,
+  .size-row .row-sub{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:0.6rem;
+    letter-spacing:0.03em;
+    color: rgba(255,255,255,0.78);
   }
-  .mode-grid-btn.active{
-    background: rgba(232,185,63,0.14);
-    border-color: var(--accent-gold);
+  .mode-grid-btn.active,
+  .size-row.active{
+    border-color: #c9a54a;
+    background: rgba(201,165,74,0.16);
   }
-  .mode-grid-btn.active::after{
+  .mode-grid-btn.active::after,
+  .size-row.active::after{
     content:'✓';
     position:absolute;
     bottom:8px; right:8px;
     width:18px; height:18px;
     border-radius:50%;
-    background: var(--accent-gold);
-    color:#16160f;
+    background: #c9a54a;
+    color:#141414;
     font-size:0.6rem;
     font-weight:700;
     display:flex;
@@ -319,33 +283,39 @@
   .start-btn{
     display:block;
     width: 100%;
-    margin: 24px auto 0;
-    padding: 14px 0;
-    border-radius: 8px;
-    border: 0.5px solid rgba(255,255,255,0.55);
-    background: rgba(255,255,255,0.08);
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 500;
+    margin: 0;
+    padding: 8px 16px;
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.8rem;
+    letter-spacing:0.1em;
+    color:#e6e4dc;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #e6e4dc;
+    border-radius: 2px;
     cursor:pointer;
-    transition: border-color .2s ease, background .2s ease;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
   }
-  .start-btn:hover{ border-color:#fff; background:rgba(255,255,255,0.14); }
+  .start-btn:hover{ background: rgba(255,255,255,0.08); border-color:#d4d2c8; color:#d4d2c8; }
+  .start-btn:active{ transform: translateY(1px); }
   .how-to-btn{
     display:block;
     width: auto;
-    margin: 8px auto 0;
+    margin: -6px auto 0;
     padding: 8px 20px;
-    border-radius: 8px;
-    border: 0.5px solid rgba(255,255,255,0.3);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-weight:700;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    color:#cfcfcf;
     background: transparent;
-    color: var(--text-dim);
-    font-size: 12px;
-    font-weight: 500;
+    border: 1px solid #6f6f6f;
+    border-radius: 2px;
     cursor:pointer;
-    transition: border-color .2s ease, background .2s ease, color .2s ease;
+    transition: background .15s ease, border-color .15s ease;
   }
-  .how-to-btn:hover{ border-color:#fff; background:rgba(255,255,255,0.06); color: var(--text-primary); }
+  .how-to-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+  .how-to-btn:active{ transform: translateY(1px); }
 
   .modal-overlay{
     position:fixed;
@@ -734,7 +704,7 @@
   </div>
 
   <div class="menu-header">
-    <div class="menu-title-bar">ドット&amp;ボックス</div>
+    <div class="menu-title-bar">ドット＆ボックス</div>
     <div class="menu-title-en">DOTS &amp; BOXES</div>
   </div>
 
@@ -765,22 +735,22 @@
       </button>
     </div>
 
-    <div class="menu-section-title second">ステージ選択</div>
+    <div class="menu-section-title second">盤面の大きさを選ぶ</div>
     <div class="size-list" id="sizeGrid">
       <button class="size-row active" data-rows="3" data-cols="3">
-        <span class="row-title">3 × 3</span>
+        <span class="row-title">3×3</span>
         <span class="row-sub">9マス</span>
       </button>
       <button class="size-row" data-rows="4" data-cols="4">
-        <span class="row-title">4 × 4</span>
+        <span class="row-title">4×4</span>
         <span class="row-sub">16マス</span>
       </button>
       <button class="size-row" data-rows="4" data-cols="5">
-        <span class="row-title">4 × 5</span>
+        <span class="row-title">4×5</span>
         <span class="row-sub">20マス</span>
       </button>
       <button class="size-row" data-rows="4" data-cols="6">
-        <span class="row-title">4 × 6</span>
+        <span class="row-title">4×6</span>
         <span class="row-sub">24マス</span>
       </button>
     </div>
