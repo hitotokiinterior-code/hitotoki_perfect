@@ -38,7 +38,7 @@
 
   .home-btn{
     position: fixed;
-    top: 14px;
+    top: max(14px, env(safe-area-inset-top));
     left: 14px;
     z-index: 100;
     font-family:'Zen Kaku Gothic New', sans-serif;
@@ -58,7 +58,7 @@
 
   .bg-switch-btn{
     position: fixed;
-    top: 14px;
+    top: max(14px, env(safe-area-inset-top));
     right: 14px;
     z-index: 100;
     font-family:'Zen Kaku Gothic New', sans-serif;
@@ -78,7 +78,7 @@
 
   .bg-switch-panel{
     position: fixed;
-    top: 52px;
+    top: calc(max(14px, env(safe-area-inset-top)) + 38px);
     right: 14px;
     z-index: 100;
     display:flex;
