@@ -170,6 +170,22 @@
     color: var(--silver-dim);
     padding-top: 4px;
   }
+
+  /* 外部サービスの一覧カード */
+  .svc{
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .svc .name{ color:#fff; font-size:0.84rem; font-weight:700; letter-spacing:0.03em; }
+  .svc .row{ display:flex; gap:8px; font-size:0.74rem; line-height:1.7; }
+  .svc .label{ color: var(--silver-dim); min-width:5.2em; flex-shrink:0; }
+  .svc .value{ color: var(--silver); min-width:0; }
+  .svc a, section p a{ color:#fff; word-break:break-all; }
 </style>
 </head>
 <body>
@@ -190,68 +206,128 @@
 
     <section>
       <h2><span class="num">01</span>取得する情報</h2>
-      <p>本アプリでは、ユーザー登録や氏名、住所、電話番号、メールアドレスなどの個人情報を取得することはありません。</p>
-      <p>ただし、本アプリでは、広告配信やアプリの品質向上を目的として、以下の情報が自動的に取得される場合があります。</p>
+      <p>本アプリは、ユーザー登録が不要で、氏名、住所、電話番号、メールアドレスなどの情報を、開発者が取得することはありません。</p>
+      <p>ただし、広告の配信、アプリ内課金の管理、プッシュ通知の配信、アプリの品質向上のため、本アプリに組み込まれた外部サービスを通じて、次の情報が自動的に取得される場合があります。</p>
       <ul>
-        <li>広告識別子（IDFA等）</li>
-        <li>端末情報（OS、端末種類など）</li>
-        <li>アプリの利用状況</li>
-        <li>クラッシュ情報</li>
-        <li>その他、広告配信サービスまたは分析サービスが提供する情報</li>
+        <li>広告識別子（IDFA）※iOSの「トラッキング」をお許しいただいた場合のみ</li>
+        <li>端末情報（OSの種類・バージョン、端末の機種、言語、タイムゾーンなど）</li>
+        <li>IPアドレス</li>
+        <li>アプリの利用状況（起動日時、広告の表示・操作の状況など）</li>
+        <li>アプリ内課金の購入状況（購入した商品、購入日時など。クレジットカード番号などの決済情報は含みません）</li>
+        <li>プッシュ通知を送るための識別情報（通知トークン）</li>
+        <li>不具合・動作状況に関する情報</li>
       </ul>
+      <p>開発者は、これらの情報を、特定の個人を識別する目的で利用することはありません。</p>
     </section>
 
     <section>
       <h2><span class="num">02</span>利用目的</h2>
       <p>取得した情報は、以下の目的で利用します。</p>
       <ul>
-        <li>広告の配信および最適化</li>
-        <li>アプリの品質向上</li>
-        <li>不具合の調査および改善</li>
-        <li>利用状況の分析</li>
-        <li>サービス向上のための統計データの作成</li>
+        <li>広告の配信、効果の測定、不正の防止</li>
+        <li>アプリ内課金の購入状況の確認および復元</li>
+        <li>新しいゲームの追加などのお知らせ（プッシュ通知）の配信</li>
+        <li>アプリの品質向上、不具合の調査および改善</li>
+        <li>利用状況の分析、統計データの作成</li>
       </ul>
-      <p>なお、取得した情報を個人を特定する目的で利用することはありません。</p>
     </section>
 
     <section>
       <h2><span class="num">03</span>広告について</h2>
-      <p>本アプリでは、広告配信サービス（例：Google AdMob）を利用する場合があります。広告配信事業者は、ユーザーの興味・関心に応じた広告を表示するため、広告識別子等を利用することがあります。広告配信事業者による情報の取扱いについては、各事業者のプライバシーポリシーをご確認ください。</p>
+      <p>本アプリでは、Google LLCが提供する広告配信サービス「Google AdMob」を利用して、バナー広告と全画面広告を表示しています。アプリ内課金「広告を消す」をご購入いただいた場合は、広告は表示されません。</p>
+      <p>AdMobは、広告の表示、効果の測定、不正の防止のために、広告識別子、IPアドレス、端末情報などを取得します。Googleによる情報の取扱いについては、次のページをご確認ください。<br><a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">https://policies.google.com/technologies/partner-sites</a></p>
+      <p><strong>トラッキングの許可について：</strong>iOSでは、広告識別子を使って、他社のアプリやWebサイトをまたいで利用状況を追跡する（興味・関心に合わせた広告を表示する）ためには、ユーザーの許可が必要です。本アプリでは、広告の表示にあわせて、許可をおたずねする画面が表示されます。許可しない場合でも、本アプリはすべての機能をご利用いただけます。その場合の広告は、興味・関心に合わせない形で表示されます。許可の設定は、iOSの「設定」→「プライバシーとセキュリティ」→「トラッキング」から、いつでも変更できます。</p>
+      <p>欧州経済領域（EEA）、英国、スイスなどでは、法令に基づき、広告に関する同意をおたずねする画面（Googleが提供する同意管理の仕組み）が表示される場合があります。</p>
     </section>
 
     <section>
       <h2><span class="num">04</span>アプリ内課金について</h2>
-      <p>本アプリでは、Appleが提供するアプリ内課金（In-App Purchase）を利用する場合があります。課金に関する情報はAppleによって管理され、本アプリの開発者がクレジットカード情報や決済情報を取得することはありません。</p>
+      <p>本アプリでは、Appleが提供するアプリ内課金（In-App Purchase）を利用して、広告を非表示にする機能を提供しています。お支払いはAppleが処理し、本アプリの開発者がクレジットカード情報や決済情報を取得することはありません。</p>
+      <p>購入状況の確認と復元（機種変更や再インストールのとき）のため、RevenueCat, Inc.が提供する「RevenueCat」を利用しています。RevenueCatには、ランダムに生成された識別子（個人を特定するものではありません）、Appleの購入記録、最後にアプリを利用した日時、端末の機種などの情報が送信されます。</p>
     </section>
 
     <section>
-      <h2><span class="num">05</span>第三者への提供</h2>
-      <p>本アプリは、法令に基づく場合を除き、取得した情報を第三者へ提供することはありません。ただし、広告配信サービスやアクセス解析サービスの提供に必要な範囲で、各サービス提供事業者が情報を取り扱う場合があります。</p>
+      <h2><span class="num">05</span>プッシュ通知について</h2>
+      <p>本アプリでは、新しいゲームの追加などのお知らせを、プッシュ通知でお送りすることがあります。通知の配信には、OneSignal, Inc.が提供する「OneSignal」を利用しています。</p>
+      <p>通知を受け取るかどうかは、ユーザーが選べます。ゲームをお楽しみいただいたあとに表示される確認画面で「受け取る」を選んだ場合にのみ、iOSの許可画面が表示されます。通知を許可しなくても、本アプリはすべての機能をご利用いただけます。</p>
+      <p>通知の設定は、本アプリの設定（⚙）にある「通知設定」、または、iOSの「設定」→「hitotoki」→「通知」から、いつでも変更できます。</p>
+      <p>通知の配信のために、通知トークン、端末の識別子、端末情報、言語・タイムゾーン、アプリの利用状況（起動日時など）、IPアドレスなどが、OneSignalに送信されます。</p>
     </section>
 
     <section>
-      <h2><span class="num">06</span>データの保存</h2>
-      <p>ゲームの設定やプレイデータ等は、原則としてユーザーの端末内に保存されます。本アプリの開発者がゲームデータをサーバー上で保存・管理することはありません。</p>
+      <h2><span class="num">06</span>外部サービスへの情報の送信</h2>
+      <p>本アプリは、次の外部サービスを利用しており、これらのサービスに、情報が送信されます。</p>
+      <div class="svc">
+        <div class="name">Google AdMob</div>
+        <div class="row"><span class="label">提供元</span><span class="value">Google LLC</span></div>
+        <div class="row"><span class="label">送信される情報</span><span class="value">広告識別子（許可した場合）、IPアドレス、端末情報、広告の表示・操作の状況</span></div>
+        <div class="row"><span class="label">利用目的</span><span class="value">広告の配信、効果の測定、不正の防止</span></div>
+        <div class="row"><span class="label">ポリシー</span><span class="value"><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">https://policies.google.com/privacy</a></span></div>
+      </div>
+      <div class="svc">
+        <div class="name">RevenueCat</div>
+        <div class="row"><span class="label">提供元</span><span class="value">RevenueCat, Inc.</span></div>
+        <div class="row"><span class="label">送信される情報</span><span class="value">ランダムに生成された識別子、Appleの購入記録、最後にアプリを利用した日時、端末の機種・OS、IPアドレス</span></div>
+        <div class="row"><span class="label">利用目的</span><span class="value">アプリ内課金の購入状況の確認・復元</span></div>
+        <div class="row"><span class="label">ポリシー</span><span class="value"><a href="https://www.revenuecat.com/privacy/" target="_blank" rel="noopener noreferrer">https://www.revenuecat.com/privacy/</a></span></div>
+      </div>
+      <div class="svc">
+        <div class="name">OneSignal</div>
+        <div class="row"><span class="label">提供元</span><span class="value">OneSignal, Inc.</span></div>
+        <div class="row"><span class="label">送信される情報</span><span class="value">通知トークン、端末の識別子、端末情報、言語・タイムゾーン、アプリの利用状況、IPアドレス</span></div>
+        <div class="row"><span class="label">利用目的</span><span class="value">プッシュ通知の配信</span></div>
+        <div class="row"><span class="label">ポリシー</span><span class="value"><a href="https://onesignal.com/privacy_policy" target="_blank" rel="noopener noreferrer">https://onesignal.com/privacy_policy</a></span></div>
+      </div>
+      <div class="svc">
+        <div class="name">アプリ内課金（決済）</div>
+        <div class="row"><span class="label">提供元</span><span class="value">Apple Inc.</span></div>
+        <div class="row"><span class="label">送信される情報</span><span class="value">決済に関する情報（開発者は取得しません）</span></div>
+        <div class="row"><span class="label">利用目的</span><span class="value">アプリ内課金の決済処理</span></div>
+        <div class="row"><span class="label">ポリシー</span><span class="value"><a href="https://www.apple.com/legal/privacy/jp/" target="_blank" rel="noopener noreferrer">https://www.apple.com/legal/privacy/jp/</a></span></div>
+      </div>
     </section>
 
     <section>
-      <h2><span class="num">07</span>セキュリティ</h2>
+      <h2><span class="num">07</span>第三者への提供・海外での取扱い</h2>
+      <p>本アプリは、法令に基づく場合を除き、取得した情報を、上記の外部サービス以外の第三者へ提供することはありません。</p>
+      <p>上記の外部サービスの提供事業者は、米国などの日本国外にあるサーバーで、情報を取り扱う場合があります。</p>
+    </section>
+
+    <section>
+      <h2><span class="num">08</span>データの保存</h2>
+      <p>ゲームの設定、対戦の記録（勝敗など）は、ユーザーの端末内に保存されます。本アプリの開発者が、これらのデータをサーバー上で保存・管理することはありません。本アプリを削除すると、端末内のデータも削除されます。</p>
+    </section>
+
+    <section>
+      <h2><span class="num">09</span>ご自身の情報について</h2>
+      <p>本アプリでは、開発者は、特定の個人を識別できる情報を保有していません。外部サービスが取得する情報については、次の方法で、ご自身で管理できます。</p>
+      <ul>
+        <li>トラッキングの許可：iOSの「設定」→「プライバシーとセキュリティ」→「トラッキング」</li>
+        <li>広告識別子のリセット：iOSの「設定」→「プライバシーとセキュリティ」→「Apple広告」など（お使いのiOSのバージョンにより異なります）</li>
+        <li>プッシュ通知：本アプリの「通知設定」、またはiOSの「設定」→「hitotoki」→「通知」</li>
+      </ul>
+      <p>情報の開示、訂正、削除などのご希望は、下記のお問い合わせ先までご連絡ください。ご本人であることの確認ができない場合は、ご対応できないことがあります。</p>
+    </section>
+
+    <section>
+      <h2><span class="num">10</span>セキュリティ</h2>
       <p>本アプリは、利用者の情報の安全管理に努めます。ただし、通信環境や端末の状況等により、完全な安全性を保証するものではありません。</p>
     </section>
 
     <section>
-      <h2><span class="num">08</span>プライバシーポリシーの変更</h2>
-      <p>本プライバシーポリシーは、法令の改正やサービス内容の変更等に応じて、予告なく改定する場合があります。変更後のプライバシーポリシーは、本ページに掲載した時点から効力を生じます。</p>
+      <h2><span class="num">11</span>プライバシーポリシーの変更</h2>
+      <p>本プライバシーポリシーは、法令の改正、利用する外部サービスの変更、サービス内容の変更等に応じて、改定する場合があります。変更後のプライバシーポリシーは、本ページに掲載した時点から効力を生じます。</p>
     </section>
 
     <section>
-      <h2><span class="num">09</span>お問い合わせ</h2>
+      <h2><span class="num">12</span>お問い合わせ</h2>
       <p>本アプリに関するお問い合わせは、以下までお願いいたします。</p>
       <div class="contact-box">
         <div class="row"><span class="label">アプリ名</span><span class="value">hitotoki</span></div>
-        <div class="row"><span class="label">開発者</span><span class="value">〇〇（開発者名）</span></div>
-        <div class="row"><span class="label">お問い合わせ先</span><span class="value">〇〇（メールアドレス等）</span></div>
-        <div class="row"><span class="label">制定日</span><span class="value">2026年〇月〇日</span></div>
+        <div class="row"><span class="label">開発者</span><span class="value">hitotoki開発者</span></div>
+        <div class="row"><span class="label">お問い合わせ先</span><span class="value">hitotokiinterior@gmail.com</span></div>
+        <div class="row"><span class="label">制定日</span><span class="value">2026年11月1日</span></div>
+        <div class="row"><span class="label">最終更新日</span><span class="value">2026年11月1日</span></div>
       </div>
     </section>
 
