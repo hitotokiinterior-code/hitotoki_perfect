@@ -140,6 +140,16 @@
     document.documentElement.classList.toggle('ads-game', !!on);
   }
 
+  // 前回、実際に表示されたバナーの高さを覚えておき、ページを開いた直後から、その高さで枠を確保する。
+  // （既定の60pxと実際の高さが違うと、バナーの読み込み後に、画面が数pxずれて見えるため）
+  var ADS_H_KEY = 'hitotoki_ad_h';
+  try {
+    var savedAdH = parseInt(window.localStorage.getItem(ADS_H_KEY) || '', 10);
+    if (savedAdH >= 30 && savedAdH <= 150) {
+      document.documentElement.style.setProperty('--ad-h', savedAdH + 'px');
+    }
+  } catch (e) { /* ignore */ }
+
   if (isGamePage) {
     var st = document.createElement('style');
     st.textContent =
@@ -166,7 +176,9 @@
   // 画面側の広告枠(.ad-banner-card)の高さとぴったり合わせる
   AdMob.addListener('bannerAdSizeChanged', function (info) {
     if (info && info.height > 0) {
-      document.documentElement.style.setProperty('--ad-h', Math.ceil(info.height) + 'px');
+      var realH = Math.ceil(info.height);
+      document.documentElement.style.setProperty('--ad-h', realH + 'px');
+      try { window.localStorage.setItem(ADS_H_KEY, String(realH)); } catch (e) { /* ignore */ }
       window.dispatchEvent(new Event('resize')); // 一覧の高さなどを再計算させる
     }
   });
