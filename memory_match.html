@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>神経衰弱</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
@@ -579,6 +579,12 @@
     .app{ gap:6px; }
     .mem-board{ width: min(80vh, 92vw); }
     .setup-card{ margin-top:4px; padding:16px 18px; gap:12px; }
+  }
+
+  /* --- 画面の高さが低い端末(iPhone SEなど)：盤面が広告バナーに重ならないよう、上の余白を少し詰める --- */
+  @media (max-height: 700px) and (orientation: portrait){
+    header{ margin-top: 38px; }
+    .app{ gap: 6px; }
   }
 </style>
 </head>
