@@ -9,18 +9,13 @@
  *   localStorage の 'hitotoki_timer' キーに保存する
  * - このスクリプトを読み込んだページは、1秒おきにその時刻を過ぎていないか
  *   チェックし、過ぎていたらポップアップを表示してキーを削除する
- * - 効果音(se-player.js)が読み込まれていれば「ピピッ」のアラーム音を鳴らし、
- *   端末の振動設定（'pref_vibration'）に従って振動も行う
+ * - 効果音(se-player.js)が読み込まれていれば「ピピッ」のアラーム音を鳴らす
  *
  * 使い方：各ゲームページの </body> 直前に以下を追加するだけ
  *   <script src="timer-watcher.js"></script>
  */
 (function(){
   var STORAGE_KEY = 'hitotoki_timer';
-
-  function vibrationAllowed(){
-    return localStorage.getItem('pref_vibration') !== 'off';
-  }
 
   function showTimerPopup(){
     if(document.getElementById('hitotokiTimerPopup')) return;
@@ -77,10 +72,6 @@
     document.body.appendChild(overlay);
 
     if(window.sePlayer){ window.sePlayer.play('alarm'); }
-
-    if(vibrationAllowed() && navigator.vibrate){
-      navigator.vibrate([200, 100, 200, 100, 200]);
-    }
   }
 
   function checkTimer(){
