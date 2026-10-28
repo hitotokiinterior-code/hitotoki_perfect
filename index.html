@@ -2111,29 +2111,6 @@ body.panel-open .setting-btn{
   margin-top:6px;
 }
 
-/* プレイヤー名入力欄（最大5文字） */
-.player-name-input{
-  width:74px;
-  flex-shrink:0;
-  text-align:right;
-  font-family:'Zen Kaku Gothic New', sans-serif;
-  font-size:0.82rem;
-  letter-spacing:0.04em;
-  color:#fff;
-  background:transparent;
-  border:none;
-  border-bottom:1px solid var(--silver-dim);
-  padding:2px 2px 4px;
-  outline:none;
-  transition: border-color .15s ease;
-}
-.player-name-input::placeholder{
-  color: var(--silver-dim);
-}
-.player-name-input:focus{
-  border-bottom-color:#fff;
-}
-
 /* ON/OFFスイッチ */
 .switch{
   position:relative;
@@ -2372,13 +2349,6 @@ body.panel-open .setting-btn{
         <span class="switch-slider"></span>
       </label>
     </div>
-    <div class="setting-menu-item">
-      <span>振動</span>
-      <label class="switch">
-        <input type="checkbox" id="vibToggle">
-        <span class="switch-slider"></span>
-      </label>
-    </div>
   </div>
 
   <div class="panel-section-label">ゲーム</div>
@@ -2398,10 +2368,6 @@ body.panel-open .setting-btn{
         <button class="theme-swatch" data-grad="#3d2a2e 0%, #2f2024 55%, #1f1519 100%" style="--sw:#33262a" aria-label="ワインレッドグレー"></button>
         <button class="theme-swatch" data-grad="#232323 0%, #181818 55%, #0d0d0d 100%" style="--sw:#161616" aria-label="ブラックグレー"></button>
       </div>
-    </div>
-    <div class="setting-menu-item">
-      <span>プレイヤー名</span>
-      <input type="text" id="playerNameInput" class="player-name-input" maxlength="5" placeholder="1P" autocomplete="off" autocapitalize="off" spellcheck="false">
     </div>
     <div class="setting-menu-item">
       <span>タイマー機能</span>
@@ -3803,16 +3769,14 @@ menuCloseBtn.addEventListener("click", closeAllPanels);
 // 届かない（暗幕がすべて受け止める）ので、ゲームが誤って開くことはない
 panelBackdrop.addEventListener("click", closeAllPanels);
 
-// --- サウンド設定（BGM／効果音／振動）：状態を端末に保存して次回起動時も引き継ぐ ---
+// --- サウンド設定（BGM／効果音）：状態を端末に保存して次回起動時も引き継ぐ ---
 // BGMは bgm-player.js（共通スクリプト）が実際の再生を担当している。
 // 効果音は se-player.js（共通スクリプト、各ゲームページで読み込み）が
 // 'pref_se' の値を見て再生するかどうかを決めるので、ここでは値を保存するだけでよい。
-// 振動は既存のタイマー機能と連動させ、OFFなら鳴動しないようにする。
-// BGM・効果音は未設定時（初回起動時）はONがデフォルト。振動のみ引き続きOFFがデフォルト。
+// BGM・効果音は未設定時（初回起動時）はONがデフォルト。
 const soundPrefs = {
   bgm: localStorage.getItem('pref_bgm') !== 'off',
   se: localStorage.getItem('pref_se') !== 'off',
-  vibration: localStorage.getItem('pref_vibration') === 'on',
 };
 
 function bindSoundToggle(id, key){
@@ -3834,7 +3798,6 @@ function bindSoundToggle(id, key){
 }
 bindSoundToggle('bgmToggle', 'bgm');
 bindSoundToggle('seToggle', 'se');
-bindSoundToggle('vibToggle', 'vibration');
 
 // --- 通知設定（⚙→アプリ→通知設定）：
 //     アプリ版では、push-notifications.js（OneSignal）とつながっていて、
@@ -3940,36 +3903,6 @@ const languageMenuItem = document.getElementById('languageMenuItem');
 if(languageMenuItem){
   languageMenuItem.addEventListener('click', () => {
     showSimpleToast('準備中です');
-  });
-}
-
-// --- プレイヤー名（⚙→ゲーム→プレイヤー名）：最大5文字。
-//     stats-tracker.js 側に保存されるので、各ゲームページからも
-//     window.hitotokiStats.getPlayerName() で共通して参照できる ---
-const playerNameInput = document.getElementById('playerNameInput');
-if(playerNameInput && window.hitotokiStats){
-  playerNameInput.value = window.hitotokiStats.getPlayerName();
-
-  // iOSでは、入力欄にフォーカスするとキーボード表示のために画面全体が
-  // 強制的に少し上へスクロールされてしまうことがある（overflow:hiddenでも起きる）。
-  // フォーカスが外れたタイミングで、ページの表示位置を確実に元へ戻しておく。
-  function resetPageScroll(){
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }
-
-  function savePlayerName(){
-    const saved = window.hitotokiStats.setPlayerName(playerNameInput.value);
-    playerNameInput.value = saved; // 前後の空白を取り除いた後の値に揃えておく
-  }
-  playerNameInput.addEventListener('change', savePlayerName);
-  playerNameInput.addEventListener('blur', () => {
-    savePlayerName();
-    // キーボードが閉じるアニメーションの後にもズレ直すことがあるため、
-    // 即時と少し遅らせた分の両方でリセットしておく
-    resetPageScroll();
-    setTimeout(resetPageScroll, 300);
   });
 }
 
@@ -4554,10 +4487,9 @@ function renderRecordsHistory(history){
     } else if(h.vsCPU && h.won === false){
       result.textContent = '負け';
     } else if(!h.vsCPU && (h.winner === 1 || h.winner === 2)){
-      // 2人対戦で勝者が記録されている場合：1Pは登録したプレイヤー名（未登録なら「1P」）で表示する
-      const playerName = (window.hitotokiStats && window.hitotokiStats.getPlayerName && window.hitotokiStats.getPlayerName()) || '';
+      // 2人対戦で勝者が記録されている場合：「1Pの勝ち」「2Pの勝ち」で表示する
       if(h.winner === 1){
-        result.textContent = `${playerName || '1P'}の勝ち`;
+        result.textContent = '1Pの勝ち';
         result.classList.add('win');
       } else {
         result.textContent = '2Pの勝ち';
@@ -4781,7 +4713,6 @@ navButtons.forEach(btn => {
     formatFinished();
     clearTimerFromStorage();
     if(window.sePlayer) window.sePlayer.play('alarm');
-    if(soundPrefs.vibration && navigator.vibrate){ navigator.vibrate([200,100,200,100,200]); }
     showTimerPopup();
     // 少し余韻を置いてから、時計表示に戻す
     setTimeout(() => {
