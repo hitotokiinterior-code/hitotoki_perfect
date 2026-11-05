@@ -2920,6 +2920,16 @@ body.panel-open .setting-btn{
     applyAdsVisibility(false);
   }
 
+  // ストアから取得した価格を「広告を消す」の説明行に出す（取得前は従来の表示のまま）
+  const DEFAULT_AD_SUB = '買い切り・アプリ内課金';
+  function applyPriceLabel(price){
+    if(!price) return;
+    adSubs.forEach(el => { el.textContent = '買い切り・' + price + '・アプリ内課金'; });
+  }
+  if(window.hitotokiPurchases && window.hitotokiPurchases.onPrice){
+    window.hitotokiPurchases.onPrice(applyPriceLabel);
+  }
+
   adBuyBtns.forEach(adBannerBuyBtn => {
     adBannerBuyBtn.addEventListener('click', async () => {
       if(!window.hitotokiPurchases){ return; }
