@@ -118,6 +118,42 @@
       if (debugOverride !== null) setState(debugOverride);
     }
     markReady();
+    loadPrice(); // 価格は待たずに、取得でき次第UIへ反映する
+  }
+
+  // Offeringsから「広告を消す」のPackageを探す
+  async function findRemoveAdsPackage() {
+    var offerings = await window.Purchases.getOfferings();
+    var current = offerings && offerings.current;
+    var list = (current && current.availablePackages) || [];
+    var pkg = list.find(function (p) {
+      var prod = p.product || p.storeProduct;
+      return prod && prod.identifier === PRODUCT_ID;
+    });
+    return pkg || list[0] || null;
+  }
+
+  // ストアが返す表示用の価格文字列（例: ¥300）。地域や価格変更に自動で追随する
+  var cachedPriceString = null;
+  var priceListeners = [];
+
+  async function loadPrice() {
+    if (!isNative() || !window.Purchases) return null;
+    try {
+      var pkg = await findRemoveAdsPackage();
+      var prod = pkg && (pkg.product || pkg.storeProduct);
+      var price = prod && prod.priceString;
+      if (price) {
+        cachedPriceString = price;
+        priceListeners.forEach(function (fn) {
+          try { fn(price); } catch (e) { console.warn('[purchases] onPrice handler failed', e); }
+        });
+      }
+      return cachedPriceString;
+    } catch (e) {
+      console.warn('[purchases] loadPrice failed', e);
+      return null;
+    }
   }
 
   // 「広告を消す」ボタンから呼ぶ購入処理
@@ -125,12 +161,7 @@
     if (!isNative() || !window.Purchases) {
       throw new Error('購入はアプリ版（実機/シミュレーター）でのみ行えます');
     }
-    var offerings = await window.Purchases.getOfferings();
-    var current = offerings && offerings.current;
-    var pkg = current && current.availablePackages && current.availablePackages.find(function (p) {
-      return p.storeProduct && p.storeProduct.identifier === PRODUCT_ID;
-    });
-    if (!pkg) pkg = current && current.availablePackages && current.availablePackages[0];
+    var pkg = await findRemoveAdsPackage();
     if (!pkg) throw new Error('購入可能な商品が見つかりません（RevenueCatのOfferings設定を確認してください）');
 
     var result = await window.Purchases.purchasePackage({ aPackage: pkg });
@@ -152,6 +183,13 @@
     // 現時点でのキャッシュ済み状態を同期的に返す（ready解決前はfalseを返す）
     isAdsRemoved: function () { return cachedAdsRemoved; },
     buyRemoveAds: buyRemoveAds,
+    // ストアの表示用価格（取得前はnull）。取得できた時にコールバックが呼ばれる
+    getPriceString: function () { return cachedPriceString; },
+    onPrice: function (fn) {
+      priceListeners.push(fn);
+      if (cachedPriceString) { try { fn(cachedPriceString); } catch (e) {} }
+    },
+    loadPrice: loadPrice,
     restore: restore,
     // 購入状態が変わるたびに呼ばれるコールバックを登録（UIの出し分け用）
     onChange: function (fn) { listeners.push(fn); },
