@@ -2390,10 +2390,11 @@ body.panel-open .setting-btn{
         <span class="switch-slider"></span>
       </label>
     </div>
-    <div class="setting-menu-item placeholder-item" id="languageMenuItem">
+    <!-- 「言語」「バージョン情報」は未実装のため、いったん非表示（実装できたら style="display:none" を外して戻す） -->
+    <div class="setting-menu-item placeholder-item" id="languageMenuItem" style="display:none">
       <span>言語</span><span class="arrow">›</span>
     </div>
-    <div class="setting-menu-item placeholder-item">
+    <div class="setting-menu-item placeholder-item" style="display:none">
       <span>バージョン情報</span><span class="arrow">›</span>
     </div>
   </div>
@@ -3036,7 +3037,8 @@ body.panel-open .setting-btn{
       wrap.appendChild(row);
     });
 
-    // 3〜5番目：まだ実装していない紋章枠も、項目として一覧に出しておく
+    // 3〜5番目：まだ実装していない紋章枠は「？？？」の伏せ枠として出しておく
+    //（実装できたら、名前と解放条件の表示に差し替える）
     for(let i = 3; i <= 5; i++){
       const row = document.createElement('div');
       row.className = 'modal-badge-row locked-future';
@@ -3048,10 +3050,10 @@ body.panel-open .setting-btn{
       const info = document.createElement('div');
       const name = document.createElement('div');
       name.className = 'modal-badge-name';
-      name.textContent = `紋章 ${i}`;
+      name.textContent = '？？？';
       const status = document.createElement('div');
       status.className = 'modal-badge-status';
-      status.textContent = '近日公開予定';
+      status.textContent = 'ひみつ';
       info.appendChild(name);
       info.appendChild(status);
       row.appendChild(info);
