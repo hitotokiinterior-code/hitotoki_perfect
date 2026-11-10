@@ -194,7 +194,6 @@
         adSize: 'ADAPTIVE_BANNER',
         position: 'BOTTOM_CENTER',
         margin: getBannerMargin(),
-        isTesting: true, // 本番切り替え時にこの行を削除する
       });
       bannerShown = true;
       setGameReserve(true);
@@ -242,7 +241,6 @@
     try {
       await AdMob.prepareInterstitial({
         adId: INTERSTITIAL_AD_UNIT_ID_IOS,
-        isTesting: true, // 本番切り替え時にこの行を削除する
       });
       interstitialReady = true;
       dbg('全画面広告: 準備OK');
@@ -299,9 +297,11 @@
     // 1) 初期化（ここが失敗したら広告は出せない）
     try {
       await AdMob.initialize({
-        // 開発中はtrueにしてGoogleのテスト広告だけを表示する。
-        // 本番リリース時はfalseにする(Info.plistのGADApplicationIdentifierが必要)
-        initializeForTesting: true,
+        // 本番：本物の広告ユニットIDで配信する(Info.plistのGADApplicationIdentifierが必要)。
+        // 自分の端末でのテストは、AdMob管理画面の「テストデバイス」に登録して行う
+        // (コード側でテスト端末を指定する場合は、initializeForTesting: true と testingDevices: [...] を足す)。
+        // 年齢レーティング4+に合わせ、PG(保護者の指導が望ましい)までの広告に制限する。
+        maxAdContentRating: 'ParentalGuidance',
       });
       dbg('1 初期化: OK');
     } catch (e) {
