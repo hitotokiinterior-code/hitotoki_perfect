@@ -3785,9 +3785,10 @@ panelBackdrop.addEventListener("click", closeAllPanels);
 // BGMは bgm-player.js（共通スクリプト）が実際の再生を担当している。
 // 効果音は se-player.js（共通スクリプト、各ゲームページで読み込み）が
 // 'pref_se' の値を見て再生するかどうかを決めるので、ここでは値を保存するだけでよい。
-// BGM・効果音は未設定時（初回起動時）はONがデフォルト。
+// 未設定時（初回起動時）のデフォルト：BGMはOFF、効果音はON。
+// （BGMは bgm-player.js / bg-theme.js が「'on' の時だけ再生」としているので、表示もそれに合わせる）
 const soundPrefs = {
-  bgm: localStorage.getItem('pref_bgm') !== 'off',
+  bgm: localStorage.getItem('pref_bgm') === 'on',
   se: localStorage.getItem('pref_se') !== 'off',
 };
 
