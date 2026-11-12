@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>特定商取引法に基づく表記 | hitotoki</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Jost:wght@500;600;700&display=swap');
+
+  :root{
+    --hairline: rgba(255,255,255,0.14);
+    --silver: #cfcfcf;
+    --silver-dim: #6f6f6f;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, #1c1c1c 0%, #0a0a0a 55%, #000000 100%);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    color: var(--silver);
+    display:flex;
+    justify-content:center;
+    padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+
+  .page{
+    width:100%;
+    max-width:560px;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+  }
+
+  header{
+    position:relative;
+    text-align:center;
+    padding-top: 6px;
+  }
+
+  .back-btn{
+    position:absolute;
+    left:0;
+    top:0;
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,255,255,0.05);
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    color:#fff;
+    font-size:1.2rem;
+    text-decoration:none;
+  }
+
+  h1{
+    font-family:'Kaisei Decol', serif;
+    font-weight:700;
+    font-size: clamp(1.3rem, 5.5vw, 1.6rem);
+    letter-spacing: 0.06em;
+    margin:0;
+    color:#fff;
+  }
+
+  .updated{
+    margin-top:10px;
+    font-size:0.65rem;
+    letter-spacing:0.15em;
+    color: var(--silver-dim);
+  }
+
+  main{
+    background: linear-gradient(160deg, #202020, #101010 55%, #030303);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 26px 22px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+  }
+
+  .intro{
+    font-size:0.82rem;
+    line-height:1.9;
+    color: var(--silver);
+  }
+  .intro strong{
+    color:#fff;
+    font-weight:700;
+  }
+
+  section{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  section h2{
+    font-family:'Kaisei Decol', serif;
+    font-size:0.95rem;
+    letter-spacing:0.04em;
+    color:#fff;
+    margin:0;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--hairline);
+  }
+
+  section h2 .num{
+    font-family:'Jost', sans-serif;
+    font-weight:600;
+    font-size:0.7rem;
+    color: var(--silver-dim);
+    letter-spacing:0.05em;
+    margin-right:8px;
+  }
+
+  section p{
+    margin:0;
+    font-size:0.8rem;
+    line-height:1.9;
+    color: var(--silver);
+  }
+
+  section ul{
+    margin:0;
+    padding-left: 1.1em;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  section ul li{
+    font-size:0.8rem;
+    line-height:1.7;
+    color: var(--silver);
+  }
+
+  .contact-box{
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 16px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .contact-box .row{
+    display:flex;
+    gap:8px;
+    font-size:0.78rem;
+  }
+  .contact-box .label{
+    color: var(--silver-dim);
+    min-width: 6.5em;
+    letter-spacing:0.04em;
+  }
+  .contact-box .value{
+    color:#fff;
+  }
+
+  footer{
+    text-align:center;
+    font-size:0.62rem;
+    letter-spacing:0.1em;
+    color: var(--silver-dim);
+    padding-top: 4px;
+  }
+
+  /* 特商法ページ用：項目名を上、内容を下に縦積みにして、長い文章でも読みやすくする */
+  .contact-box .row{ flex-direction:column; gap:2px; padding:7px 0; border-bottom:1px solid var(--hairline); }
+  .contact-box .row:last-child{ border-bottom:none; }
+  .contact-box .label{ min-width:0; }
+  .contact-box .value{ line-height:1.8; word-break:break-word; }
+  .contact-box .value a, section p a{ color:#fff; word-break:break-all; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <a class="back-btn" href="terms.html">‹</a>
+    <h1>特定商取引法に基づく表記</h1>
+    <div class="updated">HITOTOKI LEGAL NOTICE</div>
+  </header>
+
+  <main>
+
+    <p class="intro">
+      <strong>hitotoki</strong>（以下、「本アプリ」といいます。）で提供するアプリ内課金に関する、特定商取引法に基づく表記です。
+    </p>
+
+    <section>
+      <h2><span class="num">01</span>販売事業者</h2>
+      <div class="contact-box">
+        <div class="row"><span class="label">販売事業者</span><span class="value">hitotoki開発者</span></div>
+        <div class="row"><span class="label">運営責任者</span><span class="value">請求があった場合、遅滞なく開示します</span></div>
+        <div class="row"><span class="label">所在地</span><span class="value">請求があった場合、遅滞なく開示します</span></div>
+        <div class="row"><span class="label">電話番号</span><span class="value">請求があった場合、遅滞なく開示します</span></div>
+        <div class="row"><span class="label">メールアドレス</span><span class="value">hitotokiinterior@gmail.com</span></div>
+      </div>
+      <p>運営責任者・所在地・電話番号の開示をご希望の場合は、上記のメールアドレスへご請求ください。</p>
+    </section>
+
+    <section>
+      <h2><span class="num">02</span>販売条件</h2>
+      <div class="contact-box">
+        <div class="row"><span class="label">商品</span><span class="value">広告を非表示にする機能（アプリ内課金「広告を消す」／買い切り）</span></div>
+        <div class="row"><span class="label">販売価格</span><span class="value">アプリ内の購入画面に表示される金額です</span></div>
+        <div class="row"><span class="label">商品代金以外の必要料金</span><span class="value">インターネット接続料金、通信料金等は、ユーザーのご負担となります</span></div>
+        <div class="row"><span class="label">支払方法</span><span class="value">App Storeの決済（Apple ID）</span></div>
+        <div class="row"><span class="label">支払時期</span><span class="value">購入手続きの時点で、お支払いが確定します</span></div>
+        <div class="row"><span class="label">引渡時期</span><span class="value">購入手続きの完了後、すぐにご利用いただけます</span></div>
+        <div class="row"><span class="label">返品・キャンセル</span><span class="value">デジタルコンテンツの性質上、購入後の返品・キャンセルはお受けできません。返金については、Appleの定める規約およびポリシーに従います</span></div>
+        <div class="row"><span class="label">動作環境</span><span class="value">iPhone。対応するiOSのバージョンは、App Storeの掲載に準じます</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">03</span>制定情報</h2>
+      <div class="contact-box">
+        <div class="row"><span class="label">制定日</span><span class="value">2026年11月12日</span></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>© hitotoki</footer>
+
+</div>
+
+</body>
+</html>
