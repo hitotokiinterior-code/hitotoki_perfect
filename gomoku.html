@@ -527,34 +527,15 @@
     padding: 11px 10px;
   }
 
-  .winner-overlay{
-    position:fixed; inset:0;
-    background: rgba(0,0,0,0.82);
-    display:none;
-    align-items:center; justify-content:center;
-    z-index:20;
-    padding: 20px;
+  /* 決着後は、盤面を隠さず、手番表示の欄に結果と「次の対局へ」を出す（重力四目並べと同じ） */
+  .turn-info{ min-width:0; }
+  button.again-inline{
+    margin-left:auto;
+    flex-shrink:0;
+    padding: 7px 12px;
+    font-size:0.66rem;
+    white-space:nowrap;
   }
-  .winner-overlay.show{ display:flex; }
-  .winner-card{
-    background: linear-gradient(180deg, #161616, #050505);
-    border: 1px solid var(--hairline);
-    border-radius: 4px;
-    padding: 32px 34px;
-    text-align:center;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-    max-width: 300px;
-  }
-  .winner-card .big{
-    font-family:'Kaisei Decol', serif;
-    font-weight:700;
-    font-size:1.3rem;
-    color:#fff;
-    margin-bottom:10px;
-    display:flex; align-items:center; justify-content:center; gap:10px;
-    letter-spacing: 0.04em;
-  }
-  .winner-card p{ color:var(--silver-dim); font-size:0.8rem; margin: 0 0 20px; letter-spacing:0.04em; }
 
   /* --- modal overlay (confirm), same as the other games --- */
   .modal-overlay{
@@ -666,10 +647,11 @@
 
     <div class="turn-wrap">
       <div id="turnStone" class="turn-stone white"></div>
-      <div>
+      <div class="turn-info">
         <div id="turnLabel" class="turn-label">白 の番</div>
         <div id="statusText" class="status-text">マスを選んで石を置いてください</div>
       </div>
+      <button id="againBtn" class="main-btn again-inline hidden">次の対局へ</button>
     </div>
 
     <div class="board-frame">
@@ -678,14 +660,6 @@
 
   </div>
 
-</div>
-
-<div id="winnerOverlay" class="winner-overlay">
-  <div class="winner-card">
-    <div id="winnerText" class="big">白の勝ち！</div>
-    <p id="winnerSub">5つ並びました</p>
-    <button id="againBtn" class="main-btn">次の対局へ</button>
-  </div>
 </div>
 
 <div id="howToPlayModal" class="modal-overlay hidden">
@@ -720,6 +694,7 @@
   const STAR_POINTS = [[2,2],[2,7],[7,2],[7,7]];
 
   let grid, turn, gameOver, filledCount;
+  let lastResult = null; // { winner: 'white'|'black'|null, draw: boolean } | null
   let gameStartedAt = null;
   let vsCPU = false;
   let cpuDifficulty = 'normal';
@@ -890,7 +865,7 @@
     gameOver = false;
     filledCount = 0;
     gameStartedAt = Date.now();
-    document.getElementById('winnerOverlay').classList.remove('show');
+    lastResult = null;
     renderBoard();
     updateTurnUI(false);
   }
@@ -944,21 +919,36 @@
   function updateTurnUI(pulse){
     const stone = document.getElementById('turnStone');
     const label = document.getElementById('turnLabel');
+    const statusText = document.getElementById('statusText');
+    const againBtn = document.getElementById('againBtn');
+
+    // 決着後：盤面はそのまま見えるようにして、手番欄に結果と「次の対局へ」を出す
+    if(gameOver && lastResult){
+      if(lastResult.draw){
+        label.textContent = '引き分け';
+        statusText.textContent = '盤面が埋まりました';
+      } else {
+        stone.className = 'turn-stone ' + lastResult.winner;
+        label.textContent = (lastResult.winner === 'white' ? '白' : '黒') + 'の勝ち！';
+        statusText.textContent = WIN_LEN + 'つ並びました';
+      }
+      againBtn.classList.remove('hidden');
+      return;
+    }
+
+    againBtn.classList.add('hidden');
     stone.className = 'turn-stone ' + turn + (pulse ? ' pulse' : '');
     if(pulse){ void stone.offsetWidth; stone.classList.add('pulse'); }
     label.textContent = (turn === 'white' ? '白' : '黒') + ' の番';
     const isCpuTurn = vsCPU && turn === cpuSide();
-    if(gameOver){
-      document.getElementById('statusText').textContent = '対局終了';
-    } else if(isCpuTurn){
-      document.getElementById('statusText').textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'が考え中…';
+    if(isCpuTurn){
+      statusText.textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'が考え中…';
     } else {
-      document.getElementById('statusText').textContent = 'マスを選んで石を置いてください';
+      statusText.textContent = 'マスを選んで石を置いてください';
     }
 
-    if(!gameOver && isCpuTurn){
-      setTimeout(cpuTakeTurn, 500);
-    }
+    if(!isCpuTurn) return;
+    setTimeout(cpuTakeTurn, 500);
   }
 
   function placeStone(r,c){
@@ -1020,20 +1010,13 @@
   }
 
   function showWinner(winner, draw){
-    const overlay = document.getElementById('winnerOverlay');
-    const text = document.getElementById('winnerText');
-    const sub = document.getElementById('winnerSub');
+    // 結果は updateTurnUI が手番欄に表示する（全画面の表示は出さない）
+    lastResult = draw ? { winner: null, draw: true } : { winner: winner, draw: false };
     if(draw){
-      text.textContent = '引き分け';
-      sub.textContent = '盤面が埋まりました';
       sePlay('draw');
     } else {
-      const dotColor = winner === 'white' ? 'var(--ivory-mid)' : 'var(--ebony-mid)';
-      text.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:' + dotColor + ';box-shadow:0 0 0 1px var(--silver-dim);"></span>' + (winner === 'white' ? '白' : '黒') + 'の勝ち！';
-      sub.textContent = WIN_LEN + 'つ並びました';
       if(vsCPU && winner !== humanSide){ sePlay('lose'); } else { sePlay('win'); }
     }
-    overlay.classList.add('show');
 
     if(window.hitotokiStats){
       window.hitotokiStats.recordGameEnd('gomoku', '五目並べ', {
