@@ -303,6 +303,43 @@
     font-size:0.72rem;
   }
   .setup-rules-btn:hover{ background: rgba(255,255,255,0.06); border-color:#fff; }
+  /* 「遊び方」と「禁じ手」を横に並べる */
+  .setup-sub-row{
+    display:flex;
+    justify-content:center;
+    align-items:stretch;
+    gap:10px;
+    margin-top:-6px;
+  }
+  .setup-sub-row .setup-rules-btn{ margin-top:0; }
+  button.setup-forbidden-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 14px;
+    font-size:0.72rem;
+    color: var(--silver);
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--silver-dim);
+  }
+  .forbidden-state{
+    font-size:0.62rem;
+    letter-spacing:0.08em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--silver-dim);
+    color: var(--silver-dim);
+  }
+  button.setup-forbidden-btn.on{
+    border-color: var(--accent-gold);
+    background: var(--accent-gold-dim);
+    color: #fff;
+  }
+  button.setup-forbidden-btn.on .forbidden-state{
+    border-color: var(--accent-gold);
+    background: var(--accent-gold);
+    color:#141414;
+  }
 
   .game-screen{
     display:flex;
@@ -376,6 +413,7 @@
     letter-spacing:0.08em;
   }
   .status-text{ font-size:0.7rem; color:var(--silver-dim); letter-spacing:0.06em; margin-top:2px; }
+  .status-text.warn{ color:#e6a9a9; }
 
   .board-frame{
     padding: 10px;
@@ -522,6 +560,10 @@
     left:0;
     color:#fff;
   }
+  /* 遊び方が長くなっても、画面からはみ出さないようにする */
+  #howToPlayModal .modal-box{ max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); overflow-y:auto; }
+  .howto-list li.howto-sub{ padding-left:2.1em; font-size:0.74rem; }
+  .howto-list li.howto-sub::before{ content:'◦'; left:1em; }
   .howto-close-btn{
     width:100%;
     padding: 11px 10px;
@@ -635,20 +677,26 @@
         <div class="mode-grid-empty" aria-hidden="true"></div>
       </div>
       <div class="mode-toggle-row" id="sideToggleRow">
-        <button class="mode-toggle-btn active" id="sideWhiteBtn">先手で対戦</button>
-        <button class="mode-toggle-btn" id="sideBlackBtn">後手で対戦</button>
+        <button class="mode-toggle-btn active" id="sideFirstBtn">先手（黒）で対戦</button>
+        <button class="mode-toggle-btn" id="sideSecondBtn">後手（白）で対戦</button>
       </div>
       <button id="startGameBtn" class="main-btn start-btn">はじめる</button>
-      <button id="rulesBtn" class="main-btn setup-rules-btn">遊び方</button>
+      <div class="setup-sub-row">
+        <button id="rulesBtn" class="main-btn setup-rules-btn">遊び方</button>
+        <button id="forbiddenBtn" class="main-btn setup-forbidden-btn" aria-pressed="false">
+          <span class="forbidden-label">禁じ手</span>
+          <span id="forbiddenState" class="forbidden-state">OFF</span>
+        </button>
+      </div>
     </div>
   </div>
 
   <div id="gameScreen" class="game-screen hidden">
 
     <div class="turn-wrap">
-      <div id="turnStone" class="turn-stone white"></div>
+      <div id="turnStone" class="turn-stone black"></div>
       <div class="turn-info">
-        <div id="turnLabel" class="turn-label">白 の番</div>
+        <div id="turnLabel" class="turn-label">黒 の番</div>
         <div id="statusText" class="status-text">マスを選んで石を置いてください</div>
       </div>
       <button id="againBtn" class="main-btn again-inline hidden">次の対局へ</button>
@@ -666,11 +714,16 @@
   <div class="modal-box">
     <div class="howto-title">遊び方</div>
     <ul class="howto-list">
-      <li>10×10の盤に、白と黒が交互に石を置いていきます。</li>
+      <li>10×10の盤に、黒と白が交互に石を置いていきます。先手は黒、後手は白です。</li>
       <li>縦・横・斜め、いずれかの向きで5つ以上石を並べたら勝利です。</li>
       <li>一度置いた石は動かせません。</li>
       <li>全マスが埋まって誰も揃わなければ引き分けです。</li>
-      <li>「CPU対戦」を選ぶと黒をCPUが担当します。1人でも遊べます。</li>
+      <li>「CPU対戦」「達人CPU」では、先手（黒）か後手（白）を選べます。1人でも遊べます。</li>
+      <li>「禁じ手」をONにすると、先手の黒だけに、次の3つの禁じ手が加わります。禁じ手になる場所には、石を置けません。白には、禁じ手はありません。</li>
+      <li class="howto-sub"><strong>三三（さんさん）</strong>：一手で、「活三」（両端が空いていて、次に四や五を作れる、生きた3つの並び）が、同時に2つ以上できる形。</li>
+      <li class="howto-sub"><strong>四四（よんよん）</strong>：一手で、「四」（次に5つ目が並ぶ形）が、同時に2つ以上できる形。</li>
+      <li class="howto-sub"><strong>長連（ちょうれん）</strong>：黒の石が、縦・横・斜めに、6つ以上つながる形。</li>
+      <li>禁じ手がONのとき、黒は、ちょうど5つ並べたときだけ勝ちです（6つ以上は長連になります）。5つ並ぶ手は、三三・四四に当たっても、勝ちになります。</li>
     </ul>
     <button id="howToPlayCloseBtn" class="main-btn howto-close-btn">閉じる</button>
   </div>
@@ -698,8 +751,130 @@
   let gameStartedAt = null;
   let vsCPU = false;
   let cpuDifficulty = 'normal';
-  let humanSide = 'white';
+  let humanSide = 'black'; // 先手は黒
+  let forbiddenEnabled = false; // 禁じ手（黒のみ）：三三・四四・長連
+  let flashTimer = null;
   const DIRS4 = [[0,1],[1,0],[1,1],[1,-1]];
+
+  // ================= 禁じ手（黒のみ）: 三三・四四・長連 =================
+  // 黒が(r,c)に石を置いたとき、禁じ手になるかを判定する。
+  // 返り値: null（禁じ手ではない）| '三三' | '四四' | '長連'
+  //  ・ちょうど5つ並ぶ手は、三三・四四に当たっても勝ち（禁じ手にしない）
+  //  ・6つ以上つながる手（長連）は、常に禁じ手
+  //  ・「活三」は、それを活四にする場所が、すでに禁じ手なら、活三とは数えない（再帰で判定）
+  const FB_MAX_DEPTH = 3;
+
+  function inBoard(r,c){ return r>=0 && r<SIZE && c>=0 && c<SIZE; }
+
+  // (r,c)を通る方向(dr,dc)の線を、端から端までの配列にする（v: 'black'|'white'|null）。idxは(r,c)の位置。
+  function getLine(r, c, dr, dc){
+    let sr=r, sc=c;
+    while(inBoard(sr-dr, sc-dc)){ sr-=dr; sc-=dc; }
+    const cells = [];
+    let idx = -1;
+    let rr=sr, cc=sc;
+    while(inBoard(rr,cc)){
+      if(rr===r && cc===c) idx = cells.length;
+      cells.push({ r:rr, c:cc, v:grid[rr][cc] });
+      rr+=dr; cc+=dc;
+    }
+    return { cells, idx };
+  }
+  function isBlackAt(cells, i){ return i>=0 && i<cells.length && cells[i].v === 'black'; }
+  function isEmptyAt(cells, i){ return i>=0 && i<cells.length && cells[i].v === null; }
+
+  // cells[i]を含む、黒の連続の長さ
+  function blackRunLength(cells, i){
+    if(!isBlackAt(cells, i)) return 0;
+    let a=i, b=i;
+    while(isBlackAt(cells, a-1)) a--;
+    while(isBlackAt(cells, b+1)) b++;
+    return b-a+1;
+  }
+
+  // この線にある「四」（あと1つでちょうど5つになる形）のうち、idxの石を含むものを、重複なく数える。
+  // 同じ4つの石に対して、両端どちらでも5つになる活四は、1つの四として数える。
+  function fourSetsThrough(cells, idx){
+    const sets = new Set();
+    for(let e=0; e<cells.length; e++){
+      if(!isEmptyAt(cells, e)) continue;
+      cells[e].v = 'black';
+      if(blackRunLength(cells, e) === 5){
+        let a=e, b=e;
+        while(isBlackAt(cells, a-1)) a--;
+        while(isBlackAt(cells, b+1)) b++;
+        const stones = [];
+        for(let k=a; k<=b; k++){ if(k !== e) stones.push(k); }
+        if(stones.includes(idx)) sets.add(stones.join(','));
+      }
+      cells[e].v = null;
+    }
+    return sets;
+  }
+
+  // 両端が空いた、ちょうど4連の黒（活四）があり、idxの石と、新しく置いた石(eIdx)の両方が、そこに含まれるか。
+  // （eIdxを含めるのは、もともとある活四を、新しい活三と数えないため）
+  // 両端に置いた時に、ちょうど5つ（6つ以上でなく）になることも条件。
+  function hasOpenFourThrough(cells, idx, eIdx){
+    for(let a=0; a+3<cells.length; a++){
+      if(!(isBlackAt(cells,a) && isBlackAt(cells,a+1) && isBlackAt(cells,a+2) && isBlackAt(cells,a+3))) continue;
+      if(isBlackAt(cells,a-1) || isBlackAt(cells,a+4)) continue;
+      if(!(isEmptyAt(cells,a-1) && isEmptyAt(cells,a+4))) continue;
+      if(isBlackAt(cells,a-2) || isBlackAt(cells,a+5)) continue;
+      if(idx >= a && idx <= a+3 && eIdx >= a && eIdx <= a+3) return true;
+    }
+    return false;
+  }
+
+  // この線に、idxの石を含む「活三」があるか。
+  function hasLiveThreeThrough(cells, idx, depth){
+    for(let e=0; e<cells.length; e++){
+      if(!isEmptyAt(cells, e)) continue;
+      cells[e].v = 'black';
+      let ok = hasOpenFourThrough(cells, idx, e);
+      if(ok && depth < FB_MAX_DEPTH){
+        // 活四にするための石(e)が、それ自体で禁じ手なら、本物の活三ではない
+        const er = cells[e].r, ec = cells[e].c;
+        grid[er][ec] = 'black';
+        const foul = foulAt(er, ec, depth+1);
+        grid[er][ec] = null;
+        if(foul) ok = false;
+      }
+      cells[e].v = null;
+      if(ok) return true;
+    }
+    return false;
+  }
+
+  // 黒の石が(r,c)にすでに置かれている前提で、禁じ手かどうかを返す
+  function foulAt(r, c, depth){
+    const lines = [];
+    let fiveExact = false, overline = false;
+    for(const [dr,dc] of DIRS4){
+      const line = getLine(r, c, dr, dc);
+      const len = blackRunLength(line.cells, line.idx);
+      if(len >= 6) overline = true;
+      if(len === 5) fiveExact = true;
+      lines.push(line);
+    }
+    if(overline) return '長連';
+    if(fiveExact) return null;
+    let fours = 0;
+    for(const line of lines){ fours += fourSetsThrough(line.cells, line.idx).size; }
+    if(fours >= 2) return '四四';
+    let threes = 0;
+    for(const line of lines){ if(hasLiveThreeThrough(line.cells, line.idx, depth)) threes++; }
+    if(threes >= 2) return '三三';
+    return null;
+  }
+
+  function forbiddenReason(r, c){
+    if(!inBoard(r,c) || grid[r][c]) return null;
+    grid[r][c] = 'black';
+    try{ return foulAt(r, c, 0); }
+    finally{ grid[r][c] = null; }
+  }
+  // ================= /禁じ手 =================
 
   // ================= 効果音（SE）: se-player.js（他ゲームと共通）を使用 =================
   function sePlay(name){
@@ -717,6 +892,8 @@
   function cpuSide(){ return vsCPU ? opponentOf(humanSide) : null; }
 
   function wouldWin(r, c, player){
+    // 禁じ手がONのとき、禁じ手になる黒の手は、勝ちにならない
+    if(player === 'black' && forbiddenEnabled && forbiddenReason(r, c)) return false;
     grid[r][c] = player;
     const result = checkWin(r, c, player);
     grid[r][c] = null;
@@ -790,7 +967,20 @@
   }
 
   function cpuChooseMove(){
-    const candidates = generateCandidates();
+    let candidates = generateCandidates();
+
+    // CPUが黒で禁じ手がONのとき、禁じ手になる場所は選ばない
+    if(forbiddenEnabled && cpuSide() === 'black'){
+      candidates = candidates.filter(([r,c]) => !forbiddenReason(r,c));
+      if(candidates.length === 0){
+        for(let r=0;r<SIZE;r++){
+          for(let c=0;c<SIZE;c++){
+            if(!grid[r][c] && !forbiddenReason(r,c)) candidates.push([r,c]);
+          }
+        }
+      }
+      if(candidates.length === 0) return null;
+    }
 
     for(const [r,c] of candidates){
       if(wouldWin(r, c, cpuSide())) return [r,c];
@@ -855,13 +1045,15 @@
 
   function cpuTakeTurn(){
     if(gameOver || !vsCPU || turn !== cpuSide()) return;
-    const [r,c] = cpuChooseMove();
+    const mv = cpuChooseMove();
+    if(!mv) return;
+    const [r,c] = mv;
     placeStone(r,c);
   }
 
   function resetAll(){
     grid = Array.from({length:SIZE}, () => Array(SIZE).fill(null));
-    turn = 'white';
+    turn = 'black'; // 先手は黒
     gameOver = false;
     filledCount = 0;
     gameStartedAt = Date.now();
@@ -930,7 +1122,7 @@
       } else {
         stone.className = 'turn-stone ' + lastResult.winner;
         label.textContent = (lastResult.winner === 'white' ? '白' : '黒') + 'の勝ち！';
-        statusText.textContent = WIN_LEN + 'つ並びました';
+        statusText.textContent = (lastResult.reason === 'nomove') ? '黒は打てる場所がありません' : (WIN_LEN + 'つ並びました');
       }
       againBtn.classList.remove('hidden');
       return;
@@ -944,15 +1136,52 @@
     if(isCpuTurn){
       statusText.textContent = (cpuDifficulty === 'master' ? '達人CPU' : 'CPU') + 'が考え中…';
     } else {
-      statusText.textContent = 'マスを選んで石を置いてください';
+      statusText.textContent = (forbiddenEnabled && turn === 'black') ? 'マスを選んでください（禁じ手あり）' : 'マスを選んで石を置いてください';
     }
+    statusText.classList.remove('warn');
 
     if(!isCpuTurn) return;
     setTimeout(cpuTakeTurn, 500);
   }
 
+  // 禁じ手の場所に置こうとしたとき、理由を、手番欄に短く表示する
+  function flashForbidden(reason){
+    const statusText = document.getElementById('statusText');
+    statusText.textContent = '禁じ手です（' + reason + '）';
+    statusText.classList.add('warn');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => {
+      if(gameOver) return;
+      statusText.classList.remove('warn');
+      statusText.textContent = (forbiddenEnabled && turn === 'black') ? 'マスを選んでください（禁じ手あり）' : 'マスを選んで石を置いてください';
+    }, 1800);
+  }
+
+  // 禁じ手がONで、黒の番に、黒が打てる場所が1つも残っていなければ、白の勝ち
+  function checkBlackStalemate(){
+    if(!forbiddenEnabled || turn !== 'black') return false;
+    if(SIZE*SIZE - filledCount > 12) return false; // 盤がほぼ埋まるまでは、起こらない
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        if(!grid[r][c] && !forbiddenReason(r,c)) return false;
+      }
+    }
+    gameOver = true;
+    showWinner('white', false);
+    lastResult.reason = 'nomove';
+    updateTurnUI(false);
+    return true;
+  }
+
   function placeStone(r,c){
-    if(gameOver || grid[r][c]) return;
+    if(gameOver || grid[r][c]) return false;
+    if(forbiddenEnabled && turn === 'black'){
+      const reason = forbiddenReason(r, c);
+      if(reason){
+        if(!(vsCPU && turn === cpuSide())) flashForbidden(reason);
+        return false;
+      }
+    }
     grid[r][c] = turn;
     filledCount++;
 
@@ -974,18 +1203,20 @@
       gameOver = true;
       showWinner(turn, false);
       updateTurnUI(false);
-      return;
+      return true;
     }
 
     if(filledCount >= SIZE*SIZE){
       gameOver = true;
       showWinner(null, true);
       updateTurnUI(false);
-      return;
+      return true;
     }
 
     turn = turn === 'white' ? 'black' : 'white';
+    if(checkBlackStalemate()) return true;
     updateTurnUI(true);
+    return true;
   }
 
   function checkWin(r, c, player){
@@ -1031,14 +1262,25 @@
   // --- setup screen: pick the mode, commit with はじめる ---
   let setupVsCPU = false;
   let setupCpuDifficulty = 'normal';
-  let setupHumanSide = 'white';
+  let setupHumanSide = 'black'; // 先手（黒）
+  function loadForbiddenPref(){
+    try{ return localStorage.getItem('pref_gomoku_forbidden') === 'on'; }catch(e){ return false; }
+  }
+  function saveForbiddenPref(on){
+    try{ localStorage.setItem('pref_gomoku_forbidden', on ? 'on' : 'off'); }catch(e){}
+  }
+  let setupForbidden = loadForbiddenPref();
 
   function updateSetupUI(){
     document.getElementById('modeTwoPlayerBtn').classList.toggle('active', !setupVsCPU);
     document.getElementById('modeCPUBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'normal');
     document.getElementById('modeCPUMasterBtn').classList.toggle('active', setupVsCPU && setupCpuDifficulty === 'master');
-    document.getElementById('sideWhiteBtn').classList.toggle('active', setupHumanSide === 'white');
-    document.getElementById('sideBlackBtn').classList.toggle('active', setupHumanSide === 'black');
+    document.getElementById('sideFirstBtn').classList.toggle('active', setupHumanSide === 'black');
+    document.getElementById('sideSecondBtn').classList.toggle('active', setupHumanSide === 'white');
+    const fbBtn = document.getElementById('forbiddenBtn');
+    fbBtn.classList.toggle('on', setupForbidden);
+    fbBtn.setAttribute('aria-pressed', setupForbidden ? 'true' : 'false');
+    document.getElementById('forbiddenState').textContent = setupForbidden ? 'ON' : 'OFF';
   }
 
   document.getElementById('modeTwoPlayerBtn').addEventListener('click', () => {
@@ -1056,19 +1298,27 @@
     setupCpuDifficulty = 'master';
     updateSetupUI();
   });
-  document.getElementById('sideWhiteBtn').addEventListener('click', () => {
-    setupHumanSide = 'white';
+  document.getElementById('sideFirstBtn').addEventListener('click', () => {
+    setupHumanSide = 'black'; // 先手は黒
     updateSetupUI();
   });
-  document.getElementById('sideBlackBtn').addEventListener('click', () => {
-    setupHumanSide = 'black';
+  document.getElementById('sideSecondBtn').addEventListener('click', () => {
+    setupHumanSide = 'white'; // 後手は白
     updateSetupUI();
   });
+  document.getElementById('forbiddenBtn').addEventListener('click', () => {
+    setupForbidden = !setupForbidden;
+    updateSetupUI();
+  });
+
+  // 起動時に、記憶している設定（禁じ手のON/OFFなど）を、画面の表示へ反映する
+  updateSetupUI();
 
   function openSetupScreen(){
     setupVsCPU = vsCPU;
     setupCpuDifficulty = cpuDifficulty;
     setupHumanSide = humanSide;
+    setupForbidden = forbiddenEnabled;
     updateSetupUI();
     document.getElementById('gameScreen').classList.add('hidden');
     document.getElementById('setupScreen').classList.remove('hidden');
@@ -1079,6 +1329,8 @@
     vsCPU = setupVsCPU;
     cpuDifficulty = setupCpuDifficulty;
     humanSide = setupHumanSide;
+    forbiddenEnabled = setupForbidden;
+    saveForbiddenPref(forbiddenEnabled);
     document.getElementById('setupScreen').classList.add('hidden');
     document.getElementById('gameScreen').classList.remove('hidden');
     document.getElementById('bgSwitchBtn').classList.add('hidden');
@@ -1194,12 +1446,12 @@
   attachClickSE([
     'homeBtn', 'bgSwitchBtn',
     'modeTwoPlayerBtn', 'modeCPUBtn', 'modeCPUMasterBtn',
-    'sideWhiteBtn', 'sideBlackBtn', 'startGameBtn', 'rulesBtn',
+    'sideFirstBtn', 'sideSecondBtn', 'forbiddenBtn', 'startGameBtn', 'rulesBtn',
     'againBtn', 'howToPlayCloseBtn', 'confirmOkBtn', 'confirmCancelBtn',
   ]);
 
   // モード選択画面のどのボタンを最初に押しても、その瞬間にBGMが鳴り始めるようにする
-  ['modeTwoPlayerBtn','modeCPUBtn','modeCPUMasterBtn','sideWhiteBtn','sideBlackBtn','startGameBtn'].forEach(id => {
+  ['modeTwoPlayerBtn','modeCPUBtn','modeCPUMasterBtn','sideFirstBtn','sideSecondBtn','forbiddenBtn','startGameBtn'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('click', () => { if(window.hitotokiBGM) window.hitotokiBGM.play(); });
   });
