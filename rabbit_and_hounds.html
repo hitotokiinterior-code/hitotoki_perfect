@@ -522,6 +522,7 @@
       <li>ウサギは前後左右、どの方向にも自由に動けます。</li>
       <li>ウサギが盤の一番左の列にたどり着けば、ウサギの勝ちです。</li>
       <li>猟犬がウサギの動ける場所を無くせば、猟犬の勝ちです。</li>
+      <li>猟犬が1匹も動かせなくなった場合は、ウサギの勝ちです。</li>
       <li>30手経っても決着がつかない場合、ウサギの特殊勝利となります。</li>
     </ul>
     <button id="howToPlayCloseBtn" class="btn howto-close-btn">閉じる</button>
@@ -637,6 +638,32 @@
     return -5*hm + hareCol*3 + houndsAvgCol*1;
   }
 
+  // ウサギが「猟犬に止められずに最左列(D)へ着ける」経路を持っているとき、その最初の1歩を返す。
+  // 猟犬は自分のいる列より左の列には進めないので、いちばん左にいる猟犬の列より左のマスだけを
+  // 通ってDへ着ける場合、猟犬にはその経路をふさぐことも、ウサギを閉じ込めることもできない。
+  // この場合は、ウサギは探索せずに最短で向かう（盤面をうろうろしない）。
+  function safeEscapeStep(hounds, hare){
+    if(colOf(hare) === 0) return null; // すでに最左列（本来は、この時点で対局が終わっている）
+    const minCol = Math.min(...hounds.map(colOf));
+    if(colOf(hare) >= minCol) return null;
+    const prev = {}; prev[hare] = null;
+    const queue = [hare];
+    while(queue.length){
+      const cur = queue.shift();
+      if(colOf(cur) === 0){
+        let node = cur;
+        while(prev[node] !== hare) node = prev[node];
+        return node;
+      }
+      for(const n of (adj[cur]||[])){
+        if(prev[n] !== undefined) continue;
+        if(colOf(n) >= minCol) continue;
+        prev[n] = cur; queue.push(n);
+      }
+    }
+    return null;
+  }
+
   function cpuHoundMove(){
     const cands = allHoundMoves(state.hounds, state.hare);
     let best=null, bestScore=-Infinity;
@@ -661,6 +688,8 @@
   }
 
   function cpuHareMove(){
+    const safe = safeEscapeStep(state.hounds, state.hare);
+    if(safe) return safe;
     const cands = hareMoves(state.hounds, state.hare);
     const escape = cands.find(c=>colOf(c)===0);
     if(escape) return escape;
@@ -727,6 +756,11 @@
       } else {
         const hMoves = allHoundMoves(hounds, hare);
         let best=null, bestScore=-Infinity;
+        if(hMoves.length===0){
+          // 猟犬が動けない＝ウサギの勝ち（-Infinityにすると、Dへ向かわず動けなくなるまで遠回りしてしまう）
+          tt.set(key, { score: -1e6 - depth, move:null });
+          return tt.get(key);
+        }
         for(const mv of hMoves){
           const newHounds = hounds.slice(); newHounds[mv.idx]=mv.dest;
           const score = (hareMoves(newHounds, hare).length===0) ? (1e6 + depth) : minimax(newHounds, hare, 'hare', depth-1, atMoveLimit, tt).score;
@@ -755,6 +789,8 @@
     return res.move || cpuHoundMove();
   }
   function masterHareMove(){
+    const safe = safeEscapeStep(state.hounds, state.hare);
+    if(safe) return safe;
     const res = masterSearch('hare');
     return res.move || cpuHareMove();
   }
@@ -964,6 +1000,11 @@
   }
   function afterHareMove(){
     if(colOf(state.hare)===0){
+      render();
+      return endGame('hare');
+    }
+    // 猟犬が1匹も動かせない場合は、ウサギの勝ち（動かせないまま、対局が止まってしまうのを防ぐ）
+    if(allHoundMoves(state.hounds, state.hare).length===0){
       render();
       return endGame('hare');
     }
