@@ -1001,7 +1001,10 @@
     const bgBtn = document.getElementById('bgSwitchBtn');
     const bgPanel = document.getElementById('bgSwitchPanel');
     bgBtn.classList.toggle('hidden', id === 'gameScreen');
-    if(id === 'gameScreen') bgPanel.classList.add('hidden');
+    if(id === 'gameScreen'){
+      bgPanel.classList.add('hidden');
+      refreshHistoryLayout();
+    }
 
     // モード選択画面以外に移動したら「遊び方」モーダルは自動で閉じる
     if(id !== 'modeScreen'){
@@ -1317,14 +1320,19 @@
 
     const style = getComputedStyle(el);
     const gap = parseFloat(style.rowGap || style.gap) || 0;
+    const measured = measureHistoryRowHeight(el);
+    if(measured) historyRowHeight = measured;
     const rowH = historyRowHeight || 24;
-    el.style.minHeight = (rowH * 3 + gap * 2) + 'px';
+    // 履歴を、画面の空きに入るだけ表示する（キーパッドの上に、不自然な空きを作らない）。最低3件。
+    const baseCount = historyBaseCount(el, rowH, gap);
+    const baseHeight = rowH * baseCount + gap * (baseCount - 1);
+    el.style.minHeight = baseHeight + 'px';
 
     if(list.length === 0){
       el.innerHTML = '<div class="empty-hint">まだありません</div>';
       return;
     }
-    const showCount = historyExpanded[who] ? list.length : Math.min(3, list.length);
+    const showCount = historyExpanded[who] ? list.length : Math.min(baseCount, list.length);
     for(let n = 0; n < showCount; n++){
       const i = list.length - 1 - n;
       const item = list[i];
@@ -1359,13 +1367,7 @@
       el.appendChild(row);
     }
 
-    const rows = el.querySelectorAll('.history-item');
-    if(rows.length){
-      historyRowHeight = rows[0].getBoundingClientRect().height;
-      el.style.minHeight = (historyRowHeight * 3 + gap * 2) + 'px';
-    }
-
-    if(list.length > 3){
+    if(list.length > baseCount){
       const toggle = document.createElement('div');
       toggle.className = 'history-toggle-btn';
       toggle.textContent = historyExpanded[who] ? '▲ 折りたたむ' : '▼ すべて表示（' + list.length + '件）';
@@ -1376,13 +1378,60 @@
       toggleEl.appendChild(toggle);
     }
 
-    if(historyExpanded[who] && list.length > 4 && historyRowHeight){
-      const maxH = historyRowHeight * 4 + gap * 3;
-      el.style.maxHeight = maxH + 'px';
+    // 「すべて表示」では、表示の高さは変えずに、一覧の中をスクロールして、すべて見られるようにする
+    if(historyExpanded[who] && list.length > baseCount){
+      el.style.maxHeight = baseHeight + 'px';
       el.style.overflowY = 'auto';
       el.classList.add('expanded');
     }
   }
+
+  // 履歴1行の高さを、見えない見本の行で測る（画面が見えていない時は null）
+  function measureHistoryRowHeight(el){
+    const dummy = document.createElement('div');
+    dummy.className = 'history-item';
+    dummy.style.visibility = 'hidden';
+    const num = document.createElement('span'); num.className = 'history-num'; num.textContent = '00';
+    const digits = document.createElement('span'); digits.className = 'history-digits';
+    for(let k = 0; k < 3; k++){
+      const box = document.createElement('span'); box.className = 'hdigit'; box.textContent = '0';
+      digits.appendChild(box);
+    }
+    const hitVal = document.createElement('span'); hitVal.className = 'history-result hit-val'; hitVal.textContent = '0H';
+    const blowVal = document.createElement('span'); blowVal.className = 'history-result'; blowVal.textContent = '0B';
+    dummy.appendChild(num); dummy.appendChild(digits); dummy.appendChild(hitVal); dummy.appendChild(blowVal);
+    el.appendChild(dummy);
+    const h = dummy.getBoundingClientRect().height;
+    el.removeChild(dummy);
+    return h > 0 ? h : null;
+  }
+
+  // 一覧が、画面の空きに、何件入るか（最低3件、最大12件）
+  function historyBaseCount(el, rowH, gap){
+    const wrap = el.closest('.history-wrap');
+    const col = el.closest('.history-col');
+    if(!wrap || !col || !wrap.clientHeight || !rowH) return 3;
+    // 列の中の、一覧以外（見出し・列見出し・「すべて表示」の欄・余白）の高さを、1つずつ足す。
+    // （列の高さそのものは、もう一方の列に引きずられて伸びるため、使わない）
+    const cs = getComputedStyle(col);
+    let used = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    for(const child of col.children){
+      const s = getComputedStyle(child);
+      used += (parseFloat(s.marginTop) || 0) + (parseFloat(s.marginBottom) || 0);
+      if(child !== el) used += child.offsetHeight;
+    }
+    const avail = wrap.clientHeight - used - 1;         // 1pxは、誤差の余裕
+    const n = Math.floor((avail + gap) / (rowH + gap));
+    return Math.max(3, Math.min(12, n));
+  }
+
+  function refreshHistoryLayout(){
+    renderHistory('sente');
+    renderHistory('gote');
+  }
+  window.addEventListener('resize', () => {
+    if(!document.getElementById('gameScreen').classList.contains('hidden')) refreshHistoryLayout();
+  });
 
   function showWinner(winner, revealedCode){
     const overlay = document.getElementById('winnerOverlay');
