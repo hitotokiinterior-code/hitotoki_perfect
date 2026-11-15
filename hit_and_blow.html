@@ -510,7 +510,9 @@
     flex-direction:column;
     gap:6px;
     overflow-y:auto;
-    flex:1;
+    /* 必要な高さだけを使う。キーパッドを履歴のすぐ下に続け、余った高さは、画面の一番下(広告バナーの場所)に残す。
+       画面が低くて収まらない時だけ、縮んで、中でスクロールする */
+    flex:0 1 auto;
     min-height:0;
   }
   .history-cols{
