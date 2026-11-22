@@ -169,9 +169,21 @@ workflows:
             exit 1
           fi
           echo "✅ iPhone専用に設定しました"
-      - name: Info.plistに広告・暗号化の設定を追加(毎回自動生成されるため)
+      - name: Info.plistに広告・暗号化・日本語ローカライズ設定を追加(毎回自動生成されるため)
         script: |
           PLIST=ios/App/App/Info.plist
+          # App Storeの対応言語に日本語を登録
+          if ! /usr/libexec/PlistBuddy -c "Print :CFBundleLocalizations" "$PLIST" >/dev/null 2>&1; then
+            /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations array" "$PLIST"
+          fi
+          if ! /usr/libexec/PlistBuddy -c "Print :CFBundleLocalizations" "$PLIST" | grep -q 'ja'; then
+            /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:0 string ja" "$PLIST"
+          fi
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDevelopmentRegion ja" "$PLIST" 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDevelopmentRegion string ja" "$PLIST"
+          echo "日本語ローカライズ設定:"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleLocalizations" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleDevelopmentRegion" "$PLIST"
           /usr/libexec/PlistBuddy -c "Add :GADApplicationIdentifier string ca-app-pub-4044413836429156~5152450361" "$PLIST" || \
           /usr/libexec/PlistBuddy -c "Set :GADApplicationIdentifier ca-app-pub-4044413836429156~5152450361" "$PLIST"
           /usr/libexec/PlistBuddy -c "Add :NSUserTrackingUsageDescription string 'あなたに合った広告を表示するために、この許可が使用されます。'" "$PLIST" || \
